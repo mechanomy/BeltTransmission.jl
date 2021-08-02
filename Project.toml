@@ -1,0 +1,12 @@
+name = "BeltTransmission"
+uuid = "781bdc5c-c628-4fec-a83d-86641acf962a"
+authors = ["Ben Conrad <ben@benconrad.net>"]
+version = "0.1.0"
+
+[deps]
+BPlot = "d4f0b4df-fcc8-4d0a-9c39-735548b4f34b"
+Geometry2D = "91d09732-8952-4fe9-a745-3bacf4fd5e58"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+Utility = "fc763f5a-9b58-43fb-b3cf-046514c3f56f"
