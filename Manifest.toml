@@ -2,11 +2,11 @@
 
 [[BPlot]]
 deps = ["PyPlot"]
-git-tree-sha1 = "c81e0900738764d81e2feb106d4f5bdc11ea8857"
-repo-rev = "master"
-repo-url = "../BPlot"
+git-tree-sha1 = "f89488e8447945e9c14939964badc232379f5a78"
+repo-rev = "main"
+repo-url = "/home/ben/sync/mechgits/BPlot"
 uuid = "d4f0b4df-fcc8-4d0a-9c39-735548b4f34b"
-version = "0.1.0"
+version = "0.1.1"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"

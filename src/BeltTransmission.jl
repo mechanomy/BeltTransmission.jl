@@ -1,5 +1,4 @@
 module BeltTransmission
-
-greet() = print("Hello World!")
-
+  include("./Pulley2D.jl")
+  include("./BeltSegment.jl")
 end # module
