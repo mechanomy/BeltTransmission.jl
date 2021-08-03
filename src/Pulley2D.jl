@@ -1,15 +1,9 @@
 
-# include("Geometry2D.jl")
 module Pulley2D
-    # using Pkg
-    # Pkg.activate("/home/ben/sync/mechanomy/library/julia/")
-
     using Unitful
     using PyPlot #can use matplotlib arguments directly
     using Printf
     using StaticArrays #for defined-length arrays: SVector{3,T}
-
-    # import ..Geometry2D
     using Geometry2D
 
     struct Pulley
@@ -19,7 +13,7 @@ module Pulley2D
         aArrive::Geometry2D.Radian #angle of the point of tangency 
         aDepart::Geometry2D.Radian
     end
-    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad") # provide a helper constructor
+    # Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad") # provide a helper constructor
     Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad") # provide a helper constructor
 
     # Pulley( pulley::Pulley ) = Pulley( pulley.center, pulley.radius, pulley.axis, pulley.aArrive, pulley.aDepart ) #"copy" constructor?
