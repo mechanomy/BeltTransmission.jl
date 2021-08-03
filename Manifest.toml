@@ -46,10 +46,10 @@ uuid = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
 version = "0.8.4"
 
 [[Geometry2D]]
-deps = ["LinearAlgebra", "Printf", "PyPlot", "StaticArrays", "Unitful"]
-git-tree-sha1 = "97b5c8474f7ea2c065ae004c7bfef96199d8bfad"
+deps = ["BPlot", "LinearAlgebra", "Printf", "PyPlot", "StaticArrays", "Test", "Unitful"]
+git-tree-sha1 = "ef2d807e3aa22e442ee5e0b2aaeb8f7dbf7539b4"
 repo-rev = "main"
-repo-url = "../Geometry2D"
+repo-url = "/home/ben/sync/mechgits/Geometry2D"
 uuid = "91d09732-8952-4fe9-a745-3bacf4fd5e58"
 version = "0.1.0"
 
@@ -80,9 +80,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
-git-tree-sha1 = "6a8a2a625ab0dea913aba95c11370589e0239ff0"
+git-tree-sha1 = "0fb723cd8c45858c22169b2e42269e53271a6df7"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.6"
+version = "0.5.7"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -93,9 +93,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[Parsers]]
 deps = ["Dates"]
-git-tree-sha1 = "94bf17e83a0e4b20c8d77f6af8ffe8cc3b386c0a"
+git-tree-sha1 = "bfd7d8c7fd87f04543810d9cbd3995972236ba1b"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "1.1.1"
+version = "1.1.2"
 
 [[Printf]]
 deps = ["Unicode"]
@@ -156,9 +156,10 @@ uuid = "1986cc42-f94f-5a68-af5c-568840ba703d"
 version = "1.9.0"
 
 [[Utility]]
-git-tree-sha1 = "570ac3976c4adbac2dffad882df61764331426b8"
-repo-rev = "master"
-repo-url = "../Utility"
+deps = ["Test"]
+git-tree-sha1 = "02f7923236f31ad9831cf38d71fbb5077b113f6c"
+repo-rev = "main"
+repo-url = "/home/ben/sync/mechgits/Utility"
 uuid = "fc763f5a-9b58-43fb-b3cf-046514c3f56f"
 version = "0.1.0"
 
