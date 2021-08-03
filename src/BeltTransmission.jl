@@ -18,8 +18,8 @@ module Pulley2D
         aDepart::Geometry2D.Radian
         name::String
     end
-    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad","") 
-    Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad","")
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name) 
+    Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name)
 
     # Pulley( pulley::Pulley ) = Pulley( pulley.center, pulley.radius, pulley.axis, pulley.aArrive, pulley.aDepart ) #"copy" constructor?
     # Pulley(; x::Unitful.Length=0u"mm", y::Unitful.Length=0u"mm", radius::Unitful.Length=1u"mm", axis::Geometry2D.UnitVector=Geometry2D.uk, aArrive::Geometry2D.Radian=0u"rad", aDepart::Geometry2D.Radian=0u"rad") =
