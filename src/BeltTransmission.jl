@@ -296,7 +296,7 @@ module BeltSegment
         for (i,b) in enumerate(beltSystem)
             if typeof(b) == Pulley2D.Pulley
                 # plot(ustrip(b.center.x), ustrip(b.center.y), "o", color=colorPulley)
-                BeltTransmission.Pulley2D.plotPulley(b, color=colorPulley)
+                Pulley2D.plotPulley(b, color=colorPulley)
                 Geometry2D.plotCircle(Pulley2D.pulley2Circle(b), colorPulley)
             end
             if typeof(b) == Segment #plot segments after pulleys
@@ -344,7 +344,7 @@ end #BeltSegment
 
 end # BeltTransmission
 
-BeltTransmission.Pulley2D.dev()
+# BeltTransmission.Pulley2D.dev()
 # function dev()
     # @unit deg "deg" Degree 360/2*pi false
 #   ctr = Geometry2D.Point(1u"mm", 3u"mm")
