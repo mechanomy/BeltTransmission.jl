@@ -3,7 +3,9 @@ module BeltTransmission
 
 module Pulley2D
     using Unitful
+    @unit deg "deg" Degree 360/2*pi false
     using PyPlot #can use matplotlib arguments directly
+    using BPlot
     using Printf
     using StaticArrays #for defined-length arrays: SVector{3,T}
     using Geometry2D
@@ -14,9 +16,10 @@ module Pulley2D
         axis::Geometry2D.UnitVector #unit vector in the direction of positive axis rotation
         aArrive::Geometry2D.Radian #angle of the point of tangency 
         aDepart::Geometry2D.Radian
+        name::String
     end
-    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad") # provide a helper constructor
-    Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad") # provide a helper constructor
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad","") 
+    Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = Pulley(center,radius,axis,0u"rad",0u"rad","")
 
     # Pulley( pulley::Pulley ) = Pulley( pulley.center, pulley.radius, pulley.axis, pulley.aArrive, pulley.aDepart ) #"copy" constructor?
     # Pulley(; x::Unitful.Length=0u"mm", y::Unitful.Length=0u"mm", radius::Unitful.Length=1u"mm", axis::Geometry2D.UnitVector=Geometry2D.uk, aArrive::Geometry2D.Radian=0u"rad", aDepart::Geometry2D.Radian=0u"rad") =
@@ -27,10 +30,58 @@ module Pulley2D
 
     # convert(::Type{Pulley}, x) = Pulley(x.center, x.radius, x.axis, x.aArrive, x.aDepart )
 
+    # function calcWrappedLength(p::Pulley) #calculate the wrapped length from aArrive to aDepart at radius
+    #   if 
+    # end
+
     function pulley2Circle(p::Pulley)
         return Geometry2D.Circle(p.center, p.radius)
     end
+
+    function pulley2String(p::Pulley)
+      # return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] arrive[%3.3f] depart[%3.3f]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart)
+      return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart)
+    end
+    function printPulley(p::Pulley)
+      print(pulley2string(p))
+    end
+
+    function plotPulley(p::Pulley; color="black")
+      th = range(0,2*pi,length=100)
+      px = ustrip(p.center.x) 
+      py = ustrip(p.center.y) 
+      pr = ustrip(p.radius)
+      x = px .+ pr.*cos.(th)
+      y = py .+ pr.*sin.(th)
+      al= 0.5
+      plot(x,y, color=color, alpha=al )
+      text(px+pr*0.1,py+pr*0.1, p.name)
+      if p.axis == Geometry2D.UnitVector(0,0,1) #+z == ccw
+        plot(px, py, "o", color=color, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
+        plot(px+pr, py, "^", color=color, alpha=al)
+      elseif p.axis == Geometry2D.UnitVector(0,0,-1) #-z == cw
+        plot(px, py, "x", color=color, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
+        plot(px+pr, py, "v", color=color, alpha=al)
+      else
+        error("BeltTransmission.Pulley2D given a non-z axis for pulley %s", pulley2String(p))
+      end
+
+    end
+
+    function dev()
+      close("all")
+      ctr = Geometry2D.Point(1u"mm", 3u"mm")
+      uk = Geometry2D.UnitVector(0,0,1)
+      # constructLiteral = Pulley(ctr, 10u"mm", axx, 90u"deg", 270u"deg" )
+      # constructLiteral = Pulley(ctr, 10u"mm", axx, 90u"degree", 270u"degree" )
+      # constructLiteral = Pulley(ctr, 10u"mm", axx, 90deg, 270deg )
+      constructLiteral = Pulley2D.Pulley(ctr, 10u"mm", uk, 1u"rad", 2u"rad", "constructLiteral" )
+      print(constructLiteral)
+      Pulley2D.plotPulley(constructLiteral)
+    end
+
 end
+
 
 
 # A belt segment is a free section of belt beginning and ending at a pulley tangent point.  It is assumed straight and loaded only in tension. 
@@ -198,10 +249,12 @@ module BeltSegment
         l = 0u"mm"
         for b in beltSystem
             if typeof(b) == Pulley2D.Pulley
+              # if b.aDepart > b.aArrive
                 l += abs( uconvert(u"rad", (b.aDepart-b.aArrive)) * b.radius)
+              # end
             end
             if typeof(b) == Segment
-                l += b.length
+              l += b.length
             end
         end
         return l
@@ -243,13 +296,14 @@ module BeltSegment
         # nb = size(beltSystem,1)
         for (i,b) in enumerate(beltSystem)
             if typeof(b) == Pulley2D.Pulley
-                plot(ustrip(b.center.x), ustrip(b.center.y), "o", color=colorPulley)
+                # plot(ustrip(b.center.x), ustrip(b.center.y), "o", color=colorPulley)
+                BeltTransmission.Pulley2D.plotPulley(b, color=colorPulley)
                 Geometry2D.plotCircle(Pulley2D.pulley2Circle(b), colorPulley)
             end
             if typeof(b) == Segment #plot segments after pulleys
                 x = ustrip([b.depart.x, b.arrive.x])
                 y = ustrip([b.depart.y, b.arrive.y])
-                plot(x,y, color=colorSegment, alpha=0.5)
+                plot(x,y, color=colorSegment, linewidth=2, alpha=0.5)
             end
         end
         BPlot.formatPlot()
@@ -289,4 +343,18 @@ module BeltSegment
 
 end #BeltSegment
 
-end # module
+end # BeltTransmission
+
+BeltTransmission.Pulley2D.dev()
+# function dev()
+#   ctr = Geometry2D.Point(1u"mm", 3u"mm")
+#   axx = Geometry2D.UnitVector(1,0,0)
+#   # constructLiteral = Pulley(ctr, 10u"mm", axx, 90u"deg", 270u"deg" )
+#   # constructLiteral = Pulley(ctr, 10u"mm", axx, 90u"degree", 270u"degree" )
+#   # constructLiteral = BeltTransmission.Pulley2D.Pulley(ctr, 10u"mm", axx, 90deg, 270deg )
+#   constructLiteral = BeltTransmission.Pulley2D.Pulley(ctr, 10u"mm", axx, 1u"rad", 2u"rad" )
+#   print(constructLiteral)
+#   # plot(constructLiteral)
+#   # constructLiteral.plot()
+# end
+# dev()

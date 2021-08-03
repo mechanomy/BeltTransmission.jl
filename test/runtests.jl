@@ -17,12 +17,17 @@ function testPulley()
   # pulley = Pulley2D.Pulley( x=3u"mm", y=4u"mm", radius=5u"mm" )
   # println(pulley) #does work
   return ref.radius == pul.radius
+end
 
+function testCalcWrapped()
+  pa = BeltTransmission.Pulley2D.Pulley(center=ctr, radius=3u"mm", axis=Geometry2D.UnitVector([0,0,1]), aArrive=90u"deg", aDepart=180u"deg")
+
+  return pa.calcWrappedLength()==90u"deg"
 end
 
 @testset "test Pulley2D" begin
   @test testPulley()
-  # @test_throws MethodError Utility.iWrap(6.3,5)
+  @test testCalcWrapped()
 end
 
 
