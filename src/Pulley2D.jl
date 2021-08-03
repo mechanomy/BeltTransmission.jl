@@ -28,17 +28,4 @@ module Pulley2D
     function pulley2Circle(p::Pulley)
         return Geometry2D.Circle(p.center, p.radius)
     end
-
-    function test()
-        ctr = Geometry2D.Point(3u"mm",5u"mm")
-        pulley = Pulley(center=ctr, radius=3u"mm", axis=Geometry2D.UnitVector([0,0,1]))
-        # pulley = Pulley2D.Pulley( point, radius, axis, angle0, angle0 )
-        # pulley = Pulley2D.Pulley( center=point, radius=radius, axis=axis )
-        # pulley = Pulley2D.Pulley( )
-        # pulley = Pulley2D.Pulley( xmm=3.3, ymm=4.4, radiusmm=5.5 )
-        # pulley = Pulley2D.Pulley( x=3u"mm", y=4u"mm", radius=5u"mm" )
-        println(pulley)
-    end
 end
-
-# Pulley2D.test()
