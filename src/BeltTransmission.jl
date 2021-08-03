@@ -205,8 +205,8 @@ module BeltSegment
                 thB=uconvert(u"rad", angles[ia][2])
                 ta = testAngle(a=a,b=b, thA = thA, thB=thB )
                 if ta 
-                    solved[ir]           = Pulley2D.Pulley(a.center, a.radius, a.axis, a.aArrive, thA )
-                    solved[Utility.iNext(ir,nr)] = Pulley2D.Pulley(b.center, b.radius, b.axis, thB, b.aDepart )
+                    solved[ir]           = Pulley2D.Pulley(a.center, a.radius, a.axis, a.aArrive, thA, a.name )
+                    solved[Utility.iNext(ir,nr)] = Pulley2D.Pulley(b.center, b.radius, b.axis, thB, b.aDepart, b.name )
                 end
                 if ta && plotSegments
                     x = [ustrip(a.center.x) + ustrip(a.radius)*cos(thA), ustrip(b.center.x) + ustrip(b.radius)*cos(thB)]
