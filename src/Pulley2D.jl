@@ -47,4 +47,4 @@ module Pulley2D
     end
 end
 
-Pulley2D.test()
+# Pulley2D.test()

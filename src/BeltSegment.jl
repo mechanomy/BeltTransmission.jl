@@ -1,9 +1,6 @@
 # BeltSegment.jl
 
-include("Geometry2D.jl") 
-include("Pulley2D.jl") # Pulley
-include("Utility.jl") 
-include("BPlot.jl") 
+include("./Pulley2D.jl") # Pulley is within the BeltTransmission package, have to include the file and import..
 
 # A belt segment is a free section of belt beginning and ending at a pulley tangent point.  It is assumed straight and loaded only in tension. 
 module BeltSegment
@@ -11,11 +8,10 @@ module BeltSegment
     using Printf
     using PyPlot #can use matplotlib arguments directly
     using Unitful
-    import ..Geometry2D
+    using Geometry2D
+    using Utility
+    using BPlot
     import ..Pulley2D
-    import ..Utility
-    import ..BPlot
-
     struct Segment
         depart::Geometry2D.Point #[x,y] departure point
         arrive::Geometry2D.Point #[x,y] arrival point
@@ -263,6 +259,6 @@ module BeltSegment
 end #BeltSegment
 
 
-# BeltSegment.test()
-# BeltSegment.testUnitPulleys()
+BeltSegment.test()
+BeltSegment.testUnitPulleys()
 
