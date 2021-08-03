@@ -20,6 +20,7 @@ function testPulley()
 end
 
 function testCalcWrapped()
+    # @unit deg "deg" Degree 360/2*pi false
   pa = BeltTransmission.Pulley2D.Pulley(center=ctr, radius=3u"mm", axis=Geometry2D.UnitVector([0,0,1]), aArrive=90u"deg", aDepart=180u"deg")
 
   return pa.calcWrappedLength()==90u"deg"

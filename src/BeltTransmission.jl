@@ -3,7 +3,6 @@ module BeltTransmission
 
 module Pulley2D
     using Unitful
-    @unit deg "deg" Degree 360/2*pi false
     using PyPlot #can use matplotlib arguments directly
     using BPlot
     using Printf
@@ -347,6 +346,7 @@ end # BeltTransmission
 
 BeltTransmission.Pulley2D.dev()
 # function dev()
+    # @unit deg "deg" Degree 360/2*pi false
 #   ctr = Geometry2D.Point(1u"mm", 3u"mm")
 #   axx = Geometry2D.UnitVector(1,0,0)
 #   # constructLiteral = Pulley(ctr, 10u"mm", axx, 90u"deg", 270u"deg" )
