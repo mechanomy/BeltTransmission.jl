@@ -23,28 +23,31 @@ module Pulley2D
     Pulley(center::Geometry2D.Point, radius::Unitful.Length)                                                = Pulley(center,radius,Geometry2D.uk,0u"rad",0u"rad","") 
     PulleyKw(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name)
 
-    function calculateWrappedLength(p::Pulley) #calculate the wrapped length from aArrive to aDepart at radius
+    function calculateWrappedAngle(p::Pulley) #calculate the wrapped angle from aArrive to aDepart
       if p.axis == Geometry2D.UnitVector(0,0,1) #+z == ccw
         if p.aDepart < p.aArrive #negative to positive zero crossing
           angle = (2u"rad"*pi - p.aArrive) + p.aDepart 
           # @printf("W] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
-          return angle * p.radius
+          return angle
         else
           angle = p.aDepart - p.aArrive
           # @printf("X] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
-          return angle * p.radius
+          return angle
         end
       elseif p.axis == Geometry2D.UnitVector(0,0,-1) #-z == cw
         if p.aDepart < p.aArrive
           angle = p.aArrive-p.aDepart
           # @printf("Y] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
-          return angle * p.radius
+          return angle
         else
           angle = 2u"rad"*pi - p.aDepart + p.aArrive
           # @printf("Z] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
-          return angle * p.radius
+          return angle 
         end       
       end
+    end
+    function calculateWrappedLength(p::Pulley) #calculate the wrapped length from aArrive to aDepart at radius
+      return p.radius * calculateWrappedAngle(p)
     end
 
     function pulley2Circle(p::Pulley)
@@ -53,10 +56,11 @@ module Pulley2D
 
     function pulley2String(p::Pulley)
       # return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] arrive[%3.3f] depart[%3.3f]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart)
-      return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart)
+      # return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s] aWrap[%s] lWrap[%s]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart, calculateWrappedAngle(p), calculateWrappedLength(p))
+      return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s] aWrap[%s] lWrap[%s]", p.name, p.center.x, p.center.y, p.radius, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",calculateWrappedAngle(p)), calculateWrappedLength(p))
     end
     function printPulley(p::Pulley)
-      print(pulley2string(p))
+      println(pulley2String(p))
     end
 
     function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4)
@@ -315,7 +319,12 @@ module BeltSegment
     # prints <beltSystem> by calling toString() on each element
     function printBeltSystem(beltSystem)
         for (i,b) in enumerate(beltSystem)
+          if typeof(b) == Pulley2D.Pulley
+            println("$i: ", Pulley2D.pulley2String(b))
+            # Pulley2D.printPulley(b)
+          else
             println("$i: ", toString(b))
+          end
         end
         lTotal = calculateBeltLength(beltSystem)
         println("total belt length = $lTotal")
