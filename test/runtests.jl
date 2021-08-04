@@ -77,15 +77,31 @@ function testBeltSegment()
   pD = BeltTransmission.Pulley2D.PulleyKw( center=Geometry2D.Point(0u"mm",100u"mm"), radius=14u"mm", axis=-uk, name="pD") #negative-going zero cross 
   pE = BeltTransmission.Pulley2D.PulleyKw( center=Geometry2D.Point(100u"mm",0u"mm"), radius=14u"mm", axis=-uk, name="pE") #negative-going
 
+
   # angles = findTangents(a=pA, b=pB, plotResult=true)
 
   #convention: pulleys listed in 'positive' belt rotation order
   route = [pA, pE, pB, pC, pD]
   solved = BeltTransmission.BeltSegment.calculateSegments(route, false)
   belt = BeltTransmission.BeltSegment.routeToBeltSystem(solved)
+  length = BeltTransmission.BeltSegment.calculateBeltLength(belt)
   BeltTransmission.BeltSegment.printBeltSystem(belt)
   BeltTransmission.BeltSegment.plotBeltSystem(belt)
-  return true
+
+  # print(solved)
+
+  # lA = BeltTransmission.Pulley2D.calculateWrappedLength(solved[1])
+  # lE = BeltTransmission.Pulley2D.calculateWrappedLength(solved[2])
+  # lB = BeltTransmission.Pulley2D.calculateWrappedLength(solved[3])
+  # lC = BeltTransmission.Pulley2D.calculateWrappedLength(solved[4])
+  # lD = BeltTransmission.Pulley2D.calculateWrappedLength(solved[5])
+  # print("wrappedA: ", lA, "\n")
+  # print("wrappedB: ", lB, "\n")
+  # print("wrappedC: ", lC, "\n")
+  # print("wrappedD: ", lD, "\n")
+  # print("wrappedE: ", lE, "\n")
+
+  return length ≈ 0.8395731136345521u"m"
 end
 
 @testset "test BeltSegment" begin

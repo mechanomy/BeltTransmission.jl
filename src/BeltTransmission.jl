@@ -23,9 +23,29 @@ module Pulley2D
     Pulley(center::Geometry2D.Point, radius::Unitful.Length)                                                = Pulley(center,radius,Geometry2D.uk,0u"rad",0u"rad","") 
     PulleyKw(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name)
 
-    # function calcWrappedLength(p::Pulley) #calculate the wrapped length from aArrive to aDepart at radius
-    #   if 
-    # end
+    function calculateWrappedLength(p::Pulley) #calculate the wrapped length from aArrive to aDepart at radius
+      if p.axis == Geometry2D.UnitVector(0,0,1) #+z == ccw
+        if p.aDepart < p.aArrive #negative to positive zero crossing
+          angle = (2u"rad"*pi - p.aArrive) + p.aDepart 
+          # @printf("W] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
+          return angle * p.radius
+        else
+          angle = p.aDepart - p.aArrive
+          # @printf("X] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
+          return angle * p.radius
+        end
+      elseif p.axis == Geometry2D.UnitVector(0,0,-1) #-z == cw
+        if p.aDepart < p.aArrive
+          angle = p.aArrive-p.aDepart
+          # @printf("Y] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
+          return angle * p.radius
+        else
+          angle = 2u"rad"*pi - p.aDepart + p.aArrive
+          # @printf("Z] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
+          return angle * p.radius
+        end       
+      end
+    end
 
     function pulley2Circle(p::Pulley)
         return Geometry2D.Circle(p.center, p.radius)
@@ -260,9 +280,7 @@ module BeltSegment
         l = 0u"mm"
         for b in beltSystem
             if typeof(b) == Pulley2D.Pulley
-              # if b.aDepart > b.aArrive
-                l += abs( uconvert(u"rad", (b.aDepart-b.aArrive)) * b.radius)
-              # end
+              l += Pulley2D.calculateWrappedLength(b)
             end
             if typeof(b) == Segment
               l += b.length
