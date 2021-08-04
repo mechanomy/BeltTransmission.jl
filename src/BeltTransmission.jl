@@ -17,17 +17,11 @@ module Pulley2D
         aDepart::Geometry2D.Radian
         name::String
     end
-    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name) 
-    Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name)
-
-    # Pulley( pulley::Pulley ) = Pulley( pulley.center, pulley.radius, pulley.axis, pulley.aArrive, pulley.aDepart ) #"copy" constructor?
-    # Pulley(; x::Unitful.Length=0u"mm", y::Unitful.Length=0u"mm", radius::Unitful.Length=1u"mm", axis::Geometry2D.UnitVector=Geometry2D.uk, aArrive::Geometry2D.Radian=0u"rad", aDepart::Geometry2D.Radian=0u"rad") =
-    #     Pulley(Geometry2D.Point(x, y), radius, axis, aArrive, aDepart )
-
-    # Pulley(; xmm::Number=0, ymm::Number=0, radiusmm::Number=1) =
-    #     Pulley(Geometry2D.Point(xmm*1.0u"mm", ymm*1.0*u"mm"), radiusmm*1.0*u"mm", Geometry2D.uk, 0.0u"rad", 0.0u"rad" ) #assumes mm, rad; doesn't work if the following is enabled
-
-    # convert(::Type{Pulley}, x) = Pulley(x.center, x.radius, x.axis, x.aArrive, x.aDepart )
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String)     = Pulley(center,radius,axis,0u"rad",0u"rad",name) 
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector)                   = Pulley(center,radius,axis,0u"rad",0u"rad","") 
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length, name::String)                                  = Pulley(center,radius,Geometry2D.uk,0u"rad",0u"rad",name) 
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length)                                                = Pulley(center,radius,Geometry2D.uk,0u"rad",0u"rad","") 
+    PulleyKw(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name)
 
     # function calcWrappedLength(p::Pulley) #calculate the wrapped length from aArrive to aDepart at radius
     #   if 
@@ -45,7 +39,7 @@ module Pulley2D
       print(pulley2string(p))
     end
 
-    function plotPulley(p::Pulley; color="black")
+    function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta")
       th = range(0,2*pi,length=100)
       px = ustrip(p.center.x) 
       py = ustrip(p.center.y) 
@@ -53,14 +47,32 @@ module Pulley2D
       x = px .+ pr.*cos.(th)
       y = py .+ pr.*sin.(th)
       al= 0.5
-      plot(x,y, color=color, alpha=al )
+      plot(x,y, color=colorPulley, alpha=al )
       text(px+pr*0.1,py+pr*0.1, p.name)
       if p.axis == Geometry2D.UnitVector(0,0,1) #+z == ccw
-        plot(px, py, "o", color=color, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
-        plot(px+pr, py, "^", color=color, alpha=al)
+        plot(px, py, "o", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
+        plot(px+pr, py, "^", color=colorPulley, alpha=al)
+        
+        if p.aDepart < p.aArrive
+          an = range(p.aArrive-2u"rad"*pi, p.aDepart, length=100)
+        else
+          an = range(p.aArrive,p.aDepart,length=100)
+        end
+        ax = px .+ pr.*cos.(an)
+        ay = py .+ pr.*sin.(an)
+        plot(ax,ay, color=colorBelt, alpha=al )
       elseif p.axis == Geometry2D.UnitVector(0,0,-1) #-z == cw
-        plot(px, py, "x", color=color, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
-        plot(px+pr, py, "v", color=color, alpha=al)
+        plot(px, py, "x", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
+        plot(px+pr, py, "v", color=colorPulley, alpha=al)
+
+        if p.aDepart < p.aArrive
+          an = range(p.aArrive,p.aDepart,length=100)
+        else
+          an = range(p.aArrive, p.aDepart-2u"rad"*pi, length=100)
+        end       
+        ax = px .+ pr.*cos.(an)
+        ay = py .+ pr.*sin.(an)
+        plot(ax,ay, color=colorBelt, alpha=al )
       else
         error("BeltTransmission.Pulley2D given a non-z axis for pulley %s", pulley2String(p))
       end
@@ -205,7 +217,7 @@ module BeltSegment
                 thB=uconvert(u"rad", angles[ia][2])
                 ta = testAngle(a=a,b=b, thA = thA, thB=thB )
                 if ta 
-                    solved[ir]           = Pulley2D.Pulley(a.center, a.radius, a.axis, a.aArrive, thA, a.name )
+                    solved[ir]                   = Pulley2D.Pulley(a.center, a.radius, a.axis, a.aArrive, thA, a.name )
                     solved[Utility.iNext(ir,nr)] = Pulley2D.Pulley(b.center, b.radius, b.axis, thB, b.aDepart, b.name )
                 end
                 if ta && plotSegments
@@ -266,7 +278,8 @@ module BeltSegment
     end
 
     function toString(thing::Pulley2D.Pulley)
-        str = @sprintf("Pulley: center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]",
+        str = @sprintf("Pulley: [%s] center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]",
+            thing.name,
             ustrip(thing.center.x), ustrip(thing.center.y), ustrip(thing.radius),
             rad2deg(ustrip(thing.aArrive)), rad2deg(ustrip(thing.aDepart)) )
         # println("toString = ", str)
@@ -295,9 +308,8 @@ module BeltSegment
         # nb = size(beltSystem,1)
         for (i,b) in enumerate(beltSystem)
             if typeof(b) == Pulley2D.Pulley
-                # plot(ustrip(b.center.x), ustrip(b.center.y), "o", color=colorPulley)
-                Pulley2D.plotPulley(b, color=colorPulley)
-                Geometry2D.plotCircle(Pulley2D.pulley2Circle(b), colorPulley)
+                Pulley2D.plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment)
+                # Geometry2D.plotCircle(Pulley2D.pulley2Circle(b), colorPulley)
             end
             if typeof(b) == Segment #plot segments after pulleys
                 x = ustrip([b.depart.x, b.arrive.x])
@@ -332,8 +344,8 @@ module BeltSegment
 
     function testUnitPulleys()
         uk = Geometry2D.UnitVector([0,0,1])
-        pA = Pulley2D.Pulley( center=Geometry2D.Point(0u"m",0u"m"), radius=1u"m", axis=uk)
-        pB = Pulley2D.Pulley( center=Geometry2D.Point(10u"m",0u"m"), radius=1u"m", axis=uk)
+        pA = Pulley2D.PulleyKw( center=Geometry2D.Point(0u"m",0u"m"), radius=1u"m", axis=uk, "pA")
+        pB = Pulley2D.PulleyKw( center=Geometry2D.Point(10u"m",0u"m"), radius=1u"m", axis=uk, "pB")
         belt = routeToBeltSystem( calculateSegments( [pA, pB], false) )
         lTotal = calculateBeltLength(belt) 
         println("testUnitPulleys: totalLength = [$lTotal] =?= 10+10+3.14+3.14=26.28m ")

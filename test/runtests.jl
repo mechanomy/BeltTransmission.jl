@@ -5,30 +5,58 @@ using Geometry2D
 include("../src/BeltTransmission.jl")
 
 # test rationale:
+# - test for constructor consistiency
 # - test against changes in Geometry2D?
 function testPulley()
   ctr = Geometry2D.Point(3u"mm",5u"mm")
-  ref = BeltTransmission.Pulley2D.Pulley( Geometry2D.Point(3u"mm",5u"mm"), 3u"mm", Geometry2D.UnitVector([0,0,1]) )
-  pul = BeltTransmission.Pulley2D.Pulley(center=ctr, radius=3u"mm", axis=Geometry2D.UnitVector([0,0,1]))
-  # pulley = Pulley2D.Pulley( point, radius, axis, angle0, angle0 )
-  # pulley = Pulley2D.Pulley( center=point, radius=radius, axis=axis )
-  # pulley = Pulley2D.Pulley( )
-  # pulley = Pulley2D.Pulley( xmm=3.3, ymm=4.4, radiusmm=5.5 )
-  # pulley = Pulley2D.Pulley( x=3u"mm", y=4u"mm", radius=5u"mm" )
+  uk = Geometry2D.uk
+  rad = 4u"mm"
+  aa = 1u"rad"
+  ad = 2u"rad"
+  stc = BeltTransmission.Pulley2D.Pulley(ctr, rad, uk, aa, ad, "struct" )
+  cran = BeltTransmission.Pulley2D.Pulley(ctr, rad, uk, "cran" )
+  cra  = BeltTransmission.Pulley2D.Pulley(ctr, rad, uk )
+  crn  = BeltTransmission.Pulley2D.Pulley(ctr, rad, "crn" )
+  cr   = BeltTransmission.Pulley2D.Pulley(ctr, rad )
+  key  = BeltTransmission.Pulley2D.PulleyKw(center=ctr, radius=rad, axis=uk, name="key" )
+
   # println(pulley) #does work
-  return ref.radius == pul.radius
+  ret = true
+  ret &= stc.center == ctr
+  ret &= stc.center == cran.center
+  ret &= stc.center == cra.center
+  ret &= stc.center == crn.center
+  ret &= stc.center == cr.center
+  ret &= stc.center == key.center
+  ret &= stc.radius == rad
+  ret &= stc.radius == cran.radius
+  ret &= stc.radius == cra.radius
+  ret &= stc.radius == crn.radius
+  ret &= stc.radius == cr.radius
+  ret &= stc.radius == key.radius
+  ret &= stc.axis == uk
+  ret &= stc.axis == cran.axis
+  ret &= stc.axis == cra.axis
+  ret &= stc.axis == crn.axis
+  ret &= stc.axis == cr.axis
+  ret &= stc.axis == key.axis
+  ret &= stc.name == "struct"
+  ret &= cran.name == "cran"
+  ret &= cra.name == ""
+  ret &= crn.name == "crn"
+  ret &= cr.name == ""
+  ret &= key.name == "key"
+  return ret
 end
 
-function testCalcWrapped()
-    # @unit deg "deg" Degree 360/2*pi false
-  pa = BeltTransmission.Pulley2D.Pulley(center=ctr, radius=3u"mm", axis=Geometry2D.UnitVector([0,0,1]), aArrive=90u"deg", aDepart=180u"deg")
-
-  return pa.calcWrappedLength()==90u"deg"
-end
+# function testCalcWrapped()
+#   pa = BeltTransmission.Pulley2D.Pulley(ctr, 3u"mm", Geometry2D.uk, 90u"°", 180u"°", "pa")
+#   return pa.calcWrappedLength()==90u"°"
+# end
 
 @testset "test Pulley2D" begin
   @test testPulley()
-  @test testCalcWrapped()
+  # @test testCalcWrapped()
 end
 
 
@@ -39,23 +67,24 @@ end
 # - test that the belt routing is 'correct'
 function testBeltSegment()
   # println("BeltSegment.test()")
-  # close("all")
+  close("all")
   # println(Base.loaded_modules)
 
   uk = Geometry2D.UnitVector([0,0,1])
-  pA = BeltTransmission.Pulley2D.Pulley( center=Geometry2D.Point(0u"mm",0u"mm"), radius=62u"mm", axis=uk)
-  pB = BeltTransmission.Pulley2D.Pulley( center=Geometry2D.Point(146u"mm",80u"mm"), radius=43u"mm", axis=uk)
-  pC = BeltTransmission.Pulley2D.Pulley( center=Geometry2D.Point(46u"mm",180u"mm"), radius=43u"mm", axis=uk)
-  pD = BeltTransmission.Pulley2D.Pulley( center=Geometry2D.Point(0u"mm",100u"mm"), radius=4u"mm", axis=-uk) # axis is outside, rotates negatively, solves correctly
+  pA = BeltTransmission.Pulley2D.PulleyKw( center=Geometry2D.Point(0u"mm",0u"mm"), radius=62u"mm", axis=uk, name="pA")
+  pB = BeltTransmission.Pulley2D.PulleyKw( center=Geometry2D.Point(146u"mm",80u"mm"), radius=43u"mm", axis=uk, name="pB") #positive-going zero cross
+  pC = BeltTransmission.Pulley2D.PulleyKw( center=Geometry2D.Point(40u"mm",180u"mm"), radius=43u"mm", axis=uk, name="pC")
+  pD = BeltTransmission.Pulley2D.PulleyKw( center=Geometry2D.Point(0u"mm",100u"mm"), radius=14u"mm", axis=-uk, name="pD") #negative-going zero cross 
+  pE = BeltTransmission.Pulley2D.PulleyKw( center=Geometry2D.Point(100u"mm",0u"mm"), radius=14u"mm", axis=-uk, name="pE") #negative-going
 
   # angles = findTangents(a=pA, b=pB, plotResult=true)
 
   #convention: pulleys listed in 'positive' belt rotation order
-  route = [pA, pB, pC, pD]
+  route = [pA, pE, pB, pC, pD]
   solved = BeltTransmission.BeltSegment.calculateSegments(route, false)
   belt = BeltTransmission.BeltSegment.routeToBeltSystem(solved)
   BeltTransmission.BeltSegment.printBeltSystem(belt)
-  # plotBeltSystem(belt)
+  BeltTransmission.BeltSegment.plotBeltSystem(belt)
   return true
 end
 
