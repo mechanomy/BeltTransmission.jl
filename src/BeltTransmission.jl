@@ -39,7 +39,7 @@ module Pulley2D
       print(pulley2string(p))
     end
 
-    function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta")
+    function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4)
       th = range(0,2*pi,length=100)
       px = ustrip(p.center.x) 
       py = ustrip(p.center.y) 
@@ -60,7 +60,7 @@ module Pulley2D
         end
         ax = px .+ pr.*cos.(an)
         ay = py .+ pr.*sin.(an)
-        plot(ax,ay, color=colorBelt, alpha=al )
+        plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt )
       elseif p.axis == Geometry2D.UnitVector(0,0,-1) #-z == cw
         plot(px, py, "x", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
         plot(px+pr, py, "v", color=colorPulley, alpha=al)
@@ -72,7 +72,7 @@ module Pulley2D
         end       
         ax = px .+ pr.*cos.(an)
         ay = py .+ pr.*sin.(an)
-        plot(ax,ay, color=colorBelt, alpha=al )
+        plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt )
       else
         error("BeltTransmission.Pulley2D given a non-z axis for pulley %s", pulley2String(p))
       end
@@ -304,17 +304,17 @@ module BeltSegment
 
     end
 
-    function plotBeltSystem(beltSystem; colorPulley="black",colorSegment="green")
+    function plotBeltSystem(beltSystem; colorPulley="black",colorSegment="green", linewidthBelt=4)
         # nb = size(beltSystem,1)
         for (i,b) in enumerate(beltSystem)
             if typeof(b) == Pulley2D.Pulley
-                Pulley2D.plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment)
+                Pulley2D.plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment, linewidthBelt=linewidthBelt)
                 # Geometry2D.plotCircle(Pulley2D.pulley2Circle(b), colorPulley)
             end
             if typeof(b) == Segment #plot segments after pulleys
                 x = ustrip([b.depart.x, b.arrive.x])
                 y = ustrip([b.depart.y, b.arrive.y])
-                plot(x,y, color=colorSegment, linewidth=2, alpha=0.5)
+                plot(x,y, color=colorSegment, linewidth=linewidthBelt, alpha=0.5)
             end
         end
         BPlot.formatPlot()
