@@ -103,7 +103,6 @@ function testBeltSegment()
 
   return length ≈ 0.8395731136345521u"m"
 end
-
 @testset "test BeltSegment" begin
   @test testBeltSegment()
 end

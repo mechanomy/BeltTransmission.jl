@@ -84,7 +84,7 @@ module Pulley2D
         end
         ax = px .+ pr.*cos.(an)
         ay = py .+ pr.*sin.(an)
-        plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt )
+        plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt, label=p.name )
       elseif p.axis == Geometry2D.UnitVector(0,0,-1) #-z == cw
         plot(px, py, "x", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
         plot(px+pr, py, "v", color=colorPulley, alpha=al)
@@ -96,7 +96,7 @@ module Pulley2D
         end       
         ax = px .+ pr.*cos.(an)
         ay = py .+ pr.*sin.(an)
-        plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt )
+        plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt, label=p.name )
       else
         error("BeltTransmission.Pulley2D given a non-z axis for pulley %s", pulley2String(p))
       end
@@ -341,7 +341,7 @@ module BeltSegment
             if typeof(b) == Segment #plot segments after pulleys
                 x = ustrip([b.depart.x, b.arrive.x])
                 y = ustrip([b.depart.y, b.arrive.y])
-                plot(x,y, color=colorSegment, linewidth=linewidthBelt, alpha=0.5)
+                plot(x,y, color=colorSegment, linewidth=linewidthBelt, alpha=0.5, label=toString(b))
             end
         end
         BPlot.formatPlot()
