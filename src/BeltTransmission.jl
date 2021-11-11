@@ -7,6 +7,7 @@ module Pulley2D
     using BPlot
     using Printf
     using StaticArrays #for defined-length arrays: SVector{3,T}
+    using Utility
     using Geometry2D
 
     struct Pulley
@@ -214,7 +215,7 @@ module BeltSegment
         cb4 = dot(cross(urbb4, ua4b4), b.axis )
         # println("ca4: ",ca4)
         # println("cb4: ",cb4)
-        return Geometry2D.eqTol(ca4, 1) && Geometry2D.eqTol(cb4, 1)
+        return Utility.eqTol(ca4, 1) && Utility.eqTol(cb4, 1)
     end
 
     # given a Pulley route, output a new Pulley route array with the solved angles

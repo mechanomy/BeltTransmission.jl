@@ -156,10 +156,10 @@ uuid = "1986cc42-f94f-5a68-af5c-568840ba703d"
 version = "1.9.0"
 
 [[Utility]]
-deps = ["Test"]
-git-tree-sha1 = "02f7923236f31ad9831cf38d71fbb5077b113f6c"
+deps = ["Test", "Unitful"]
+git-tree-sha1 = "1e4e355a8f698074c0556fabb5266fd8737c498f"
 repo-rev = "main"
-repo-url = "/home/ben/sync/mechgits/Utility"
+repo-url = "../Utility"
 uuid = "fc763f5a-9b58-43fb-b3cf-046514c3f56f"
 version = "0.1.0"
 
