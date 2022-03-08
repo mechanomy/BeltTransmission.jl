@@ -64,11 +64,12 @@ module Pulley2D
       println(pulley2String(p))
     end
 
-    function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4)
+    function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4, plotUnit=u"m")
       th = range(0,2*pi,length=100)
-      px = ustrip(p.center.x) 
-      py = ustrip(p.center.y) 
-      pr = ustrip(p.radius)
+
+      px = ustrip(plotUnit, p.center.x) 
+      py = ustrip(plotUnit, p.center.y) 
+      pr = ustrip(plotUnit, p.radius)
       x = px .+ pr.*cos.(th)
       y = py .+ pr.*sin.(th)
       al= 0.5
@@ -131,15 +132,16 @@ module BeltSegment
     using BPlot
     import ..Pulley2D
     struct Segment
-        depart::Geometry2D.Point #[x,y] departure point
-        arrive::Geometry2D.Point #[x,y] arrival point
-        length::Unitful.Length
+      depart::Geometry2D.Point #[x,y] departure point
+      arrive::Geometry2D.Point #[x,y] arrival point
+      length::Unitful.Length
     end
 
     #find the four lines tangent to both circles, returns paired angles locating the points of tangency on the circles
     function findTangents(; a::Pulley2D.Pulley, b::Pulley2D.Pulley, plotResult::Bool=false)
         # println("a: ", a)
         # println("b: ", b)
+        un =u"mm" # unit(a.center.x)
 
         lCenter = norm(Geometry2D.subtractPoints(a.center,b.center))
         #verify that circles do not overlap
@@ -166,8 +168,8 @@ module BeltSegment
         b4 = Geometry2D.angleCorrect( pi+aCenter-aCross )
 
         if plotResult
-            @printf("Cross: a+b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(a.radius), ustrip(b.radius), ustrip(lCenter), ustrip(aCross), ustrip(aCross)*57)
-            @printf("Para: a-b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(a.radius), ustrip(b.radius), ustrip(lCenter), ustrip(aPara), ustrip(aPara)*57)
+            @printf("Cross: a+b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.radius), ustrip(un, b.radius), ustrip(un, lCenter), ustrip(un, aCross), ustrip(un, aCross)*57)
+            @printf("Para: a-b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.radius), ustrip(un, b.radius), ustrip(un, lCenter), ustrip(un, aPara), ustrip(un, aPara)*57)
             @printf("A: four angles to tangent points: %3.3f %3.3f, %3.3f %3.3f\n", rad2deg(a1), rad2deg(a2), rad2deg(a3), rad2deg(a4))
             @printf("B: four angles to tangent points: %3.3f %3.3f, %3.3f %3.3f\n", rad2deg(b1), rad2deg(b2), rad2deg(b3), rad2deg(b4))
 
@@ -179,17 +181,17 @@ module BeltSegment
             #prove it
             Geometry2D.plotCircle(Pulley2D.pulley2Circle(a),"black")
             Geometry2D.plotCircle(Pulley2D.pulley2Circle(b),"black")
-            x = [ustrip(a.center.x) + ustrip(a.radius)*cos(a1), ustrip(b.center.x) + ustrip(b.radius)*cos(b1)]
-            y = [ustrip(a.center.y) + ustrip(a.radius)*sin(a1), ustrip(b.center.y) + ustrip(b.radius)*sin(b1)]
+            x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a1), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b1)]
+            y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a1), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b1)]
             plot(x,y, color="red") 
-            x = [ustrip(a.center.x) + ustrip(a.radius)*cos(a2), ustrip(b.center.x) + ustrip(b.radius)*cos(b2)]
-            y = [ustrip(a.center.y) + ustrip(a.radius)*sin(a2), ustrip(b.center.y) + ustrip(b.radius)*sin(b2)]
+            x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a2), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b2)]
+            y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a2), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b2)]
             plot(x,y, color="magenta") 
-            x = [ustrip(a.center.x) + ustrip(a.radius)*cos(a3), ustrip(b.center.x) + ustrip(b.radius)*cos(b3)]
-            y = [ustrip(a.center.y) + ustrip(a.radius)*sin(a3), ustrip(b.center.y) + ustrip(b.radius)*sin(b3)]
+            x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a3), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b3)]
+            y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a3), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b3)]
             plot(x,y, color="blue") 
-            x = [ustrip(a.center.x) + ustrip(a.radius)*cos(a4), ustrip(b.center.x) + ustrip(b.radius)*cos(b4)]
-            y = [ustrip(a.center.y) + ustrip(a.radius)*sin(a4), ustrip(b.center.y) + ustrip(b.radius)*sin(b4)]
+            x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a4), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b4)]
+            y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a4), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b4)]
             p = plot(x,y, color="cyan") 
             # display(p)
             # show(p)
@@ -228,6 +230,7 @@ module BeltSegment
             b = route[Utility.iNext(ir,nr)]
             # println("a = ", a)
             # println("b = ", b)
+            un =u"mm" # unit(a.center.x)
             if plotSegments
                 Geometry2D.plotCircle(Pulley2D.pulley2Circle(a), "black")
             end
@@ -246,9 +249,9 @@ module BeltSegment
                     solved[Utility.iNext(ir,nr)] = Pulley2D.Pulley(b.center, b.radius, b.axis, thB, b.aDepart, b.name )
                 end
                 if ta && plotSegments
-                    x = [ustrip(a.center.x) + ustrip(a.radius)*cos(thA), ustrip(b.center.x) + ustrip(b.radius)*cos(thB)]
-                    y = [ustrip(a.center.y) + ustrip(a.radius)*sin(thA), ustrip(b.center.y) + ustrip(b.radius)*sin(thB)]
-                    plot(x,y, color="green")
+                    x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(thA), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(thB)]
+                    y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(thA), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(thB)]
+                    plot(x,y, color="orange")
                 end
             end
         end
@@ -296,22 +299,25 @@ module BeltSegment
 
     function printRoute(route::Vector{Pulley2D.Pulley})
         for r in route
-            @printf("center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]\n", ustrip(r.center.x), ustrip(r.center.y), ustrip(r.radius), rad2deg(ustrip(r.aArrive)), rad2deg(ustrip(r.aDepart)) )
+            un = unit(r.center.x)
+            @printf("center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]\n", ustrip(un, r.center.x), ustrip(un, r.center.y), ustrip(un, r.radius), rad2deg(ustrip(r.aArrive)), rad2deg(ustrip(r.aDepart)) )
         end
     end
 
     function toString(thing::Pulley2D.Pulley)
+        un = unit(thing.center.x)
         str = @sprintf("Pulley: [%s] center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]",
             thing.name,
-            ustrip(thing.center.x), ustrip(thing.center.y), ustrip(thing.radius),
-            rad2deg(ustrip(thing.aArrive)), rad2deg(ustrip(thing.aDepart)) )
+            ustrip(un, thing.center.x), ustrip(un, thing.center.y), ustrip(un, thing.radius),
+            rad2deg(ustrip(un, thing.aArrive)), rad2deg(ustrip(un, thing.aDepart)) )
         # println("toString = ", str)
         return str
     end
     function toString(thing::Segment)
+        un = unit(thing.depart.x)
         str = @sprintf("Segment: depart[%3.3f, %3.3f] -- arrive[%3.3f, %3.3f] length[%3.3f]",
-            ustrip(thing.depart.x), ustrip(thing.depart.y),
-            ustrip(thing.arrive.x), ustrip(thing.arrive.y),
+            ustrip(un, thing.depart.x), ustrip(un, thing.depart.y),
+            ustrip(un, thing.arrive.x), ustrip(un, thing.arrive.y),
             ustrip(thing.length) )
         # println("toString = ", str)
         return str
@@ -332,16 +338,18 @@ module BeltSegment
 
     end
 
-    function plotBeltSystem(beltSystem; colorPulley="black",colorSegment="green", linewidthBelt=4)
+    function plotBeltSystem(beltSystem; colorPulley="black",colorSegment="orange", linewidthBelt=4, plotUnit=u"mm")
         # nb = size(beltSystem,1)
         for (i,b) in enumerate(beltSystem)
             if typeof(b) == Pulley2D.Pulley
-                Pulley2D.plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment, linewidthBelt=linewidthBelt)
+                Pulley2D.plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment, linewidthBelt=linewidthBelt, plotUnit=plotUnit)
                 # Geometry2D.plotCircle(Pulley2D.pulley2Circle(b), colorPulley)
             end
             if typeof(b) == Segment #plot segments after pulleys
-                x = ustrip([b.depart.x, b.arrive.x])
-                y = ustrip([b.depart.y, b.arrive.y])
+                x = [ustrip(b.depart.x), ustrip(b.arrive.x) ]
+                y = [ustrip(b.depart.y), ustrip(b.arrive.y) ]
+                # x = [ustrip(plotUnit, b.depart.x), ustrip(plotUnit, b.arrive.x) ]
+                # y = [ustrip(plotUnit, b.depart.y), ustrip(plotUnit, b.arrive.x) ]
                 plot(x,y, color=colorSegment, linewidth=linewidthBelt, alpha=0.5, label=toString(b))
             end
         end

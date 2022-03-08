@@ -5,6 +5,34 @@ using Geometry2D
 include("../src/BeltTransmission.jl")
 
 # test rationale:
+# - check that Geometry2D is handling Point units
+# - check that radius is entered correctly
+function testPulley_unitHandling()
+  uk = Geometry2D.uk
+
+  actr = Geometry2D.Point(3000u"mm",5000u"mm")
+  arad = 4000u"mm"
+  apul  = BeltTransmission.Pulley2D.Pulley(actr, arad, uk, "A" )
+
+  bctr = Geometry2D.Point(3u"m",5u"m")
+  brad = 4000u"mm"
+  bpul  = BeltTransmission.Pulley2D.Pulley(bctr, brad, uk, "B" )
+
+  cctr = Geometry2D.Point(3u"m",5u"m")
+  crad = 4u"m"
+  cpul  = BeltTransmission.Pulley2D.Pulley(cctr, crad, uk, "C" )
+
+
+  #despite different units, these three pulleys should overlap
+  BeltTransmission.Pulley2D.plotPulley( apul, colorPulley="red", colorBelt="none")
+  BeltTransmission.Pulley2D.plotPulley( bpul, colorPulley="blue", colorBelt="none")
+  BeltTransmission.Pulley2D.plotPulley( cpul, colorPulley="cyan", colorBelt="none")
+  
+  return apul.center.x == bpul.center.x && apul.radius == cpul.radius;
+end
+
+
+# test rationale:
 # - test for constructor consistiency
 # - test against changes in Geometry2D?
 function testPulley()
@@ -55,6 +83,7 @@ end
 # end
 
 @testset "test Pulley2D" begin
+  @test testPulley_unitHandling()
   @test testPulley()
   # @test testCalcWrapped()
 end
