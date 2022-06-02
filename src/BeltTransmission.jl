@@ -1,6 +1,8 @@
+"""Geometric modeling of 2D closed belt transmissions"""
 module BeltTransmission
 
 
+"""Geometric modeling of 2D pulleys"""
 module Pulley2D
     using Unitful
     using PyPlot #can use matplotlib arguments directly
@@ -24,7 +26,10 @@ module Pulley2D
     Pulley(center::Geometry2D.Point, radius::Unitful.Length)                                                = Pulley(center,radius,Geometry2D.uk,0u"rad",0u"rad","") 
     PulleyKw(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name)
 
-    function calculateWrappedAngle(p::Pulley) #calculate the wrapped angle from aArrive to aDepart
+    """
+    Given `p::Pulley`, calculate the wrapped angle from aArrive to aDepart
+    """
+    function calculateWrappedAngle(p::Pulley) 
       if p.axis == Geometry2D.UnitVector(0,0,1) #+z == ccw
         if p.aDepart < p.aArrive #negative to positive zero crossing
           angle = (2u"rad"*pi - p.aArrive) + p.aDepart 
@@ -334,7 +339,7 @@ module BeltSegment
           end
         end
         lTotal = calculateBeltLength(beltSystem)
-        println("total belt length = $lTotal")
+        println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
 
     end
 
@@ -389,6 +394,12 @@ module BeltSegment
     end
 
 end #BeltSegment
+
+
+"""Do belt things()"""
+function doBeltThing()
+
+end
 
 end # BeltTransmission
 

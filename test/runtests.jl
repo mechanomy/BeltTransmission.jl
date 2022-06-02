@@ -1,13 +1,15 @@
 
 using Test
-using Unitful
+using Unitful, Unitful.DefaultSymbols
 using Geometry2D
-include("../src/BeltTransmission.jl")
+
+using BeltTransmission
+# include("../src/BeltTransmission.jl")
 
 # test rationale:
 # - check that Geometry2D is handling Point units
 # - check that radius is entered correctly
-function testPulley_unitHandling()
+@testset "Pulley2D unit handling" begin
   uk = Geometry2D.uk
 
   actr = Geometry2D.Point(3000u"mm",5000u"mm")
@@ -28,14 +30,15 @@ function testPulley_unitHandling()
   BeltTransmission.Pulley2D.plotPulley( bpul, colorPulley="blue", colorBelt="none")
   BeltTransmission.Pulley2D.plotPulley( cpul, colorPulley="cyan", colorBelt="none")
   
-  return apul.center.x == bpul.center.x && apul.radius == cpul.radius;
+  @test apul.center.x == bpul.center.x 
+  @test apul.radius == cpul.radius; # this isn't a great test, 
 end
 
 
 # test rationale:
 # - test for constructor consistiency
 # - test against changes in Geometry2D?
-function testPulley()
+@testset "Pulley2D constructors" begin
   ctr = Geometry2D.Point(3u"mm",5u"mm")
   uk = Geometry2D.uk
   rad = 4u"mm"
@@ -49,32 +52,30 @@ function testPulley()
   key  = BeltTransmission.Pulley2D.PulleyKw(center=ctr, radius=rad, axis=uk, name="key" )
 
   # println(pulley) #does work
-  ret = true
-  ret &= stc.center == ctr
-  ret &= stc.center == cran.center
-  ret &= stc.center == cra.center
-  ret &= stc.center == crn.center
-  ret &= stc.center == cr.center
-  ret &= stc.center == key.center
-  ret &= stc.radius == rad
-  ret &= stc.radius == cran.radius
-  ret &= stc.radius == cra.radius
-  ret &= stc.radius == crn.radius
-  ret &= stc.radius == cr.radius
-  ret &= stc.radius == key.radius
-  ret &= stc.axis == uk
-  ret &= stc.axis == cran.axis
-  ret &= stc.axis == cra.axis
-  ret &= stc.axis == crn.axis
-  ret &= stc.axis == cr.axis
-  ret &= stc.axis == key.axis
-  ret &= stc.name == "struct"
-  ret &= cran.name == "cran"
-  ret &= cra.name == ""
-  ret &= crn.name == "crn"
-  ret &= cr.name == ""
-  ret &= key.name == "key"
-  return ret
+  @test stc.center == ctr
+  @test stc.center == cran.center
+  @test stc.center == cra.center
+  @test stc.center == crn.center
+  @test stc.center == cr.center
+  @test stc.center == key.center
+  @test stc.radius == rad
+  @test stc.radius == cran.radius
+  @test stc.radius == cra.radius
+  @test stc.radius == crn.radius
+  @test stc.radius == cr.radius
+  @test stc.radius == key.radius
+  @test stc.axis == uk
+  @test stc.axis == cran.axis
+  @test stc.axis == cra.axis
+  @test stc.axis == crn.axis
+  @test stc.axis == cr.axis
+  @test stc.axis == key.axis
+  @test stc.name == "struct"
+  @test cran.name == "cran"
+  @test cra.name == ""
+  @test crn.name == "crn"
+  @test cr.name == ""
+  @test key.name == "key"
 end
 
 # function testCalcWrapped()
@@ -82,19 +83,13 @@ end
 #   return pa.calcWrappedLength()==90u"°"
 # end
 
-@testset "test Pulley2D" begin
-  @test testPulley_unitHandling()
-  @test testPulley()
-  # @test testCalcWrapped()
-end
-
 
 
 
 # test rationale:
 # - test against changes in Pulley2D, Geometry2D?
 # - test that the belt routing is 'correct'
-function testBeltSegment()
+@testset "BeltSegment test" begin
   # println("BeltSegment.test()")
   close("all")
   # println(Base.loaded_modules)
@@ -130,8 +125,5 @@ function testBeltSegment()
   # print("wrappedD: ", lD, "\n")
   # print("wrappedE: ", lE, "\n")
 
-  return length ≈ 0.8395731136345521u"m"
-end
-@testset "test BeltSegment" begin
-  @test testBeltSegment()
+  @test length ≈ 0.8395731136345521u"m"
 end
