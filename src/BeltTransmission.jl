@@ -9,6 +9,7 @@ using Printf
 using StaticArrays #for defined-length arrays: SVector{3,T}
 using Utility
 using Geometry2D
+using LinearAlgebra:normalize, cross, dot
 
 using Test
 

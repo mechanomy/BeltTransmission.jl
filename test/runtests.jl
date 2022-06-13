@@ -6,6 +6,7 @@ Pkg.activate( normpath(joinpath(@__DIR__, "..")) ) #activate this package
 using BeltTransmission
 
 BeltTransmission.testPulley()
+BeltTransmission.testBeltSegment()
 
   # tdir = tempdir()
   # bpath = joinpath(tdir, "generateBeltTable.csv") 
