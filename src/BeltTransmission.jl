@@ -1,5 +1,16 @@
 """Geometric modeling of 2D closed belt transmissions"""
 module BeltTransmission
+using Unitful, Unitful.DefaultSymbols
+using KeywordDispatch
+
+using PyPlot #can use matplotlib arguments directly
+using BPlot
+using Printf
+using StaticArrays #for defined-length arrays: SVector{3,T}
+using Utility
+using Geometry2D
+
+using Test
 
 
 # include("../src/Pulley2D.jl")

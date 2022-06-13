@@ -1,16 +1,14 @@
 
 # A belt segment is a free section of belt beginning and ending at a pulley tangent point.  It is assumed straight and loaded only in tension. 
-module BeltSegment
-  using KeywordDispatch
-  using LinearAlgebra #for cross(), dot(), norm()
-  using Printf
-  using PyPlot #can use matplotlib arguments directly
-  using Unitful
-  using Geometry2D
-  using Utility
-  using BPlot
+#   using KeywordDispatch
+#   using LinearAlgebra #for cross(), dot(), norm()
+#   using Printf
+#   using PyPlot #can use matplotlib arguments directly
+#   using Unitful
+#   using Geometry2D
+#   using Utility
+#   using BPlot
 
-  import ..Pulley2D
 
   struct Segment
     depart::Geometry2D.Point #[x,y] departure point
@@ -21,7 +19,7 @@ module BeltSegment
   @kwmethod Segment(; depart::Geometry2D.Point, arrive::Geometry2D.Point ) = Segment( depart, arrive, Geometry2D.distance(depart,arrive) )
 
   #find the four lines tangent to both circles, returns paired angles locating the points of tangency on the circles
-  function findTangents(; a::Pulley2D.Pulley, b::Pulley2D.Pulley, plotResult::Bool=false)
+  function findTangents(; a::Pulley, b::Pulley, plotResult::Bool=false)
       # println("a: ", a)
       # println("b: ", b)
       un =u"mm" # unit(a.center.x)
@@ -62,8 +60,8 @@ module BeltSegment
           println("A4B4: ", Geometry2D.isSegmentTangent(a, b, uconvert(u"rad", a4), uconvert(u"rad", b4)) )
 
           #prove it
-          Geometry2D.plotCircle(Pulley2D.pulley2Circle(a),"black")
-          Geometry2D.plotCircle(Pulley2D.pulley2Circle(b),"black")
+          Geometry2D.plotCircle(pulley2Circle(a),"black")
+          Geometry2D.plotCircle(pulley2Circle(b),"black")
           x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a1), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b1)]
           y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a1), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b1)]
           plot(x,y, color="red") 
@@ -85,7 +83,7 @@ module BeltSegment
 
   #define segment a->b between ai&bi; the correct angle will have cross products that match both axes, so
   # (ra-a1)x(a1-b1) = ax1 && (rb-b1)x(a1-b1) = bx1, all others should be false
-  function testAngle(; a::Pulley2D.Pulley, b::Pulley2D.Pulley, thA::Geometry2D.Radian, thB::Geometry2D.Radian)
+  function testAngle(; a::Pulley, b::Pulley, thA::Geometry2D.Radian, thB::Geometry2D.Radian)
     raa4 = a.radius * [cos(thA), sin(thA),0]
     rbb4 = b.radius * [cos(thB), sin(thB),0]
     a4b4 = ([b.center.x,b.center.y,0u"mm"]+rbb4) - ([a.center.x,a.center.y,0u"mm"]+raa4) #difference between tangent points, a to b, defines the belt segment
@@ -103,7 +101,7 @@ module BeltSegment
   end
 
   # given a Pulley route, output a new Pulley route array with the solved angles
-  function calculateSegments(route::Vector{Pulley2D.Pulley}, plotSegments::Bool=false)
+  function calculateSegments(route::Vector{Pulley}, plotSegments::Bool=false)
       nr = size(route,1)
       solved = route #allocate the array
 
@@ -114,7 +112,7 @@ module BeltSegment
           # println("b = ", b)
           un =u"mm" # unit(a.center.x)
           if plotSegments
-              Geometry2D.plotCircle(Pulley2D.pulley2Circle(a), "black")
+              Geometry2D.plotCircle(pulley2Circle(a), "black")
           end
           angles = findTangents(a=a, b=b) #angles = [[a1,b1],[a2,b2],...]
 
@@ -127,8 +125,8 @@ module BeltSegment
               thB=uconvert(u"rad", angles[ia][2])
               ta = testAngle(a=a,b=b, thA = thA, thB=thB )
               if ta 
-                  solved[ir]                   = Pulley2D.Pulley(a.center, a.radius, a.axis, a.aArrive, thA, a.name )
-                  solved[Utility.iNext(ir,nr)] = Pulley2D.Pulley(b.center, b.radius, b.axis, thB, b.aDepart, b.name )
+                  solved[ir]                   = Pulley(a.center, a.radius, a.axis, a.aArrive, thA, a.name )
+                  solved[Utility.iNext(ir,nr)] = Pulley(b.center, b.radius, b.axis, thB, b.aDepart, b.name )
               end
               if ta && plotSegments
                   x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(thA), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(thB)]
@@ -146,7 +144,7 @@ module BeltSegment
   end #calculateSegments
   
   # convert a Pulley array to a belt/free list
-  function routeToBeltSystem(route::Vector{Pulley2D.Pulley})
+  function routeToBeltSystem(route::Vector{Pulley})
       nr = size(route,1)
       belt = []
       for ir in 1:nr #this loop looks forward from a pulley, adding pulley then freespace segment
@@ -169,8 +167,8 @@ module BeltSegment
   function calculateBeltLength(beltSystem)
       l = 0u"mm"
       for b in beltSystem
-          if typeof(b) == Pulley2D.Pulley
-            l += Pulley2D.calculateWrappedLength(b)
+          if typeof(b) == Pulley
+            l += calculateWrappedLength(b)
           end
           if typeof(b) == Segment
             l += b.length
@@ -179,14 +177,14 @@ module BeltSegment
       return l
   end
 
-  function printRoute(route::Vector{Pulley2D.Pulley})
+  function printRoute(route::Vector{Pulley})
       for r in route
           un = unit(r.center.x)
           @printf("center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]\n", ustrip(un, r.center.x), ustrip(un, r.center.y), ustrip(un, r.radius), rad2deg(ustrip(r.aArrive)), rad2deg(ustrip(r.aDepart)) )
       end
   end
 
-  function toString(thing::Pulley2D.Pulley)
+  function toString(thing::Pulley)
       un = unit(thing.center.x)
       str = @sprintf("Pulley: [%s] center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]",
           thing.name,
@@ -208,9 +206,9 @@ module BeltSegment
   # prints <beltSystem> by calling toString() on each element
   function printBeltSystem(beltSystem)
       for (i,b) in enumerate(beltSystem)
-        if typeof(b) == Pulley2D.Pulley
-          println("$i: ", Pulley2D.pulley2String(b))
-          # Pulley2D.printPulley(b)
+        if typeof(b) == Pulley
+          println("$i: ", pulley2String(b))
+          # printPulley(b)
         else
           println("$i: ", toString(b))
         end
@@ -223,9 +221,9 @@ module BeltSegment
   function plotBeltSystem(beltSystem; colorPulley="black",colorSegment="orange", linewidthBelt=4, plotUnit=u"mm")
       # nb = size(beltSystem,1)
       for (i,b) in enumerate(beltSystem)
-          if typeof(b) == Pulley2D.Pulley
-              Pulley2D.plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment, linewidthBelt=linewidthBelt, plotUnit=plotUnit)
-              # Geometry2D.plotCircle(Pulley2D.pulley2Circle(b), colorPulley)
+          if typeof(b) == Pulley
+              plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment, linewidthBelt=linewidthBelt, plotUnit=plotUnit)
+              # Geometry2D.plotCircle(pulley2Circle(b), colorPulley)
           end
           if typeof(b) == Segment #plot segments after pulleys
               x = [ustrip(b.depart.x), ustrip(b.arrive.x) ]
@@ -244,10 +242,10 @@ module BeltSegment
       # println(Base.loaded_modules)
 
       uk = Geometry2D.UnitVector([0,0,1])
-      pA = Pulley2D.Pulley( center=Geometry2D.Point(0u"mm",0u"mm"), radius=62u"mm", axis=uk)
-      pB = Pulley2D.Pulley( center=Geometry2D.Point(146u"mm",80u"mm"), radius=43u"mm", axis=uk)
-      pC = Pulley2D.Pulley( center=Geometry2D.Point(46u"mm",180u"mm"), radius=43u"mm", axis=uk)
-      pD = Pulley2D.Pulley( center=Geometry2D.Point(0u"mm",100u"mm"), radius=4u"mm", axis=-uk) # axis is outside, rotates negatively, solves correctly
+      pA = Pulley( center=Geometry2D.Point(0u"mm",0u"mm"), radius=62u"mm", axis=uk)
+      pB = Pulley( center=Geometry2D.Point(146u"mm",80u"mm"), radius=43u"mm", axis=uk)
+      pC = Pulley( center=Geometry2D.Point(46u"mm",180u"mm"), radius=43u"mm", axis=uk)
+      pD = Pulley( center=Geometry2D.Point(0u"mm",100u"mm"), radius=4u"mm", axis=-uk) # axis is outside, rotates negatively, solves correctly
 
       # angles = findTangents(a=pA, b=pB, plotResult=true)
 
@@ -262,13 +260,12 @@ module BeltSegment
 
   function testUnitPulleys()
       uk = Geometry2D.UnitVector([0,0,1])
-      pA = Pulley2D.PulleyKw( center=Geometry2D.Point(0u"m",0u"m"), radius=1u"m", axis=uk, "pA")
-      pB = Pulley2D.PulleyKw( center=Geometry2D.Point(10u"m",0u"m"), radius=1u"m", axis=uk, "pB")
+      pA = PulleyKw( center=Geometry2D.Point(0u"m",0u"m"), radius=1u"m", axis=uk, "pA")
+      pB = PulleyKw( center=Geometry2D.Point(10u"m",0u"m"), radius=1u"m", axis=uk, "pB")
       belt = routeToBeltSystem( calculateSegments( [pA, pB], false) )
       lTotal = calculateBeltLength(belt) 
       println("testUnitPulleys: totalLength = [$lTotal] =?= 10+10+3.14+3.14=26.28m ")
       # printBeltSystem(belt)
   end
 
-end #BeltSegment
 
