@@ -8,7 +8,7 @@ struct Segment #this should set aArrive & aDepart on the pulleys...mutable pulle
 end
 @kwdispatch Segment()
 @kwmethod Segment(; depart::Geometry2D.Point, arrive::Geometry2D.Point ) = Segment( depart, arrive, Geometry2D.distance(depart,arrive) )
-@kwmethod Segment(; depart::Pulley, arrive::Pulley ) = Segment( depart.center, arrive.center, Geometry2D.distance(depart.center,arrive.center) )
+@kwmethod Segment(; depart::Pulley, arrive::Pulley ) = Segment( depart.pitch.center, arrive.pitch.center, Geometry2D.distance(depart.pitch.center,arrive.pitch.center) )
 
 """
 `findTangents(; a::Pulley, b::Pulley, plotResult::Bool=false)`
@@ -19,18 +19,18 @@ function findTangents(; a::Pulley, b::Pulley, plotResult::Bool=false)
   # println("b: ", b)
   un =u"mm" # unit(a.center.x)
 
-  lCenter = norm(a.center-b.center)
+  lCenter = norm(a.pitch.center-b.pitch.center)
 
   #verify that circles do not overlap...but overlapping circles still have mutual tangents...
-  if lCenter < a.radius+b.radius
+  if lCenter < a.pitch.radius+b.pitch.radius
     throw( DomainError(lCenter, "findTangents: circles a[$a] and b[$b] overlap, can't find tangents") )
     return false
   end
 
-  aCenter = Geometry2D.angle( b.center-a.center ) # the angle of the relative vector between the pulley centers == the angle of the centerline
+  aCenter = Geometry2D.angle( b.pitch.center-a.pitch.center ) # the angle of the relative vector between the pulley centers == the angle of the centerline
 
-  aCross = acos( (a.radius+b.radius) / lCenter ) #angle of the center-crossing rays, this triangle looks like: hypotenuse=lCenter, adjacent=a.r+b.r, giving the angle between the hyp/centerline and the radial vector perpendicular to the line of tangency
-  aPara = acos( (a.radius-b.radius) / lCenter ) #angle of the rays that don't cross the centerline
+  aCross = acos( (a.pitch.radius+b.pitch.radius) / lCenter ) #angle of the center-crossing rays, this triangle looks like: hypotenuse=lCenter, adjacent=a.r+b.r, giving the angle between the hyp/centerline and the radial vector perpendicular to the line of tangency
+  aPara = acos( (a.pitch.radius-b.pitch.radius) / lCenter ) #angle of the rays that don't cross the centerline
 
   #four angles on A
   a1 = Geometry2D.angleWrap( aCenter+aPara )
@@ -45,10 +45,10 @@ function findTangents(; a::Pulley, b::Pulley, plotResult::Bool=false)
   b4 = Geometry2D.angleWrap( pi+aCenter-aCross )
 
   if plotResult
-    # @printf("Cross: a+b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.radius), ustrip(un, b.radius), ustrip(un, lCenter), ustrip(un, aCross), ustrip(un, aCross)*57)
-    # @printf("Para: a-b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.radius), ustrip(un, b.radius), ustrip(un, lCenter), ustrip(un, aPara), ustrip(un, aPara)*57)
-    @printf("Cross: a+b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.radius), ustrip(un, b.radius), ustrip(un, lCenter), aCross,aCross*57)
-    @printf("Para: a-b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.radius), ustrip(un, b.radius), ustrip(un, lCenter), aPara, aPara*57)
+    # @printf("Cross: a+b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.pitch.radius), ustrip(un, b.pitch.radius), ustrip(un, lCenter), ustrip(un, aCross), ustrip(un, aCross)*57)
+    # @printf("Para: a-b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.pitch.radius), ustrip(un, b.pitch.radius), ustrip(un, lCenter), ustrip(un, aPara), ustrip(un, aPara)*57)
+    @printf("Cross: a+b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.pitch.radius), ustrip(un, b.pitch.radius), ustrip(un, lCenter), aCross,aCross*57)
+    @printf("Para: a-b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.pitch.radius), ustrip(un, b.pitch.radius), ustrip(un, lCenter), aPara, aPara*57)
     @printf("A: four angles to tangent points: %3.3f %3.3f, %3.3f %3.3f\n", rad2deg(a1), rad2deg(a2), rad2deg(a3), rad2deg(a4))
     @printf("B: four angles to tangent points: %3.3f %3.3f, %3.3f %3.3f\n", rad2deg(b1), rad2deg(b2), rad2deg(b3), rad2deg(b4))
 
@@ -61,23 +61,23 @@ function findTangents(; a::Pulley, b::Pulley, plotResult::Bool=false)
     # Geometry2D.plotCircle(pulley2Circle(a),"black")
     # Geometry2D.plotCircle(pulley2Circle(b),"black")
     th = LinRange(0,2*π, 100)
-    x = ustrip.(un, a.center.x .+ a.radius.*cos.(th) )
-    y = ustrip.(un, a.center.y .+ a.radius.*sin.(th) )
+    x = ustrip.(un, a.pitch.center.x .+ a.pitch.radius.*cos.(th) )
+    y = ustrip.(un, a.pitch.center.y .+ a.pitch.radius.*sin.(th) )
     plot(x,y, label="A")
-    x = ustrip.(un, b.center.x .+ b.radius.*cos.(th) )
-    y = ustrip.(un, b.center.y .+ b.radius.*sin.(th) )
+    x = ustrip.(un, b.pitch.center.x .+ b.pitch.radius.*cos.(th) )
+    y = ustrip.(un, b.pitch.center.y .+ b.pitch.radius.*sin.(th) )
     plot(x,y, label="B")
-    x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a1), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b1)]
-    y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a1), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b1)]
+    x = [ustrip(un, a.pitch.center.x) + ustrip(un, a.pitch.radius)*cos(a1), ustrip(un, b.pitch.center.x) + ustrip(un, b.pitch.radius)*cos(b1)]
+    y = [ustrip(un, a.pitch.center.y) + ustrip(un, a.pitch.radius)*sin(a1), ustrip(un, b.pitch.center.y) + ustrip(un, b.pitch.radius)*sin(b1)]
     plot(x,y, color="red", label="a1b1") 
-    x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a2), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b2)]
-    y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a2), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b2)]
+    x = [ustrip(un, a.pitch.center.x) + ustrip(un, a.pitch.radius)*cos(a2), ustrip(un, b.pitch.center.x) + ustrip(un, b.pitch.radius)*cos(b2)]
+    y = [ustrip(un, a.pitch.center.y) + ustrip(un, a.pitch.radius)*sin(a2), ustrip(un, b.pitch.center.y) + ustrip(un, b.pitch.radius)*sin(b2)]
     plot(x,y, color="magenta", label="a2b2") 
-    x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a3), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b3)]
-    y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a3), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b3)]
+    x = [ustrip(un, a.pitch.center.x) + ustrip(un, a.pitch.radius)*cos(a3), ustrip(un, b.pitch.center.x) + ustrip(un, b.pitch.radius)*cos(b3)]
+    y = [ustrip(un, a.pitch.center.y) + ustrip(un, a.pitch.radius)*sin(a3), ustrip(un, b.pitch.center.y) + ustrip(un, b.pitch.radius)*sin(b3)]
     plot(x,y, color="blue", label="a3b3") 
-    x = [ustrip(un, a.center.x) + ustrip(un, a.radius)*cos(a4), ustrip(un, b.center.x) + ustrip(un, b.radius)*cos(b4)]
-    y = [ustrip(un, a.center.y) + ustrip(un, a.radius)*sin(a4), ustrip(un, b.center.y) + ustrip(un, b.radius)*sin(b4)]
+    x = [ustrip(un, a.pitch.center.x) + ustrip(un, a.pitch.radius)*cos(a4), ustrip(un, b.pitch.center.x) + ustrip(un, b.pitch.radius)*cos(b4)]
+    y = [ustrip(un, a.pitch.center.y) + ustrip(un, a.pitch.radius)*sin(a4), ustrip(un, b.pitch.center.y) + ustrip(un, b.pitch.radius)*sin(b4)]
     p = plot(x,y, color="cyan", label="a4b4") 
     legend()
     BPlot.formatPlot()
@@ -97,11 +97,11 @@ function isSegmentMutuallyTangent(; a::Pulley, b::Pulley, thA::Geometry2D.Radian
  #isSegmentMutuallyTangent(; segAB::Segment, thA::Geometry2D.Radian, thB::Geometry2D.Radian) #again this needs Segment to contain Pulleys
  #versus Geometry2D.isSegmentMutuallyTangent(), this compares the cross product to the pulley axis to test that the cross is in the same direction as the pulley's positive roatation
   
-  raa4 = a.radius * [cos(thA), sin(thA),0]
-  rbb4 = b.radius * [cos(thB), sin(thB),0]
-  a4b4 = ([b.center.x,b.center.y,0u"mm"]+rbb4) - ([a.center.x,a.center.y,0u"mm"]+raa4) #difference between tangent points, a to b, defines the belt segment
-  # println("a is at ", [a.center.x,a.center.y,0u"mm"]+raa4)
-  # println("b is at ", [b.center.x,b.center.y,0u"mm"]+rbb4)
+  raa4 = a.pitch.radius * [cos(thA), sin(thA),0]
+  rbb4 = b.pitch.radius * [cos(thB), sin(thB),0]
+  a4b4 = ([b.pitch.center.x,b.pitch.center.y,0u"mm"]+rbb4) - ([a.pitch.center.x,a.pitch.center.y,0u"mm"]+raa4) #difference between tangent points, a to b, defines the belt segment
+  # println("a is at ", [a.pitch.center.x,a.pitch.center.y,0u"mm"]+raa4)
+  # println("b is at ", [b.pitch.center.x,b.pitch.center.y,0u"mm"]+rbb4)
   uraa4 = normalize(ustrip.(u"mm",raa4)) #normalization cancels units
 
   urbb4 = normalize(ustrip.(u"mm", rbb4) )
@@ -126,29 +126,16 @@ function calculateSegments(route::Vector{Pulley}, plotSegments::Bool=false)
   for ir in 1:1:nr
     a = route[ir]
     b = route[Utility.iNext(ir,nr)]
-    # println("a = ", a)
-    # println("b = ", b)
-    un =u"mm" # unit(a.center.x)
-    # if plotSegments
-    #   # Geometry2D.plotCircle(pulley2Circle(a), "black")
-    #   th = LinRange(0,2*π, 100)
-    #   x = ustrip.(mm, a.center.x .+ a.radius.*cos.(th) )
-    #   y = ustrip.(mm, a.center.y .+ a.radius.*sin.(th) )
-    #   plot(x,y, label="A")
-    # end
+    un =u"mm" # unit(a.pitch.center.x)
     angles = findTangents(a=a, b=b) #angles = [[a1,b1],[a2,b2],...]
 
-    # println("testAngle1 ", isSegmentMutuallyTangent(a=a,b=b, thA=uconvert(u"rad", angles[1][1]), thB=uconvert(u"rad", angles[1][2])))
-    # println("testAngle2 ", isSegmentMutuallyTangent(a=a,b=b, thA=uconvert(u"rad", angles[2][1]), thB=uconvert(u"rad", angles[2][2])))
-    # println("testAngle3 ", isSegmentMutuallyTangent(a=a,b=b, thA=uconvert(u"rad", angles[3][1]), thB=uconvert(u"rad", angles[3][2])))
-    # println("testAngle4 ", isSegmentMutuallyTangent(a=a,b=b, thA=uconvert(u"rad", angles[4][1]), thB=uconvert(u"rad", angles[4][2])))
     for ia in 1:4 # there are 4 angle solutions in angles
       thA=uconvert(u"rad", angles[ia][1])
       thB=uconvert(u"rad", angles[ia][2])
       ta = isSegmentMutuallyTangent(a=a, b=b, thA=thA, thB=thB )
       if ta 
-        solved[ir]                   = Pulley(a.center, a.radius, a.axis, a.aArrive, thA, a.name )
-        solved[Utility.iNext(ir,nr)] = Pulley(b.center, b.radius, b.axis, thB, b.aDepart, b.name )
+        solved[ir]                   = Pulley(a.pitch, a.axis, a.aArrive, thA, a.name )
+        solved[Utility.iNext(ir,nr)] = Pulley(b.pitch, b.axis, thB, b.aDepart, b.name )
       end
     end
   end
@@ -159,10 +146,10 @@ function calculateSegments(route::Vector{Pulley}, plotSegments::Bool=false)
       i1 = Utility.iNext(i, length(solved))
 
       th = LinRange(0,2*π, 100)
-      x = ustrip.(mm, solved[i0].center.x .+ solved[i0].radius.*cos.(th) )
-      y = ustrip.(mm, solved[i0].center.y .+ solved[i0].radius.*sin.(th) )
+      x = ustrip.(mm, solved[i0].pitch.center.x .+ solved[i0].pitch.radius.*cos.(th) )
+      y = ustrip.(mm, solved[i0].pitch.center.y .+ solved[i0].pitch.radius.*sin.(th) )
       plot(x,y, label=solved[i0].name )
-      text(ustrip(mm,solved[i0].center.x), ustrip(mm,solved[i0].center.y), solved[i0].name )
+      text(ustrip(mm,solved[i0].pitch.center.x), ustrip(mm,solved[i0].pitch.center.y), solved[i0].name )
 
       pa = Geometry2D.pointOnCircle( pulley2Circle(solved[i0]), solved[i0].aDepart )
       pb = Geometry2D.pointOnCircle( pulley2Circle(solved[i1]), solved[i1].aArrive )
@@ -186,10 +173,10 @@ function routeToBeltSystem(route::Vector{Pulley})
     a = route[ir] #current pulley
     b = route[Utility.iNext(ir,nr)] #next pulley
 
-    raa = a.radius * [cos(a.aDepart), sin(a.aDepart),0]
-    rbb = b.radius * [cos(b.aArrive), sin(b.aArrive),0]
-    from = [a.center.x,a.center.y,0u"mm"]+raa
-    to =   [b.center.x,b.center.y,0u"mm"]+rbb
+    raa = a.pitch.radius * [cos(a.aDepart), sin(a.aDepart),0]
+    rbb = b.pitch.radius * [cos(b.aArrive), sin(b.aArrive),0]
+    from = [a.pitch.center.x,a.pitch.center.y,0u"mm"]+raa
+    to =   [b.pitch.center.x,b.pitch.center.y,0u"mm"]+rbb
     seg = Segment(Geometry2D.Point(from[1], from[2]), Geometry2D.Point(to[1], to[2]), norm(to-from))
 
     append!(belt, [a])
@@ -214,16 +201,16 @@ end
 
 function printRoute(route::Vector{Pulley})
   for r in route
-    un = unit(r.center.x)
-    @printf("center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]\n", ustrip(un, r.center.x), ustrip(un, r.center.y), ustrip(un, r.radius), rad2deg(ustrip(r.aArrive)), rad2deg(ustrip(r.aDepart)) )
+    un = unit(r.pitch.center.x)
+    @printf("center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]\n", ustrip(un, r.pitch.center.x), ustrip(un, r.pitch.center.y), ustrip(un, r.pitch.radius), rad2deg(ustrip(r.aArrive)), rad2deg(ustrip(r.aDepart)) )
   end
 end
 
 function toString(thing::Pulley)
-  un = unit(thing.center.x)
+  un = unit(thing.pitch.center.x)
   str = @sprintf("Pulley: [%s] center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]",
   thing.name,
-  ustrip(un, thing.center.x), ustrip(un, thing.center.y), ustrip(un, thing.radius),
+  ustrip(un, thing.pitch.center.x), ustrip(un, thing.pitch.center.y), ustrip(un, thing.pitch.radius),
   rad2deg(ustrip(un, thing.aArrive)), rad2deg(ustrip(un, thing.aDepart)) )
   # println("toString = ", str)
   return str
@@ -283,11 +270,11 @@ function testBeltSegment()
   route = [pA, pB, pC, pD, pE]
 
   @testset "Segment constructors" begin
-    sab = Segment( depart=pA.center, arrive=pB.center )
-    @test sab.length == Geometry2D.distance(pB.center,pA.center)
+    sab = Segment( depart=pA.pitch.center, arrive=pB.pitch.center )
+    @test sab.length == Geometry2D.distance(pB.pitch.center,pA.pitch.center)
 
     sab = Segment( depart=pA, arrive=pB )
-    @test sab.length == Geometry2D.distance(pB.center,pA.center)
+    @test sab.length == Geometry2D.distance(pB.pitch.center,pA.pitch.center)
   end
 
   @testset "findTangents" begin
@@ -304,7 +291,7 @@ function testBeltSegment()
   end
 
   @testset "isSegmentMutuallyTangent" begin
-    # sab = Segment( depart=pA.center, arrive=pB.center )
+    # sab = Segment( depart=pA.pitch.center, arrive=pB.pitch.center )
     @test isSegmentMutuallyTangent( a=pA, b=pB, thA=(π/2)u"rad", thB=(π/2)u"rad" ) == true
     # @test isSegmentMutuallyTangent( a=pA, b=pB, thA=90°, thB=90° ) == true
   end

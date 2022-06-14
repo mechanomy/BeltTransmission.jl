@@ -1,23 +1,25 @@
 # should use a Circle2D for the pitch circle, able to use circleArcLength/etc, but then references are pa.circle.center. otoh, shouldn't need to go that deep into structs.
 export Pulley, calculateWrappedAngle, calculateWrappedLength
 
-
 """Geometric modeling of 2D pulleys"""
 struct Pulley
-    center::Geometry2D.Point #[x,y] of the pulley center
-    radius::Unitful.Length
+    # center::Geometry2D.Point #[x,y] of the pulley center
+    # radius::Unitful.Length
+    pitch::Geometry2D.Circle #the pitch circle
     axis::Geometry2D.UnitVector #unit vector in the direction of positive axis rotation
     aArrive::Geometry2D.Radian #angle of the point of tangency 
     aDepart::Geometry2D.Radian
     name::String
 end
-Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String)     = Pulley(center,radius,axis,0u"rad",0u"rad",name) 
-Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector)                   = Pulley(center,radius,axis,0u"rad",0u"rad","") 
-Pulley(center::Geometry2D.Point, radius::Unitful.Length, name::String)                                  = Pulley(center,radius,Geometry2D.uk,0u"rad",0u"rad",name) 
-Pulley(center::Geometry2D.Point, radius::Unitful.Length)                                                = Pulley(center,radius,Geometry2D.uk,0u"rad",0u"rad","") 
+Pulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String)                            = Pulley(circle,axis,0u"rad",0u"rad",name) 
+Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String)     = Pulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name) 
+Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector)                   = Pulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad","") 
+Pulley(center::Geometry2D.Point, radius::Unitful.Length, name::String)                                  = Pulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad",name) 
+Pulley(center::Geometry2D.Point, radius::Unitful.Length)                                                = Pulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad","") 
 
 @kwdispatch Pulley()
-@kwmethod Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(center,radius,axis,0u"rad",0u"rad",name)
+@kwmethod Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name)
+@kwmethod Pulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = Pulley(circle,axis,0u"rad",0u"rad",name)
 
 """
 `calculateWrappedAngle(p::Pulley) :: Geometry2D.Angle`
@@ -56,14 +58,15 @@ Given `p::Pulley`, calculate the length of the wrapped segment from aArrive to a
 Note that the wrapped length is not restricted to <= 1 revolution, the pulley may be wrapped multiple times.
 """
 function calculateWrappedLength(p::Pulley) :: Unitful.Length
-  return p.radius * calculateWrappedAngle(p)
+  return p.pitch.radius * calculateWrappedAngle(p)
 end
 
 """
 `pulley2Circle(p::Pulley)::Geometry2D.Circle`
 """
 function pulley2Circle(p::Pulley) :: Geometry2D.Circle
-    return Geometry2D.Circle(p.center, p.radius)
+    # return Geometry2D.Circle(p.center, p.radius)
+    return p.pitch
 end
 
 """
@@ -73,7 +76,7 @@ Returns a descriptive string of the given Pulley `p`
 function pulley2String(p::Pulley)::String 
   # return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] arrive[%3.3f] depart[%3.3f]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart)
   # return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s] aWrap[%s] lWrap[%s]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart, calculateWrappedAngle(p), calculateWrappedLength(p))
-  return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s] aWrap[%s] lWrap[%s]", p.name, p.center.x, p.center.y, p.radius, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",calculateWrappedAngle(p)), calculateWrappedLength(p))
+  return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s] aWrap[%s] lWrap[%s]", p.name, p.pitch.center.x, p.pitch.center.y, p.pitch.radius, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",calculateWrappedAngle(p)), calculateWrappedLength(p))
 end
 
 """
@@ -91,9 +94,9 @@ end
 function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4, plotUnit=u"m")
   th = range(0,2*pi,length=100)
 
-  px = ustrip(plotUnit, p.center.x) 
-  py = ustrip(plotUnit, p.center.y) 
-  pr = ustrip(plotUnit, p.radius)
+  px = ustrip(plotUnit, p.pitch.center.x) 
+  py = ustrip(plotUnit, p.pitch.center.y) 
+  pr = ustrip(plotUnit, p.pitch.radius)
   x = px .+ pr.*cos.(th)
   y = py .+ pr.*sin.(th)
   al= 0.5
@@ -137,36 +140,35 @@ function testPulley()
     aa = 1u"rad"
     ad = 2u"rad"
 
-    @test typeof( Pulley(ctr, rad, uk, aa, ad, "struct" ) ) <: Pulley
+    @test typeof( Pulley(Geometry2D.Circle(ctr, rad), uk, aa, ad, "struct" ) ) <: Pulley
     @test typeof( Pulley(ctr, rad, uk, "cran" ) ) <: Pulley
     @test typeof( Pulley(ctr, rad, uk ) ) <: Pulley
     @test typeof( Pulley(ctr, rad, "crn" ) ) <: Pulley
-    @test typeof( Pulley(ctr, rad ) ) <: Pulley
+    @test typeof( Pulley(ctr, rad, "name" )) <: Pulley
     @test typeof( Pulley(center=ctr, radius=rad, axis=uk, name="key" ) ) <: Pulley
+    @test typeof( Pulley(circle=Geometry2D.Circle(ctr, rad), axis=uk, name="circle key" ) ) <: Pulley
   end
 
   @testset "calculateWrappedAngle" begin
-    ctr = Geometry2D.Point(3u"mm",5u"mm")
-    rad = 4u"mm"
-    pa = Pulley(ctr, rad, uk, 1u"rad", 2u"rad", "struct" ) 
+    cir = Geometry2D.Circle(3u"mm",5u"mm", 4u"mm" )
+    pa = Pulley(cir, uk, 1u"rad", 2u"rad", "struct" ) 
     @test calculateWrappedAngle( pa ) == 1u"rad"
 
-    pa = Pulley(ctr, rad, uk, 1u"rad", 0u"rad", "struct" ) 
+    pa = Pulley(cir, uk, 1u"rad", 0u"rad", "struct" ) 
     @test calculateWrappedAngle( pa ) == (2*π-1)u"rad" #from aArrive to aDepart
 
-    pa = Pulley(ctr, rad, uk, 0u"rad", 7u"rad", "struct" ) 
+    pa = Pulley(cir, uk, 0u"rad", 7u"rad", "struct" ) 
     @test calculateWrappedAngle( pa ) == 7u"rad" 
   end
 
   @testset "calculateWrappedLength" begin
-    ctr = Geometry2D.Point(3u"mm",5u"mm")
-    rad = 4u"mm"
-    pa = Pulley(ctr, rad, uk, 1u"rad", 2u"rad", "struct" ) 
+    cir = Geometry2D.Circle(3u"mm",5u"mm", 4u"mm" )
+    pa = Pulley(cir, uk, 1u"rad", 2u"rad", "struct" ) 
     @test calculateWrappedLength( pa ) == 4u"mm"
   end
 
   @testset "pulley2Circle" begin #not a useful test
-    pa = Pulley(Geometry2D.Point(0mm,0mm), 4mm, Geometry2D.uk, 1u"rad", 2u"rad", "pulley") 
+    pa = Pulley(Geometry2D.Circle(0mm,0mm, 4mm), Geometry2D.uk, 1u"rad", 2u"rad", "pulley") 
     circle = pulley2Circle( pa )
     @test typeof(circle) <: Geometry2D.Circle
     @test circle.center.x == 0mm
@@ -175,7 +177,7 @@ function testPulley()
   end
   
   @testset "calculateWrappedLength" begin
-    pa = Pulley(Geometry2D.Point(0mm,0mm), 4mm, Geometry2D.uk, 1u"rad", 2u"rad", "pulley") 
+    pa = Pulley(Geometry2D.Circle(0mm,0mm, 4mm), Geometry2D.uk, 1u"rad", 2u"rad", "pulley") 
     @test typeof( pulley2String(pa) ) <: String #this can't break...but still want to exercise the function
   end
 
