@@ -21,6 +21,60 @@ Pulley(center::Geometry2D.Point, radius::Unitful.Length)                        
 
 
 """
+A plot recipe for plotting Pulleys under Plots.jl.
+Keyword `n` can be used to increase the number of points constituting the pulley edge.
+`lengthUnit` is a Unitful unit for scaling the linear axes. [atm UnitfulRecipes doesn't apply to nested @series]
+`arrowFactor` controls the size of the arrow head at aDepart
+```
+p = Pulley( Geometry2D.Circle(1mm,2mm,3mm), Geometry2D.uk, "recipe" )
+plot(p)
+```
+#this help will not display unless attached to a plotpulley function
+"""
+# @userplot PlotPulley #expands to plotpulley() ...this doesn't seem to work right now, postpone
+@recipe function plotRecipe(p::Pulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
+  col = get(plotattributes, :seriescolor, :auto)
+  # @show lwd = get(plotattributes, :linewidth, :auto) #this returns ':auto', not the numeric
+
+  @series begin # put a dot/x on the pulley center, indicating the direction of the axis
+    seriestype := :path 
+    primary := false
+    linecolor := nothing
+    markershape := (p.axis==Geometry2D.uk ? :circle : :x ) #if axis is positive uk, the axis rotation vector is 'coming out of the page' whereas negative is into the page and we see the vector arrow's fletching
+    [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
+  end
+
+  @series begin #draw the arc segment between aArrive and aDepart
+    seriestype := :path
+    primary := false
+    linecolor := segmentColor
+    linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...
+    th = LinRange( ustrip(u"rad", p.aArrive), ustrip(u"rad", p.aDepart), n )
+    x = p.pitch.center.x .+ p.pitch.radius .* cos.(th) #with UnitfulRecipes, applies a unit label to the axes
+    y = p.pitch.center.y .+ p.pitch.radius .* sin.(th)
+    
+    ax = p.pitch.center.x + p.pitch.radius*(1-arrowFactor) * cos(ustrip(u"rad", p.aDepart - arrowFactor*(p.aDepart-p.aArrive))) 
+    ay = p.pitch.center.y + p.pitch.radius*(1-arrowFactor) * sin(ustrip(u"rad", p.aDepart - arrowFactor*(p.aDepart-p.aArrive))) 
+    append!(x, ax)
+    append!(y, ay)
+    ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
+  end
+
+  aspect_ratio := :equal 
+  seriestype := :shape 
+  fillalpha := 0.5
+  fillcolor := col #the pulley wheel color
+  # fillstyle --> :/ #overrides the center dot
+  label --> p.name
+
+  th = LinRange(0,2*π, 100)
+  x = p.pitch.center.x .+ p.pitch.radius .* cos.(th) #with UnitfulRecipes, applies a unit label to the axes
+  y = p.pitch.center.y .+ p.pitch.radius .* sin.(th)
+  # x,y #return the data
+  ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
+end
+
+"""
 `getDeparturePoint(p::Pulley)::Geometry2D.Point`
 Returns the point of departure.
 """
@@ -194,8 +248,15 @@ function testPulley()
     @test typeof( pulley2String(pa) ) <: String #this can't break...but still want to exercise the function
   end
 
-  # @testset "plotPulley" begin
-  #   defer until plot testing works well
-  # end
+  @testset "plotPulley" begin
+    pa = Pulley(Geometry2D.Circle(0mm,0mm, 4mm), Geometry2D.uk, 1u"rad", 4u"rad", "pulleyA") 
+    pb = Pulley(Geometry2D.Circle(10mm,0mm, 4mm), -Geometry2D.uk, 1u"rad", 4u"rad", "pulleyB") 
+    p = plot(pa, reuse=false)
+    p = plot!(pb)
+    display(p);
 
-end
+    @test true
+  end
+
+
+end;
