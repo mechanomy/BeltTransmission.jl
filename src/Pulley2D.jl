@@ -49,7 +49,18 @@ plot(p)
     primary := false
     linecolor := segmentColor
     linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...
-    th = LinRange( ustrip(u"rad", p.aArrive), ustrip(u"rad", p.aDepart), n )
+
+    #fix zero crossings
+    pad = p.aDepart
+    if p.axis≈Geometry2D.uk && p.aDepart < p.aArrive #positive rotation, need to increase aDepart by 2pi
+      pad += 2*π*u"rad"
+    end
+    paa = p.aArrive
+    if p.axis ≈ -Geometry2D.uk && p.aArrive < p.aDepart
+      paa += 2*π*u"rad"
+    end
+    
+    th = LinRange( ustrip(u"rad", paa), ustrip(u"rad", pad), n )
     x = p.pitch.center.x .+ p.pitch.radius .* cos.(th) #with UnitfulRecipes, applies a unit label to the axes
     y = p.pitch.center.y .+ p.pitch.radius .* sin.(th)
     
@@ -154,50 +165,50 @@ function printPulley(p::Pulley)
   println(pulley2String(p))
 end
 
-"""
-`plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4, plotUnit=u"m")
+# """
+# `plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4, plotUnit=u"m")
 
-"""
-function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4, plotUnit=u"m")
-  th = range(0,2*pi,length=100)
+# """
+# function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4, plotUnit=u"m")
+#   th = range(0,2*pi,length=100)
 
-  px = ustrip(plotUnit, p.pitch.center.x) 
-  py = ustrip(plotUnit, p.pitch.center.y) 
-  pr = ustrip(plotUnit, p.pitch.radius)
-  x = px .+ pr.*cos.(th)
-  y = py .+ pr.*sin.(th)
-  al= 0.5
-  plot(x,y, color=colorPulley, alpha=al )
-  text(px+pr*0.1,py+pr*0.1, p.name)
-  if Geometry2D.isapprox(p.axis, Geometry2D.uk, rtol=1e-3) #+z == cw
-    plot(px, py, "o", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
-    plot(px+pr, py, "^", color=colorPulley, alpha=al)
+#   px = ustrip(plotUnit, p.pitch.center.x) 
+#   py = ustrip(plotUnit, p.pitch.center.y) 
+#   pr = ustrip(plotUnit, p.pitch.radius)
+#   x = px .+ pr.*cos.(th)
+#   y = py .+ pr.*sin.(th)
+#   al= 0.5
+#   plot(x,y, color=colorPulley, alpha=al )
+#   text(px+pr*0.1,py+pr*0.1, p.name)
+#   if Geometry2D.isapprox(p.axis, Geometry2D.uk, rtol=1e-3) #+z == cw
+#     plot(px, py, "o", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
+#     plot(px+pr, py, "^", color=colorPulley, alpha=al)
     
-    if p.aDepart < p.aArrive
-      an = range(p.aArrive-2u"rad"*pi, p.aDepart, length=100)
-    else
-      an = range(p.aArrive,p.aDepart,length=100)
-    end
-    ax = px .+ pr.*cos.(an)
-    ay = py .+ pr.*sin.(an)
-    plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt, label=p.name )
-  elseif Geometry2D.isapprox(p.axis, -Geometry2D.uk, rtol=1e-3) #-z == cw
-    plot(px, py, "x", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
-    plot(px+pr, py, "v", color=colorPulley, alpha=al)
+#     if p.aDepart < p.aArrive
+#       an = range(p.aArrive-2u"rad"*pi, p.aDepart, length=100)
+#     else
+#       an = range(p.aArrive,p.aDepart,length=100)
+#     end
+#     ax = px .+ pr.*cos.(an)
+#     ay = py .+ pr.*sin.(an)
+#     plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt, label=p.name )
+#   elseif Geometry2D.isapprox(p.axis, -Geometry2D.uk, rtol=1e-3) #-z == cw
+#     plot(px, py, "x", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
+#     plot(px+pr, py, "v", color=colorPulley, alpha=al)
 
-    if p.aDepart < p.aArrive
-      an = range(p.aArrive,p.aDepart,length=100)
-    else
-      an = range(p.aArrive, p.aDepart-2u"rad"*pi, length=100)
-    end       
-    ax = px .+ pr.*cos.(an)
-    ay = py .+ pr.*sin.(an)
-    plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt, label=p.name )
-  else
-    error("plotPulley given a non-z axis for pulley $(pulley2String(p))" )
-  end
+#     if p.aDepart < p.aArrive
+#       an = range(p.aArrive,p.aDepart,length=100)
+#     else
+#       an = range(p.aArrive, p.aDepart-2u"rad"*pi, length=100)
+#     end       
+#     ax = px .+ pr.*cos.(an)
+#     ay = py .+ pr.*sin.(an)
+#     plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt, label=p.name )
+#   else
+#     error("plotPulley given a non-z axis for pulley $(pulley2String(p))" )
+#   end
 
-end
+# end
 
 function testPulley()
   @testset "Test constructors" begin

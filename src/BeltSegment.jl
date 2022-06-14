@@ -7,45 +7,32 @@ end
 @kwdispatch Segment()
 @kwmethod Segment(; depart::Pulley, arrive::Pulley) = Segment(depart,arrive)
 
-  #   # @printf("Cross: a+b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.pitch.radius), ustrip(un, b.pitch.radius), ustrip(un, lCenter), ustrip(un, aCross), ustrip(un, aCross)*57)
-  #   # @printf("Para: a-b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.pitch.radius), ustrip(un, b.pitch.radius), ustrip(un, lCenter), ustrip(un, aPara), ustrip(un, aPara)*57)
-  #   @printf("Cross: a+b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.pitch.radius), ustrip(un, b.pitch.radius), ustrip(un, lCenter), aCross,aCross*57)
-  #   @printf("Para: a-b/d=%f + %f / %f = %3f = %3f deg\n", ustrip(un, a.pitch.radius), ustrip(un, b.pitch.radius), ustrip(un, lCenter), aPara, aPara*57)
-  #   @printf("A: four angles to tangent points: %3.3f %3.3f, %3.3f %3.3f\n", rad2deg(a1), rad2deg(a2), rad2deg(a3), rad2deg(a4))
-  #   @printf("B: four angles to tangent points: %3.3f %3.3f, %3.3f %3.3f\n", rad2deg(b1), rad2deg(b2), rad2deg(b3), rad2deg(b4))
+@recipe function plotRecipe(seg::Segment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
+  pd = getDeparturePoint( seg )
+  pa = getArrivalPoint( seg )
+  x = LinRange( pd.x, pa.x, n )
+  y = LinRange( pd.y, pa.y, n )
 
-  #   println("A1B1: ", Geometry2D.isSegmentMutuallyTangent(cA=pulley2Circle(a), cB=pulley2Circle(b), thA=uconvert(u"rad", a1), thB=uconvert(u"rad", b1)) )
-  #   println("A2B2: ", Geometry2D.isSegmentMutuallyTangent(cA=pulley2Circle(a), cB=pulley2Circle(b), thA=uconvert(u"rad", a2), thB=uconvert(u"rad", b2)) )
-  #   println("A3B3: ", Geometry2D.isSegmentMutuallyTangent(cA=pulley2Circle(a), cB=pulley2Circle(b), thA=uconvert(u"rad", a3), thB=uconvert(u"rad", b3)) )
-  #   println("A4B4: ", Geometry2D.isSegmentMutuallyTangent(cA=pulley2Circle(a), cB=pulley2Circle(b), thA=uconvert(u"rad", a4), thB=uconvert(u"rad", b4)) )
+  seriestype := :path 
+  linecolor --> segmentColor
+  linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...
+  aspect_ratio := :equal 
+  label --> toString(seg)
 
-  #   #prove it
-  #   # Geometry2D.plotCircle(pulley2Circle(a),"black")
-  #   # Geometry2D.plotCircle(pulley2Circle(b),"black")
-  #   th = LinRange(0,2*π, 100)
-  #   x = ustrip.(un, a.pitch.center.x .+ a.pitch.radius.*cos.(th) )
-  #   y = ustrip.(un, a.pitch.center.y .+ a.pitch.radius.*sin.(th) )
-  #   plot(x,y, label="A")
-  #   x = ustrip.(un, b.pitch.center.x .+ b.pitch.radius.*cos.(th) )
-  #   y = ustrip.(un, b.pitch.center.y .+ b.pitch.radius.*sin.(th) )
-  #   plot(x,y, label="B")
-  #   x = [ustrip(un, a.pitch.center.x) + ustrip(un, a.pitch.radius)*cos(a1), ustrip(un, b.pitch.center.x) + ustrip(un, b.pitch.radius)*cos(b1)]
-  #   y = [ustrip(un, a.pitch.center.y) + ustrip(un, a.pitch.radius)*sin(a1), ustrip(un, b.pitch.center.y) + ustrip(un, b.pitch.radius)*sin(b1)]
-  #   plot(x,y, color="red", label="a1b1") 
-  #   x = [ustrip(un, a.pitch.center.x) + ustrip(un, a.pitch.radius)*cos(a2), ustrip(un, b.pitch.center.x) + ustrip(un, b.pitch.radius)*cos(b2)]
-  #   y = [ustrip(un, a.pitch.center.y) + ustrip(un, a.pitch.radius)*sin(a2), ustrip(un, b.pitch.center.y) + ustrip(un, b.pitch.radius)*sin(b2)]
-  #   plot(x,y, color="magenta", label="a2b2") 
-  #   x = [ustrip(un, a.pitch.center.x) + ustrip(un, a.pitch.radius)*cos(a3), ustrip(un, b.pitch.center.x) + ustrip(un, b.pitch.radius)*cos(b3)]
-  #   y = [ustrip(un, a.pitch.center.y) + ustrip(un, a.pitch.radius)*sin(a3), ustrip(un, b.pitch.center.y) + ustrip(un, b.pitch.radius)*sin(b3)]
-  #   plot(x,y, color="blue", label="a3b3") 
-  #   x = [ustrip(un, a.pitch.center.x) + ustrip(un, a.pitch.radius)*cos(a4), ustrip(un, b.pitch.center.x) + ustrip(un, b.pitch.radius)*cos(b4)]
-  #   y = [ustrip(un, a.pitch.center.y) + ustrip(un, a.pitch.radius)*sin(a4), ustrip(un, b.pitch.center.y) + ustrip(un, b.pitch.radius)*sin(b4)]
-  #   p = plot(x,y, color="cyan", label="a4b4") 
-  #   legend()
-  #   BPlot.formatPlot()
-  #   display(p)
-  #   # show(p)
-  #   # gui()
+  ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
+end
+
+@recipe function plotRecipe(route::Vector{Pulley})
+  nr = length(route)
+  for ir in 1:nr
+    @series begin
+      route[ir]
+    end
+    @series begin
+      Segment( depart=route[ir], arrive=route[Utility.iNext(ir,nr)] )
+    end
+  end
+end
 
 
 function getDeparturePoint(seg::Segment)
@@ -143,7 +130,7 @@ end
 Given an ordered vetor of Pulleys, output a vector of new Pulleys whose aArrive and aDepart angles are set to connect the pulleys with mutually tangent segments.
 Convention: pulleys listed in 'positive' belt rotation order, consistent with each Pulley's rotation axis.
 """
-function calculateSegments(route::Vector{Pulley}, plotSegments::Bool=false)
+function calculateSegments(route::Vector{Pulley})::Vector{Pulley}
   nr = size(route,1)
   solved = route #allocate the array
 
@@ -153,38 +140,12 @@ function calculateSegments(route::Vector{Pulley}, plotSegments::Bool=false)
     segments = findTangents(Segment(depart=a, arrive=b))
 
     for ia in 1:4 # there are 4 angle solutions in angles
-      thA = segments[ia].depart.aDepart
-      thB = segments[ia].arrive.aArrive
-      ta = isSegmentMutuallyTangent( segments[ia] )
-      if ta 
-        solved[ir]                   = segments[ia].depart
-        solved[Utility.iNext(ir,nr)] = segments[ia].arrive
+      if isSegmentMutuallyTangent( segments[ia] )
+        solved[ir]                   = segments[ia].depart #assigns ir to the depart pulley, which already has .arrive from ir-1
+        solved[Utility.iNext(ir,nr)] = segments[ia].arrive 
       end
     end
   end
-
-  if plotSegments
-    for i in 1:length(solved)
-      i0 = i
-      i1 = Utility.iNext(i, length(solved))
-
-      th = LinRange(0,2*π, 100)
-      x = ustrip.(mm, solved[i0].pitch.center.x .+ solved[i0].pitch.radius.*cos.(th) )
-      y = ustrip.(mm, solved[i0].pitch.center.y .+ solved[i0].pitch.radius.*sin.(th) )
-      plot(x,y, label=solved[i0].name )
-      text(ustrip(mm,solved[i0].pitch.center.x), ustrip(mm,solved[i0].pitch.center.y), solved[i0].name )
-
-      pa = Geometry2D.pointOnCircle( pulley2Circle(solved[i0]), solved[i0].aDepart )
-      pb = Geometry2D.pointOnCircle( pulley2Circle(solved[i1]), solved[i1].aArrive )
-      x = ustrip.(mm, [pa.x, pb.x])
-      y = ustrip.(mm, [pa.y, pb.y])
-      plot(x,y, "g--", label=i)
-    end
-    # legend()
-    BPlot.formatPlot()
-
-  end
-
   return solved
 end #calculateSegments
 
@@ -224,21 +185,22 @@ function printRoute(route::Vector{Pulley})
   end
 end
 
-function toString(thing::Pulley)
-  un = unit(thing.pitch.center.x)
-  str = @sprintf("Pulley: [%s] center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]",
-  thing.name,
-  ustrip(un, thing.pitch.center.x), ustrip(un, thing.pitch.center.y), ustrip(un, thing.pitch.radius),
-  rad2deg(ustrip(un, thing.aArrive)), rad2deg(ustrip(un, thing.aDepart)) )
-  return str
-end
-function toString(thing::Segment)
-  un = unit(thing.depart.x)
-  str = @sprintf("Segment: depart[%3.3f, %3.3f] -- arrive[%3.3f, %3.3f] length[%3.3f]",
-  ustrip(un, thing.depart.x), ustrip(un, thing.depart.y),
-  ustrip(un, thing.arrive.x), ustrip(un, thing.arrive.y),
-  ustrip(distance(thing) ) )
-  return str
+# function toString(thing::Pulley)
+#   un = unit(thing.pitch.center.x)
+#   str = @sprintf("Pulley: [%s] center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]",
+#   thing.name,
+#   ustrip(un, thing.pitch.center.x), ustrip(un, thing.pitch.center.y), ustrip(un, thing.pitch.radius),
+#   rad2deg(ustrip(un, thing.aArrive)), rad2deg(ustrip(un, thing.aDepart)) )
+#   return str
+# end
+function toString(seg::Segment)
+  # un = unit(seg.depart.pitch.radius)
+  # str = @sprintf("Segment: depart[%3.3f, %3.3f] -- arrive[%3.3f, %3.3f] length[%3.3f]",
+  # ustrip(un, seg.depart.pitch.center.x), ustrip(un, seg.depart.pitch.center.y),
+  # ustrip(un, seg.arrive.pitch.center.x), ustrip(un, seg.arrive.pitch.center.y),
+  # ustrip(distance(seg) ) )
+  # return str
+  return "$(seg.depart.name)--$(seg.arrive.name)"
 end
 
 # prints <beltSystem> by calling toString() on each element
@@ -256,21 +218,21 @@ function printBeltSystem(beltSystem)
 
 end
 
-function plotBeltSystem(beltSystem; colorPulley="black",colorSegment="orange", linewidthBelt=4, plotUnit=u"mm")
-  # nb = size(beltSystem,1)
-  for (i,b) in enumerate(beltSystem)
-    if typeof(b) == Pulley
-      plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment, linewidthBelt=linewidthBelt, plotUnit=plotUnit)
-      # Geometry2D.plotCircle(pulley2Circle(b), colorPulley)
-    end
-    if typeof(b) == Segment #plot segments after pulleys
-      x = [ustrip(b.depart.x), ustrip(b.arrive.x) ]
-      y = [ustrip(b.depart.y), ustrip(b.arrive.y) ]
-      plot(x,y, color=colorSegment, linewidth=linewidthBelt, alpha=0.5, label=toString(b))
-    end
-  end
-  BPlot.formatPlot()
-end
+# function plotBeltSystem(beltSystem; colorPulley="black",colorSegment="orange", linewidthBelt=4, plotUnit=u"mm")
+#   # nb = size(beltSystem,1)
+#   for (i,b) in enumerate(beltSystem)
+#     if typeof(b) == Pulley
+#       plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment, linewidthBelt=linewidthBelt, plotUnit=plotUnit)
+#       # Geometry2D.plotCircle(pulley2Circle(b), colorPulley)
+#     end
+#     if typeof(b) == Segment #plot segments after pulleys
+#       x = [ustrip(b.depart.x), ustrip(b.arrive.x) ]
+#       y = [ustrip(b.depart.y), ustrip(b.arrive.y) ]
+#       plot(x,y, color=colorSegment, linewidth=linewidthBelt, alpha=0.5, label=toString(b))
+#     end
+#   end
+#   BPlot.formatPlot()
+# end
 
 function testBeltSegment()
   uk = Geometry2D.UnitVector(0,0,1)
@@ -279,7 +241,7 @@ function testBeltSegment()
   pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"), axis=uk, name="B")
   pC = Pulley( circle=Geometry2D.Circle(-100u"mm",-100u"mm", 43u"mm"), axis=uk, name="C")
   pD = Pulley( circle=Geometry2D.Circle( 100u"mm",-100u"mm", 14u"mm"), axis=uk, name="D") 
-  pE = Pulley( circle=Geometry2D.Circle( 0u"mm",0u"mm", 14u"mm"), axis=-uk, name="E") 
+  pE = Pulley( circle=Geometry2D.Circle( 80u"mm",-200u"mm", 14u"mm"), axis=-uk, name="E") 
   route = [pA, pB, pC, pD, pE]
 
   @testset "Segment constructors" begin
@@ -318,20 +280,45 @@ function testBeltSegment()
   end
 
   @testset "calculateSegments" begin
-    solved = calculateSegments(route, false)
+    solved = calculateSegments(route)
 
     #test confirmed via plot, copying angles into below to guard changes
-    @test isapprox(solved[1].aArrive, 5.327rad, rtol=1e-3)
+    # @test isapprox(solved[1].aArrive, 5.327rad, rtol=1e-3) # E@0,0
+    @test isapprox(solved[1].aArrive, 6.136rad, rtol=1e-3) # E@80,-200
     @test isapprox(solved[2].aArrive, 1.571rad, rtol=1e-3) # == [1].aDepart
     @test isapprox(solved[3].aArrive, 2.976rad, rtol=1e-3)
     @test isapprox(solved[4].aArrive, 4.858rad, rtol=1e-3)
-    @test isapprox(solved[5].aArrive, 4.126rad, rtol=1e-3)
+    # @test isapprox(solved[5].aArrive, 4.126rad, rtol=1e-3)
+    @test isapprox(solved[5].aArrive, 0.0807rad, rtol=1e-3) #E@80,-200
+
   end
 
   @testset "calculateBeltLength" begin
-    solved = calculateSegments(route, false)
-    @test isapprox( calculateBeltLength( solved ), 0.181155m, rtol=1e-3 )
+    solved = calculateSegments(route)
+    # @test isapprox( calculateBeltLength( solved ), 0.181155m, rtol=1e-3 ) #E@0,0
+    @test isapprox( calculateBeltLength( solved ), 0.22438m, rtol=1e-3 ) #E@80,-200
   end
+
+  @testset "plotSegment" begin
+    pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
+    pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+    seg = Segment( depart=pA, arrive=pB )
+    p = plot(seg, reuse=false)
+    p = plot!(seg.depart)
+    p = plot!(seg.arrive)
+    display(p)
+
+    @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
+  end
+
+  @testset "plotRoute" begin
+    solved = calculateSegments(route)
+    p = plot(solved, reuse=false)
+    display(p)
+    
+    @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
+  end
+
 end #test
 
 
