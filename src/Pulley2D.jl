@@ -1,10 +1,7 @@
-# should use a Circle2D for the pitch circle, able to use circleArcLength/etc, but then references are pa.circle.center. otoh, shouldn't need to go that deep into structs.
 export Pulley, calculateWrappedAngle, calculateWrappedLength
 
 """Geometric modeling of 2D pulleys"""
 struct Pulley
-    # center::Geometry2D.Point #[x,y] of the pulley center
-    # radius::Unitful.Length
     pitch::Geometry2D.Circle #the pitch circle
     axis::Geometry2D.UnitVector #unit vector in the direction of positive axis rotation
     aArrive::Geometry2D.Radian #angle of the point of tangency 
@@ -58,14 +55,13 @@ Given `p::Pulley`, calculate the length of the wrapped segment from aArrive to a
 Note that the wrapped length is not restricted to <= 1 revolution, the pulley may be wrapped multiple times.
 """
 function calculateWrappedLength(p::Pulley) :: Unitful.Length
-  return p.pitch.radius * calculateWrappedAngle(p)
+  return Geometry2D.circleArcLength( p.pitch, calculateWrappedAngle(p))
 end
 
 """
 `pulley2Circle(p::Pulley)::Geometry2D.Circle`
 """
 function pulley2Circle(p::Pulley) :: Geometry2D.Circle
-    # return Geometry2D.Circle(p.center, p.radius)
     return p.pitch
 end
 
@@ -74,8 +70,6 @@ end
 Returns a descriptive string of the given Pulley `p`
 """
 function pulley2String(p::Pulley)::String 
-  # return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] arrive[%3.3f] depart[%3.3f]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart)
-  # return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s] aWrap[%s] lWrap[%s]", p.name, p.center.x, p.center.y, p.radius, p.aArrive, p.aDepart, calculateWrappedAngle(p), calculateWrappedLength(p))
   return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s] aWrap[%s] lWrap[%s]", p.name, p.pitch.center.x, p.pitch.center.y, p.pitch.radius, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",calculateWrappedAngle(p)), calculateWrappedLength(p))
 end
 
