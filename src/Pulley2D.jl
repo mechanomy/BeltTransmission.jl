@@ -4,7 +4,7 @@ export Pulley, calculateWrappedAngle, calculateWrappedLength
 struct Pulley
     pitch::Geometry2D.Circle #the pitch circle
     axis::Geometry2D.UnitVector #unit vector in the direction of positive axis rotation
-    aArrive::Geometry2D.Radian #angle of the point of tangency 
+    aArrive::Geometry2D.Radian #angle of the point of tangency, aArrive comes first in the struct from the view of positive rotation..
     aDepart::Geometry2D.Radian
     name::String
 end
@@ -17,6 +17,25 @@ Pulley(center::Geometry2D.Point, radius::Unitful.Length)                        
 @kwdispatch Pulley()
 @kwmethod Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name)
 @kwmethod Pulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = Pulley(circle,axis,0u"rad",0u"rad",name)
+@kwmethod Pulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, aArrive::Geometry2D.Radian, aDepart::Geometry2D.Radian, name::String) = Pulley(circle,axis,aArrive,aDepart,name)
+
+
+"""
+`getDeparturePoint(p::Pulley)::Geometry2D.Point`
+Returns the point of departure.
+"""
+function getDeparturePoint(p::Pulley)::Geometry2D.Point
+  return Geometry2D.pointOnCircle( p.pitch, p.aDepart )
+end
+
+"""
+`getArrivalPoint(p::Pulley)::Geometry2D.Point`
+Returns the point of arrival.
+"""
+function getArrivalPoint(p::Pulley)::Geometry2D.Point
+  return Geometry2D.pointOnCircle( p.pitch, p.aArrive )
+end
+
 
 """
 `calculateWrappedAngle(p::Pulley) :: Geometry2D.Angle`
