@@ -14,7 +14,9 @@ using Test
 using RecipesBase
 # using PyPlot #can use matplotlib arguments directly
 using Plots
+
 pyplot()
+
 close("all")
 
 include("Pulley2D.jl")

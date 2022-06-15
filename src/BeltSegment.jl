@@ -46,6 +46,10 @@ Plots the Pulleys and Segments in a `route`.
   # legend_background_color --> :red
 end
 
+function Base.show(io::IO, seg::Segment)
+  println(toStringShort(seg))
+end
+
 
 function getDeparturePoint(seg::Segment)
   getDeparturePoint(seg.depart)
@@ -138,11 +142,11 @@ function isSegmentMutuallyTangent( seg::Segment )
 end
 
 """
-`calculateSegments(route::Vector{Pulley}, plotSegments::Bool=false)::Vector{Pulley}`
+`calculateRouteAngles(route::Vector{Pulley}, plotSegments::Bool=false)::Vector{Pulley}`
 Given an ordered vetor of Pulleys, output a vector of new Pulleys whose aArrive and aDepart angles are set to connect the pulleys with mutually tangent segments.
 Convention: pulleys listed in 'positive' belt rotation order, consistent with each Pulley's rotation axis.
 """
-function calculateSegments(route::Vector{Pulley})::Vector{Pulley}
+function calculateRouteAngles(route::Vector{Pulley})::Vector{Pulley}
   nr = size(route,1)
   solved = route #allocate the array
 
@@ -159,23 +163,16 @@ function calculateSegments(route::Vector{Pulley})::Vector{Pulley}
     end
   end
   return solved
-end #calculateSegments
+end #calculateRouteAngles
 
-# convert a Pulley array to a belt/free list
-function routeToBeltSystem(route::Vector{Pulley})
-  nr = size(route,1)
-  belt = []
-  for ir in 1:nr #this loop looks forward from a pulley, adding pulley then freespace segment
-    a = route[ir] #current pulley
-    b = route[Utility.iNext(ir,nr)] #next pulley
-    seg = Segment( depart=a, arrive=b )
-
-    append!(belt, [a])
-    append!(belt, [seg])
+function route2Segments(route::Vector{Pulley}) :: Vector{Segment}
+  nr = length(route) 
+  segments = Vector{Segment}(undef, nr) # #pulleys == #segments
+  for ir in 1:nr
+    segments[ir] = Segment(depart=route[ir], arrive=route[Utility.iNext(ir,nr)])
   end
-
-  return belt
-end #routeToBeltSystem
+  return segments
+end
 
 function calculateBeltLength(beltSystem)
   l = 0u"mm"
@@ -197,24 +194,23 @@ function printRoute(route::Vector{Pulley})
   end
 end
 
-# function toString(thing::Pulley)
-#   un = unit(thing.pitch.center.x)
-#   str = @sprintf("Pulley: [%s] center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]",
-#   thing.name,
-#   ustrip(un, thing.pitch.center.x), ustrip(un, thing.pitch.center.y), ustrip(un, thing.pitch.radius),
-#   rad2deg(ustrip(un, thing.aArrive)), rad2deg(ustrip(un, thing.aDepart)) )
-#   return str
-# end
+
 function toString(seg::Segment)
-  # un = unit(seg.depart.pitch.radius)
-  # str = @sprintf("Segment: depart[%3.3f, %3.3f] -- arrive[%3.3f, %3.3f] length[%3.3f]",
-  # ustrip(un, seg.depart.pitch.center.x), ustrip(un, seg.depart.pitch.center.y),
-  # ustrip(un, seg.arrive.pitch.center.x), ustrip(un, seg.arrive.pitch.center.y),
-  # ustrip(distance(seg) ) )
-  # return str
+  return toStringShort(seg)
+end
+function toStringShort(seg::Segment)
   return "$(seg.depart.name)--$(seg.arrive.name)"
 end
-
+function toStringPoints(seg::Segment)
+  pd = getDeparturePoint(seg)
+  pa = getArrivalPoint(seg)
+  un = unit(pd.x)
+  str = @sprintf("Segment: depart[%3.3f, %3.3f] -- arrive[%3.3f, %3.3f] length[%3.3f]",
+  ustrip(un, pd.x), ustrip(un, pd.y),
+  ustrip(un, pa.x), ustrip(un, pa.y),
+  ustrip(distance(seg) ) )
+  return str
+end
 # prints <beltSystem> by calling toString() on each element
 function printBeltSystem(beltSystem)
   for (i,b) in enumerate(beltSystem)
@@ -229,22 +225,6 @@ function printBeltSystem(beltSystem)
   println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
 
 end
-
-# function plotBeltSystem(beltSystem; colorPulley="black",colorSegment="orange", linewidthBelt=4, plotUnit=u"mm")
-#   # nb = size(beltSystem,1)
-#   for (i,b) in enumerate(beltSystem)
-#     if typeof(b) == Pulley
-#       plotPulley(b, colorPulley=colorPulley, colorBelt=colorSegment, linewidthBelt=linewidthBelt, plotUnit=plotUnit)
-#       # Geometry2D.plotCircle(pulley2Circle(b), colorPulley)
-#     end
-#     if typeof(b) == Segment #plot segments after pulleys
-#       x = [ustrip(b.depart.x), ustrip(b.arrive.x) ]
-#       y = [ustrip(b.depart.y), ustrip(b.arrive.y) ]
-#       plot(x,y, color=colorSegment, linewidth=linewidthBelt, alpha=0.5, label=toString(b))
-#     end
-#   end
-#   BPlot.formatPlot()
-# end
 
 function testBeltSegment()
   uk = Geometry2D.UnitVector(0,0,1)
@@ -291,8 +271,8 @@ function testBeltSegment()
     @test isSegmentMutuallyTangent( seg )
   end
 
-  @testset "calculateSegments" begin
-    solved = calculateSegments(route)
+  @testset "calculateRouteAngles" begin
+    solved = calculateRouteAngles(route)
 
     #test confirmed via plot, copying angles into below to guard changes
     # @test isapprox(solved[1].aArrive, 5.327rad, rtol=1e-3) # E@0,0
@@ -302,14 +282,38 @@ function testBeltSegment()
     @test isapprox(solved[4].aArrive, 4.858rad, rtol=1e-3)
     # @test isapprox(solved[5].aArrive, 4.126rad, rtol=1e-3)
     @test isapprox(solved[5].aArrive, 0.0807rad, rtol=1e-3) #E@80,-200
-
   end
 
   @testset "calculateBeltLength" begin
-    solved = calculateSegments(route)
+    solved = calculateRouteAngles(route)
     # @test isapprox( calculateBeltLength( solved ), 0.181155m, rtol=1e-3 ) #E@0,0
     @test isapprox( calculateBeltLength( solved ), 0.22438m, rtol=1e-3 ) #E@80,-200
   end
+
+  @testset "route2Segments" begin
+    solved = calculateRouteAngles(route)
+    segments = route2Segments(solved)
+    @test toStringShort(segments[1]) == "A--B"
+    @test toStringShort(segments[2]) == "B--C"
+    @test toStringShort(segments[3]) == "C--D"
+    @test toStringShort(segments[4]) == "D--E"
+    @test toStringShort(segments[5]) == "E--A"
+  end
+
+  @testset "toStringShort" begin
+    pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
+    pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+    seg = Segment( depart=pA, arrive=pB )
+    @test toStringShort(seg) == "A--B"
+  end
+
+  @testset "toStringPoints" begin
+    pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
+    pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+    seg = Segment( depart=pA, arrive=pB )
+    @test toStringPoints(seg) == "Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]"
+  end
+
 
   @testset "plotSegment" begin
     pyplot()
@@ -326,12 +330,13 @@ function testBeltSegment()
 
   @testset "plotRoute" begin
     pyplot()
-    solved = calculateSegments(route)
+    solved = calculateRouteAngles(route)
     p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
     display(p)
     
     @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
   end
+
 
 end #test
 
