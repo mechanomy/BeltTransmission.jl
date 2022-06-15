@@ -20,6 +20,11 @@ Pulley(center::Geometry2D.Point, radius::Unitful.Length)                        
 @kwmethod Pulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, aArrive::Geometry2D.Radian, aDepart::Geometry2D.Radian, name::String) = Pulley(circle,axis,aArrive,aDepart,name)
 
 
+function Base.show(io::IO, p::Pulley)
+  println(pulley2String(p))
+end
+
+
 """
 A plot recipe for plotting Pulleys under Plots.jl.
 Keyword `n` can be used to increase the number of points constituting the pulley edge.
@@ -34,7 +39,6 @@ plot(p)
 # @userplot PlotPulley #expands to plotpulley() ...this doesn't seem to work right now, postpone
 @recipe function plotRecipe(p::Pulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
   col = get(plotattributes, :seriescolor, :auto)
-  # @show lwd = get(plotattributes, :linewidth, :auto) #this returns ':auto', not the numeric
 
   @series begin # put a dot/x on the pulley center, indicating the direction of the axis
     seriestype := :path 
@@ -169,50 +173,6 @@ function printPulley(p::Pulley)
   println(pulley2String(p))
 end
 
-# """
-# `plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4, plotUnit=u"m")
-
-# """
-# function plotPulley(p::Pulley; colorPulley="black", colorBelt="magenta", linewidthBelt=4, plotUnit=u"m")
-#   th = range(0,2*pi,length=100)
-
-#   px = ustrip(plotUnit, p.pitch.center.x) 
-#   py = ustrip(plotUnit, p.pitch.center.y) 
-#   pr = ustrip(plotUnit, p.pitch.radius)
-#   x = px .+ pr.*cos.(th)
-#   y = py .+ pr.*sin.(th)
-#   al= 0.5
-#   plot(x,y, color=colorPulley, alpha=al )
-#   text(px+pr*0.1,py+pr*0.1, p.name)
-#   if Geometry2D.isapprox(p.axis, Geometry2D.uk, rtol=1e-3) #+z == cw
-#     plot(px, py, "o", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
-#     plot(px+pr, py, "^", color=colorPulley, alpha=al)
-    
-#     if p.aDepart < p.aArrive
-#       an = range(p.aArrive-2u"rad"*pi, p.aDepart, length=100)
-#     else
-#       an = range(p.aArrive,p.aDepart,length=100)
-#     end
-#     ax = px .+ pr.*cos.(an)
-#     ay = py .+ pr.*sin.(an)
-#     plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt, label=p.name )
-#   elseif Geometry2D.isapprox(p.axis, -Geometry2D.uk, rtol=1e-3) #-z == cw
-#     plot(px, py, "x", color=colorPulley, alpha=al ) #arrow tip coming out of the page = ccw normal rotation
-#     plot(px+pr, py, "v", color=colorPulley, alpha=al)
-
-#     if p.aDepart < p.aArrive
-#       an = range(p.aArrive,p.aDepart,length=100)
-#     else
-#       an = range(p.aArrive, p.aDepart-2u"rad"*pi, length=100)
-#     end       
-#     ax = px .+ pr.*cos.(an)
-#     ay = py .+ pr.*sin.(an)
-#     plot(ax,ay, color=colorBelt, alpha=al, linewidth=linewidthBelt, label=p.name )
-#   else
-#     error("plotPulley given a non-z axis for pulley $(pulley2String(p))" )
-#   end
-
-# end
 
 function testPulley()
   @testset "Test constructors" begin
@@ -229,6 +189,11 @@ function testPulley()
     @test typeof( Pulley(ctr, rad, "name" )) <: Pulley
     @test typeof( Pulley(center=ctr, radius=rad, axis=uk, name="key" ) ) <: Pulley
     @test typeof( Pulley(circle=Geometry2D.Circle(ctr, rad), axis=uk, name="circle key" ) ) <: Pulley
+  end
+
+  @testset "pulley2String" begin
+    p = Pulley(Geometry2D.Circle(1mm, 2mm, 3mm), Geometry2D.uk, 1u"rad", 2u"rad", "struct" ) 
+    @test pulley2String(p) == "pulley[struct] @ [1 mm,2 mm] r[3 mm] arrive[57.29577951308232°] depart[114.59155902616465°] aWrap[57.29577951308232°] lWrap[3 mm rad]"
   end
 
   @testset "calculateWrappedAngle" begin

@@ -111,7 +111,7 @@ function findTangents(seg::Segment)
   arrive4 = Pulley(circle=seg.arrive.pitch, aArrive=b4*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
   ret = [Segment(depart=depart1, arrive=arrive1),Segment(depart=depart2, arrive=arrive2),Segment(depart=depart3, arrive=arrive3),Segment(depart=depart4, arrive=arrive4)]
   return ret
-end #findTangents
+end 
 
 """
 better name: doSegmentAxesAgreeWithPulleys...
@@ -201,6 +201,12 @@ end
 function toStringShort(seg::Segment)
   return "$(seg.depart.name)--$(seg.arrive.name)"
 end
+
+"""
+`toStringPoints(seg::Segment)::String`
+creates strings like:
+`Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]`
+"""
 function toStringPoints(seg::Segment)
   pd = getDeparturePoint(seg)
   pa = getArrivalPoint(seg)
@@ -211,6 +217,39 @@ function toStringPoints(seg::Segment)
   ustrip(distance(seg) ) )
   return str
 end
+
+"""
+`toStringPoints(seg::Segment)::String`
+creates strings like:
+`Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]`
+"""
+function toStringVectors(seg::Segment)
+  # pd = getDepartureVector(seg)
+  # pa = getArrivalVector(seg)
+
+  pdct = seg.depart.pitch.center
+  pdep = getDeparturePoint(seg)
+  dvec = Geometry2D.Vector2D(origin=pdct, tip=pdep)
+  un = unit(dvec.origin.x)
+  dstr = @sprintf("%s:[%3.3f,%3.3f]<%3.3f@%3.3f°>[%3.3f,%3.3f]",
+    seg.depart.name,
+    ustrip(un,dvec.origin.x), ustrip(un,dvec.origin.y),
+    ustrip(un, norm(dvec.tip-dvec.origin)), ustrip(°, Geometry2D.angle(dvec) ), 
+    ustrip(un,dvec.tip.x), ustrip(un,dvec.tip.y) )
+
+  pact = seg.arrive.pitch.center
+  parr = getArrivalPoint(seg)
+  avec = Geometry2D.Vector2D(origin=pact, tip=parr)
+  astr = @sprintf("%s:[%3.3f,%3.3f]<%3.3f@%3.3f°>[%3.3f,%3.3f]",
+    seg.arrive.name,
+    ustrip(un,avec.origin.x), ustrip(un,avec.origin.y),
+    ustrip(un, norm(avec.tip-avec.origin)), ustrip(°, Geometry2D.angle(avec) ), 
+    ustrip(un,avec.tip.x), ustrip(un,avec.tip.y) )
+  str = dstr * "--" * astr
+  return str
+end
+
+
 # prints <beltSystem> by calling toString() on each element
 function printBeltSystem(beltSystem)
   for (i,b) in enumerate(beltSystem)
@@ -314,6 +353,12 @@ function testBeltSegment()
     @test toStringPoints(seg) == "Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]"
   end
 
+  @testset "toStringVector" begin
+    pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
+    pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+    seg = Segment( depart=pA, arrive=pB )
+    @test toStringVectors(seg) == "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
+  end
 
   @testset "plotSegment" begin
     pyplot()
