@@ -64,10 +64,12 @@ plot(p)
     x = p.pitch.center.x .+ p.pitch.radius .* cos.(th) #with UnitfulRecipes, applies a unit label to the axes
     y = p.pitch.center.y .+ p.pitch.radius .* sin.(th)
     
-    ax = p.pitch.center.x + p.pitch.radius*(1-arrowFactor) * cos(ustrip(u"rad", p.aDepart - arrowFactor*(p.aDepart-p.aArrive))) 
-    ay = p.pitch.center.y + p.pitch.radius*(1-arrowFactor) * sin(ustrip(u"rad", p.aDepart - arrowFactor*(p.aDepart-p.aArrive))) 
+    #add an arrow at depart
+    ax = p.pitch.center.x + p.pitch.radius*(1-arrowFactor) * cos(ustrip(u"rad", pad - arrowFactor*(pad-paa))) 
+    ay = p.pitch.center.y + p.pitch.radius*(1-arrowFactor) * sin(ustrip(u"rad", pad - arrowFactor*(pad-paa))) 
     append!(x, ax)
     append!(y, ay)
+
     ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
   end
 
@@ -77,6 +79,8 @@ plot(p)
   fillcolor := col #the pulley wheel color
   # fillstyle --> :/ #overrides the center dot
   label --> p.name
+  legend_background_color --> :transparent
+  legend_position --> :outerright
 
   th = LinRange(0,2*π, 100)
   x = p.pitch.center.x .+ p.pitch.radius .* cos.(th) #with UnitfulRecipes, applies a unit label to the axes
@@ -260,6 +264,7 @@ function testPulley()
   end
 
   @testset "plotPulley" begin
+    pyplot()
     pa = Pulley(Geometry2D.Circle(0mm,0mm, 4mm), Geometry2D.uk, 1u"rad", 4u"rad", "pulleyA") 
     pb = Pulley(Geometry2D.Circle(10mm,0mm, 4mm), -Geometry2D.uk, 1u"rad", 4u"rad", "pulleyB") 
     p = plot(pa, reuse=false)

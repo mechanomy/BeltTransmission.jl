@@ -18,20 +18,32 @@ end
   linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...
   aspect_ratio := :equal 
   label --> toString(seg)
+  legend_background_color --> :transparent
+  legend_position --> :outerright
 
   ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
 end
 
+"""
+Plots the Pulleys and Segments in a `route`.
+"""
 @recipe function plotRecipe(route::Vector{Pulley})
   nr = length(route)
+
+  #plot segments first, behind pulleys
   for ir in 1:nr
-    @series begin
-      route[ir]
-    end
     @series begin
       Segment( depart=route[ir], arrive=route[Utility.iNext(ir,nr)] )
     end
   end
+
+  #plot pulleys
+  for ir in 1:nr
+    @series begin
+      route[ir] #route[ir] is returned to _ to be plotted
+    end
+  end
+  # legend_background_color --> :red
 end
 
 
@@ -300,6 +312,7 @@ function testBeltSegment()
   end
 
   @testset "plotSegment" begin
+    pyplot()
     pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
     pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
     seg = Segment( depart=pA, arrive=pB )
@@ -312,8 +325,9 @@ function testBeltSegment()
   end
 
   @testset "plotRoute" begin
+    pyplot()
     solved = calculateSegments(route)
-    p = plot(solved, reuse=false)
+    p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
     display(p)
     
     @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
