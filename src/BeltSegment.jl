@@ -78,7 +78,8 @@ function findTangents(seg::Segment)
 
   #ensure that pulleys are not coincident...this would manifest more clearly in aCross/aPara...
   if lCenter < 0.001mm
-    throw( DomainError(lCenter, "findTangents: pulleys on Segment[$seg] are coincident, can't find tangents") )
+    segstr = toStringShort(seg) #call toStringShort() here so that the result is ready and able to be caught by the testthrows, otherwise a random "A--A" shows up
+    throw( DomainError(lCenter, "findTangents: pulleys on Segment[$segstr] are coincident, can't find tangents") )
     return false
   end
 
@@ -174,26 +175,24 @@ function route2Segments(route::Vector{Pulley}) :: Vector{Segment}
   return segments
 end
 
-function calculateBeltLength(beltSystem)
+function calculateBeltLength(segments::Vector{Segment}) :: Unitful.Length
   l = 0u"mm"
-  for b in beltSystem
-    if typeof(b) == Pulley
-      l += calculateWrappedLength(b)
-    end
-    if typeof(b) == Segment
-      l += distance(b)
-    end
+  for seg in segments
+    lwl = calculateWrappedLength(seg.depart) #only include one of the pulleys per iteration..assumes a closed belt
+    ld = distance(seg)
+    l += lwl + ld
+  end
+
+  #for open belts, add the missed pulley
+  if segments[1].arrive != last(segments).depart
+    l+= calculateWrappedLength(segments[1].arrive) 
   end
   return l
 end
 
-function printRoute(route::Vector{Pulley})
-  for r in route
-    un = unit(r.pitch.center.x)
-    @printf("center[%3.3f, %3.3f] radius[%3.3f] arrive[%3.3f deg] depart[%3.3f deg]\n", ustrip(un, r.pitch.center.x), ustrip(un, r.pitch.center.y), ustrip(un, r.pitch.radius), rad2deg(ustrip(r.aArrive)), rad2deg(ustrip(r.aDepart)) )
-  end
+function calculateBeltLength(route::Vector{Pulley}) :: Unitful.Length
+  return calculateBeltLength( route2Segments(route) ) 
 end
-
 
 function toString(seg::Segment)
   return toStringShort(seg)
@@ -250,20 +249,22 @@ function toStringVectors(seg::Segment)
 end
 
 
-# prints <beltSystem> by calling toString() on each element
-function printBeltSystem(beltSystem)
-  for (i,b) in enumerate(beltSystem)
-    if typeof(b) == Pulley
-      println("$i: ", pulley2String(b))
-      # printPulley(b)
-    else
-      println("$i: ", toString(b))
-    end
+function printRoute(route::Vector{Pulley})
+  for r in route #r is pulleys
+    println(pulley2String(r))
   end
-  lTotal = calculateBeltLength(beltSystem)
+  lTotal = calculateBeltLength(route)
   println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
-
 end
+
+function printSegments(segments::Vector{Segment})
+  for s in segments
+    println(toStringVectors(s))
+  end
+  lTotal = calculateBeltLength(segments)
+  println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
+end
+
 
 function testBeltSegment()
   uk = Geometry2D.UnitVector(0,0,1)
@@ -278,6 +279,7 @@ function testBeltSegment()
   @testset "Segment constructors" begin
     sab = Segment( pA, pB )
     @test distance(sab) == Geometry2D.distance(pB.pitch.center, pA.pitch.center)
+
     sab = Segment( depart=pA, arrive=pB)
     @test distance(sab) == Geometry2D.distance(pB.pitch.center, pA.pitch.center)
   end
@@ -288,14 +290,17 @@ function testBeltSegment()
     sac = Segment(depart=pA, arrive=pC)
     @test_throws DomainError findTangents(saa) #overlap, throws
 
+
     tans = findTangents(sab)
     for i=1:4
       @test Geometry2D.isSegmentMutuallyTangent(cA=tans[i].depart.pitch, thA=tans[i].depart.aDepart, cB=tans[i].arrive.pitch, thB=tans[i].arrive.aArrive )
     end
+
     tans = findTangents(sac)
     for i=1:4
       @test Geometry2D.isSegmentMutuallyTangent(cA=tans[i].depart.pitch, thA=tans[i].depart.aDepart, cB=tans[i].arrive.pitch, thB=tans[i].arrive.aArrive )
     end
+
   end
 
   @testset "isSegmentMutuallyTangent" begin
@@ -323,22 +328,6 @@ function testBeltSegment()
     @test isapprox(solved[5].aArrive, 0.0807rad, rtol=1e-3) #E@80,-200
   end
 
-  @testset "calculateBeltLength" begin
-    solved = calculateRouteAngles(route)
-    # @test isapprox( calculateBeltLength( solved ), 0.181155m, rtol=1e-3 ) #E@0,0
-    @test isapprox( calculateBeltLength( solved ), 0.22438m, rtol=1e-3 ) #E@80,-200
-  end
-
-  @testset "route2Segments" begin
-    solved = calculateRouteAngles(route)
-    segments = route2Segments(solved)
-    @test toStringShort(segments[1]) == "A--B"
-    @test toStringShort(segments[2]) == "B--C"
-    @test toStringShort(segments[3]) == "C--D"
-    @test toStringShort(segments[4]) == "D--E"
-    @test toStringShort(segments[5]) == "E--A"
-  end
-
   @testset "toStringShort" begin
     pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
     pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
@@ -359,6 +348,34 @@ function testBeltSegment()
     seg = Segment( depart=pA, arrive=pB )
     @test toStringVectors(seg) == "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
   end
+
+  @testset "calculateBeltLength" begin
+    # #one complete revolution
+    pp = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), axis=uk, name="A", aArrive=0°, aDepart=360°) # one complete revolution
+    @test isapprox( calculateBeltLength( [pp] ), calculateWrappedLength(pp), rtol=1e-3 )
+
+    # an open belt, 180d wrap on both pulleys, separated by 200mm
+    pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=270°, aDepart=90°,               axis=uk, name="A")
+    pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=270°, axis=uk, name="B")
+    seg = Segment( depart=pA, arrive=pB )
+    @test isapprox( calculateBeltLength( [seg] ), π*2*10mm + 200mm, rtol=1e-3 )
+
+    solved = calculateRouteAngles(route)
+    # # @test isapprox( calculateBeltLength( solved ), 0.181155m, rtol=1e-3 ) #E@0,0
+    # # @test isapprox( calculateBeltLength( solved ), 0.22438m, rtol=1e-3 ) #E@80,-200
+    @test isapprox( calculateBeltLength( solved ), 1.231345m, rtol=1e-3 )
+  end
+
+  @testset "route2Segments" begin
+    solved = calculateRouteAngles(route)
+    segments = route2Segments(solved)
+    @test toStringShort(segments[1]) == "A--B"
+    @test toStringShort(segments[2]) == "B--C"
+    @test toStringShort(segments[3]) == "C--D"
+    @test toStringShort(segments[4]) == "D--E"
+    @test toStringShort(segments[5]) == "E--A"
+  end
+
 
   @testset "plotSegment" begin
     pyplot()
@@ -382,6 +399,17 @@ function testBeltSegment()
     @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
   end
 
+  @testset "printRoute" begin
+    solved = calculateRouteAngles(route)
+    printRoute(solved)
+    @test true
+  end
+
+  @testset "printSegments" begin
+    solved = calculateRouteAngles(route)
+    printSegments( route2Segments( solved ) )
+    @test true
+  end
 
 end #test
 

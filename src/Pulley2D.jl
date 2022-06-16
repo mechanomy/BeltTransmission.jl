@@ -45,6 +45,7 @@ plot(p)
     primary := false
     linecolor := nothing
     markershape := (p.axis==Geometry2D.uk ? :circle : :x ) #if axis is positive uk, the axis rotation vector is 'coming out of the page' whereas negative is into the page and we see the vector arrow's fletching
+    markercolor := :black
     [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
   end
 
@@ -120,24 +121,25 @@ function calculateWrappedAngle(p::Pulley) :: Geometry2D.Angle
     if p.aDepart < p.aArrive #negative to positive zero crossing
       angle = (2u"rad"*pi - p.aArrive) + p.aDepart 
       # @printf("W] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
-      return angle
+      return uconvert(u"rad", angle) #lest Unitful drop the angle units
     else
       angle = p.aDepart - p.aArrive
       # @printf("X] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
-      return angle
+      return uconvert(u"rad", angle)
     end
   elseif Geometry2D.isapprox(p.axis, -Geometry2D.uk, rtol=1e-3) #-z == cw
     if p.aDepart < p.aArrive
       angle = p.aArrive-p.aDepart
       # @printf("Y] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
-      return angle
+      return uconvert(u"rad", angle)
     else
       angle = 2u"rad"*pi - p.aDepart + p.aArrive
       # @printf("Z] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.aArrive, p.aDepart, angle)
-      return angle 
+      return uconvert(u"rad", angle)
     end       
   else
     error("calculateWrappedAngle: pulley axis is neither +- uk, is $(p.axis)")
+    return 0°
   end
 end
 
@@ -147,7 +149,12 @@ Given `p::Pulley`, calculate the length of the wrapped segment from aArrive to a
 Note that the wrapped length is not restricted to <= 1 revolution, the pulley may be wrapped multiple times.
 """
 function calculateWrappedLength(p::Pulley) :: Unitful.Length
-  return Geometry2D.circleArcLength( p.pitch, calculateWrappedAngle(p))
+  # cwa = calculateWrappedAngle(p)
+  # cal = Geometry2D.circleArcLength(p.pitch, cwa)
+  # return cal
+
+  # return Geometry2D.circleArcLength( p.pitch, calculateWrappedAngle(p)) 
+  return uconvert(u"m", Geometry2D.circleArcLength( p.pitch, calculateWrappedAngle(p)) ) #cancel m*rad
 end
 
 """
@@ -162,7 +169,20 @@ end
 Returns a descriptive string of the given Pulley `p`
 """
 function pulley2String(p::Pulley)::String 
-  return @sprintf("pulley[%s] @ [%s,%s] r[%s] arrive[%s] depart[%s] aWrap[%s] lWrap[%s]", p.name, p.pitch.center.x, p.pitch.center.y, p.pitch.radius, uconvert(u"°",p.aArrive), uconvert(u"°",p.aDepart), uconvert(u"°",calculateWrappedAngle(p)), calculateWrappedLength(p))
+  un = unit(p.pitch.radius)
+  return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] %s arrive[%3.3f°] depart[%3.3f°] aWrap[%3.3f°] lWrap[%3.3f]",
+    p.name, 
+    ustrip(un, p.pitch.center.x), ustrip(un, p.pitch.center.y), ustrip(un, p.pitch.radius),
+    string(un),
+    ustrip(u"°",p.aArrive), ustrip(u"°",p.aDepart),
+    ustrip(u"°",calculateWrappedAngle(p)), ustrip(un,calculateWrappedLength(p)) )
+
+  # #without computing wrapped angle or length:
+  # return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] %s arrive[%3.3f°] depart[%3.3f°]", 
+  #   p.name, 
+  #   ustrip(un, p.pitch.center.x), ustrip(un, p.pitch.center.y), ustrip(un, p.pitch.radius),
+  #   string(un),
+  #   ustrip(u"°",p.aArrive), ustrip(u"°",p.aDepart) )
 end
 
 """
@@ -193,7 +213,7 @@ function testPulley()
 
   @testset "pulley2String" begin
     p = Pulley(Geometry2D.Circle(1mm, 2mm, 3mm), Geometry2D.uk, 1u"rad", 2u"rad", "struct" ) 
-    @test pulley2String(p) == "pulley[struct] @ [1 mm,2 mm] r[3 mm] arrive[57.29577951308232°] depart[114.59155902616465°] aWrap[57.29577951308232°] lWrap[3 mm rad]"
+    @test pulley2String(p) == "pulley[struct] @ [1.000,2.000] r[3.000] mm arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.000]"
   end
 
   @testset "calculateWrappedAngle" begin
