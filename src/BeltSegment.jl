@@ -7,6 +7,10 @@ end
 @kwdispatch Segment()
 @kwmethod Segment(; depart::Pulley, arrive::Pulley) = Segment(depart,arrive)
 
+
+"""
+plots the free section of a segment, does not plot the pulleys
+"""
 @recipe function plotRecipe(seg::Segment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
   pd = getDeparturePoint( seg )
   pa = getArrivalPoint( seg )
@@ -43,8 +47,35 @@ Plots the Pulleys and Segments in a `route`.
       route[ir] #route[ir] is returned to _ to be plotted
     end
   end
-  # legend_background_color --> :red
 end
+
+"""
+Plots the Pulleys and Segments in a `route`.
+"""
+@recipe function plotRecipe(segments::Vector{Segment})
+  #plot segments first, behind pulleys
+  for seg in segments
+    @series begin
+      seg
+    end
+  end
+
+  nr = length(segments)
+  #plot pulleys
+  for ir in 1:nr
+    @series begin
+      segments[ir].depart #route[ir] is returned to _ to be plotted
+    end
+  end
+  #for open belts, add the missed pulley
+  if segments[1].arrive != last(segments).depart
+    segments[1].arrive 
+  end
+end
+
+
+
+
 
 function Base.show(io::IO, seg::Segment)
   println(toStringShort(seg))
@@ -382,15 +413,18 @@ function testBeltSegment()
     pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
     pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
     seg = Segment( depart=pA, arrive=pB )
-    p = plot(seg, reuse=false)
+    p = plot(seg, reuse=false, title="plot(::Segment)")
     p = plot!(seg.depart)
     p = plot!(seg.arrive)
     display(p)
-
     @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
+
+    p = plot([seg], reuse=false, title="plot(::Vector{Segment})")
+    display(p)
+    @test typeof(p) <: Plots.AbstractPlot
   end
 
-  @testset "plotRoute" begin
+  @testset "plotRoute of Pulley" begin
     pyplot()
     solved = calculateRouteAngles(route)
     p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
@@ -398,6 +432,18 @@ function testBeltSegment()
     
     @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
   end
+
+  @testset "plotRoute of Segment" begin
+    pyplot()
+    solved = calculateRouteAngles(route)
+    segments = route2Segments(solved)
+    p = plot(segments, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
+    display(p)
+    
+    @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
+  end
+
+
 
   @testset "printRoute" begin
     solved = calculateRouteAngles(route)
