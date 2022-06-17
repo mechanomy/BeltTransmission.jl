@@ -1,26 +1,19 @@
 """Geometric modeling of 2D closed belt transmissions"""
 module BeltTransmission
-using Unitful, Unitful.DefaultSymbols
-using KeywordDispatch
 
-using BPlot
-using Printf
-using StaticArrays #for defined-length arrays: SVector{3,T}
-using Utility
-using Geometry2D
-using LinearAlgebra:normalize, cross, dot
+  using Unitful, Unitful.DefaultSymbols
+  using KeywordDispatch
 
-using Test
-using RecipesBase
-# using PyPlot #can use matplotlib arguments directly
-using Plots
+  using BPlot
+  using Printf
+  using StaticArrays #for defined-length arrays: SVector{3,T}
+  using Utility
+  using Geometry2D
+  using LinearAlgebra:normalize, cross, dot
 
-pyplot()
-
-close("all")
-
-include("Pulley2D.jl")
-include("BeltSegment.jl")
+  using RecipesBase
+  include("Pulley.jl")
+  include("BeltSegment.jl")
 
 end # BeltTransmission
 
