@@ -4,7 +4,9 @@ module BeltTransmission
   using Unitful, Unitful.DefaultSymbols
   using KeywordDispatch
 
-  using BPlot
+  using DocStringExtensions 
+
+  # using BPlot
   using Printf
   using StaticArrays #for defined-length arrays: SVector{3,T}
   using Utility

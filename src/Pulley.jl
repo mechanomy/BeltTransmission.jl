@@ -21,7 +21,7 @@ Pulley(center::Geometry2D.Point, radius::Unitful.Length)                        
 
 
 function Base.show(io::IO, p::Pulley)
-  println(pulley2String(p))
+  print(io, pulley2String(p))
 end
 
 
