@@ -113,6 +113,7 @@ Other [Plots.jl attributes](https://docs.juliaplots.org/latest/generated/attribu
 ### Optimization to available parts
 If the system has significant unknowns, BeltTransmission can be used to evaluate potential configurations as part of a system optimization. 
 
+#### Known belt and pulleys
 
 
 find some combination of pulleys and belt that achieve a desired transmission ratio
