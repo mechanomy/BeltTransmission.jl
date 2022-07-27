@@ -1,6 +1,6 @@
 
-using Pkg
-Pkg.activate( normpath(joinpath(@__DIR__, "..")) ) #activate this package
+# using Pkg
+# Pkg.activate( normpath(joinpath(@__DIR__, "..")) ) #activate this package
 
 using Test
 using Unitful, Unitful.DefaultSymbols
@@ -19,3 +19,5 @@ using BeltTransmission
 
 include("testBeltSegment.jl")
 include("testPulley.jl")
+
+close("all")

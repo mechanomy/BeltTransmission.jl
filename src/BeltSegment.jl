@@ -2,16 +2,35 @@
 
 export Segment, getDeparturePoint, getArrivalPoint, distance, findTangents, isSegmentMutuallyTangent, calculateRouteAngles, route2Segments, calculateBeltLength, toString, toStringShort, toStringPoints, toStringVectors, printRoute, printSegments, length
 
+
+"""
+Describes a belt segment between `depart` and `arrive` Pulleys.
+$FIELDS
+"""
 struct Segment #this should set aArrive & aDepart on the pulleys...mutable pulley?
+  """Departing Pulley"""
   depart::Pulley #expanded to the Point on the `pitch` circle at `aDepart`
+  """Arriving Pulley"""
   arrive::Pulley #expanded to the Point on the `pitch` circle at `aArrive`
 end
 @kwdispatch Segment()
-@kwmethod Segment(; depart::Pulley, arrive::Pulley) = Segment(depart,arrive)
-
 
 """
-plots the free section of a segment, does not plot the pulleys
+    Segment(; depart::Pulley, arrive::Pulley) :: Segment
+Create a belt Segment between `depart` and `arrive` Pulleys
+"""
+@kwmethod Segment(; depart::Pulley, arrive::Pulley) = Segment(depart,arrive)
+
+"""
+    plotRecipe(seg::Segment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
+Plot recipe to plot the free sections of a segment, does not plot the pulleys.
+```
+using Plots, Unitful, BeltTransmission, Geometry2D
+a = Pulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+b = Pulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+seg = Segment(depart=a, arrive=b)
+plot(seg)
+```
 """
 @recipe function plotRecipe(seg::Segment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
   pd = getDeparturePoint( seg )
@@ -31,7 +50,15 @@ plots the free section of a segment, does not plot the pulleys
 end
 
 """
-Plots the Pulleys and Segments in a `route`.
+    plotRecipe(route::Vector{Pulley})
+Plots the Pulleys in a `route`.
+```
+using Plots, Unitful, BeltTransmission, Geometry2D
+a = Pulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+b = Pulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+route = calculateRouteAngles([a,b])
+plot(route)
+```
 """
 @recipe function plotRecipe(route::Vector{Pulley})
   nr = length(route)
@@ -52,7 +79,16 @@ Plots the Pulleys and Segments in a `route`.
 end
 
 """
+    plotRecipe(segments::Vector{Segment})
 Plots the Pulleys and Segments in a `route`.
+```
+using Plots, Unitful, BeltTransmission, Geometry2D
+a = Pulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+b = Pulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+route = calculateRouteAngles([a,b])
+segments = route2Segments(route)
+plot(segments)
+```
 """
 @recipe function plotRecipe(segments::Vector{Segment})
   #plot segments first, behind pulleys
@@ -76,15 +112,26 @@ Plots the Pulleys and Segments in a `route`.
 end
 
 
+"""
+    Base.show(io::IO, seg::Segment)
+show()s the Segment via [`toStringShort`](@ref).
+"""
 function Base.show(io::IO, seg::Segment)
   println(toStringShort(seg))
 end
 
-
+"""
+    getDeparturePoint(seg::Segment) :: Geometry2D.Point
+Returns the departure Geometry2D.Point of `seg`.
+"""
 function getDeparturePoint(seg::Segment)
   getDeparturePoint(seg.depart)
 end
 
+"""
+    getArrivalPoint(seg::Segment) :: Geometry2D.Point
+Returns the arrival Geometry2D.Point of `seg`.
+"""
 function getArrivalPoint(seg::Segment)
   getArrivalPoint(seg.arrive) 
 end
@@ -92,32 +139,29 @@ end
 
 
 # Both Geometry2D and BeltTransmission export a method distance(), leading to a collision even though they are differentiated by type, as https://discourse.julialang.org/t/two-modules-with-the-same-exported-function-name-but-different-signature/15231/13
-# using Geometry2D #don't really need this here, so import instead
 """
-`distance(seg::Segment) :: Unitful.Length`
+    distance(seg::Segment) :: Unitful.Length
 Returns the straight-line distance or length of Segment `seg`.
-as of 220617 this `distance()` is exported but anything using it returns 'not defined', can't see what the error is, add `dist` and `length` functions in lieu
 """
 function distance(seg::Segment) :: Unitful.Length
   return Geometry2D.distance( getDeparturePoint(seg), getArrivalPoint(seg) )
 end
+
 import Base.length
+"""
+    Base.length(seg::Segment) :: Unitful.Length
+Returns the straight-line distance or length of Segment `seg` via [`distance`](@ref).
+"""
 function Base.length(seg::Segment) :: Unitful.Length
   return distance(seg)
 end
 
 
 """
-`findTangents(; a::Pulley, b::Pulley, plotResult::Bool=false)`
-Finds possible depart and arrive angle pairs.
-For any two planar circles, four tangent lines are possible:
-
-Returns the four possible segments, each containing a pair of pulleys that form a tangent segment
-
-Find four lines tangent to both Pulley `a` and `b`, returns paired angles locating the points of tangency on the circles.
+    findTangents(; a::Pulley, b::Pulley, plotResult::Bool=false) :: Vector{Segment}
+Find four lines tangent to both Pulley `a` and `b`, returns 4 Segments with departure and arrival angles locating the points of tangency on the circles.
 """
-function findTangents(seg::Segment)
-  un =u"mm" # unit(a.center.x)
+function findTangents(seg::Segment) :: Vector{Segment}
   lCenter = Geometry2D.distance( seg.depart.pitch.center, seg.arrive.pitch.center )
 
   #ensure that pulleys are not coincident...this would manifest more clearly in aCross/aPara...
@@ -159,12 +203,13 @@ function findTangents(seg::Segment)
 end 
 
 """
-better name: doSegmentAxesAgreeWithPulleys...
-define segment a->b between ai&bi; the correct angle will have cross products that match both axes, so
- (ra-a1)x(a1-b1) = ax1 && (rb-b1)x(a1-b1) = bx1, all others should be false
- this is just a Segment wrapper on Geometry2D.isSegmentMutuallyTangent
+    isSegmentMutuallyTangent( seg::Segment ) :: Bool
+Determines whether the departure and arrival points are tangent to the connecting belt segment.
+
+For a segment a->b between ai&bi; the correct arrival and departure angles will have cross products that match both axes, 
+ (ra-a1)x(a1-b1) = ax1 && (rb-b1)x(a1-b1) = bx1, all others should be false.
 """
-function isSegmentMutuallyTangent( seg::Segment )
+function isSegmentMutuallyTangent( seg::Segment ) :: Bool
  #versus Geometry2D.isSegmentMutuallyTangent(), this compares the cross product to the pulley axis to test that the cross is in the same direction as the pulley's positive roatation
 
   a =   seg.depart
@@ -187,9 +232,9 @@ function isSegmentMutuallyTangent( seg::Segment )
 end
 
 """
-`calculateRouteAngles(route::Vector{Pulley}, plotSegments::Bool=false)::Vector{Pulley}`
-Given an ordered vetor of Pulleys, output a vector of new Pulleys whose aArrive and aDepart angles are set to connect the pulleys with mutually tangent segments.
-Convention: pulleys listed in 'positive' belt rotation order, consistent with each Pulley's rotation axis.
+    calculateRouteAngles(route::Vector{Pulley}, plotSegments::Bool=false) :: Vector{Pulley}
+Given an ordered vector of Pulleys, output a vector of new Pulleys whose aArrive and aDepart angles are set to connect the pulleys with mutually tangent segments.
+Convention: pulleys are listed in 'positive' belt rotation order, consistent with the direction of each Pulley's rotation axis.
 """
 function calculateRouteAngles(route::Vector{Pulley})::Vector{Pulley}
   nr = size(route,1)
@@ -208,8 +253,12 @@ function calculateRouteAngles(route::Vector{Pulley})::Vector{Pulley}
     end
   end
   return solved
-end #calculateRouteAngles
+end
 
+"""
+    route2Segments(route::Vector{Pulley}) :: Vector{Segment}
+Given the ordered Pulleys of a belt routing, returns a vector of the free-space Segments connecting the Pulleys.
+"""
 function route2Segments(route::Vector{Pulley}) :: Vector{Segment}
   nr = length(route) 
   segments = Vector{Segment}(undef, nr) # #pulleys == #segments
@@ -219,6 +268,10 @@ function route2Segments(route::Vector{Pulley}) :: Vector{Segment}
   return segments
 end
 
+"""
+    calculateBeltLength(segments::Vector{Segment}) :: Unitful.Length
+Calculates the belt length over the given `route` as the sum of straight Segments.
+"""
 function calculateBeltLength(segments::Vector{Segment}) :: Unitful.Length
   l = 0u"mm"
   for seg in segments
@@ -234,23 +287,36 @@ function calculateBeltLength(segments::Vector{Segment}) :: Unitful.Length
   return l
 end
 
+"""
+    calculateBeltLength(route::Vector{Pulley}) :: Unitful.Length
+Calculates the belt length over the given `route` as the sum of circular sections at the Pulley pitch radii between the arrival and departure angles.
+"""
 function calculateBeltLength(route::Vector{Pulley}) :: Unitful.Length
   return calculateBeltLength( route2Segments(route) ) 
 end
 
-function toString(seg::Segment)
+"""
+    toString(seg::Segment) :: String
+Calls [`toStringShort`](@ref).
+"""
+function toString(seg::Segment) :: String
   return toStringShort(seg)
 end
-function toStringShort(seg::Segment)
+
+"""
+    toStringShort(seg::Segment) :: String
+Returns a short string of the form 'A -- B', for a departing Pulley named A arriving at a Pulley named B.
+"""
+function toStringShort(seg::Segment) :: String
   return "$(seg.depart.name)--$(seg.arrive.name)"
 end
 
 """
-`toStringPoints(seg::Segment)::String`
-creates strings like:
-`Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]`
+    toStringPoints(seg::Segment) :: String
+Creates strings like:
+    Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]
 """
-function toStringPoints(seg::Segment)
+function toStringPoints(seg::Segment) :: String
   pd = getDeparturePoint(seg)
   pa = getArrivalPoint(seg)
   un = unit(pd.x)
@@ -262,9 +328,9 @@ function toStringPoints(seg::Segment)
 end
 
 """
-`toStringPoints(seg::Segment)::String`
-creates strings like:
-`Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]`
+    toStringVectors(seg::Segment) :: String
+Creates strings like:
+    "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
 """
 function toStringVectors(seg::Segment)
   # pd = getDepartureVector(seg)
@@ -292,7 +358,10 @@ function toStringVectors(seg::Segment)
   return str
 end
 
-
+"""
+    printRoute(route::Vector{Pulley})
+Prints the Pulleys and total belt length for the given `route`.
+"""
 function printRoute(route::Vector{Pulley})
   for r in route #r is pulleys
     println(pulley2String(r))
@@ -301,6 +370,10 @@ function printRoute(route::Vector{Pulley})
   println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
 end
 
+"""
+    printSegments(segments::Vector{Segment})
+Prints the Segments, and total belt length for the given `route`.
+"""
 function printSegments(segments::Vector{Segment})
   for s in segments
     println(toStringVectors(s))

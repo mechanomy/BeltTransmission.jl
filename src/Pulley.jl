@@ -1,42 +1,93 @@
 export Pulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle, calculateWrappedLength, pulley2Circle, pulley2String, printPulley
 
-"""Geometric modeling of 2D pulleys"""
+
+"""
+Models a pulley in a BeltTransmission with:
+$FIELDS
+"""
 struct Pulley
-    pitch::Geometry2D.Circle #the pitch circle
-    axis::Geometry2D.UnitVector #unit vector in the direction of positive axis rotation
-    aArrive::Geometry2D.Radian #angle of the point of tangency, aArrive comes first in the struct from the view of positive rotation..
-    aDepart::Geometry2D.Radian
-    name::String
+  """the pitch Circle"""
+  pitch::Geometry2D.Circle #the pitch circle
+  """the rotation axis for the pulley with +/- defining the 'positive' rotation direction"""
+  axis::Geometry2D.UnitVector #unit vector in the direction of positive axis rotation
+  """angle of the radial vector of the belt's point of arrival"""
+  aArrive::Geometry2D.Radian #angle of the point of tangency, aArrive comes first in the struct from the view of positive rotation..
+  """angle of the radial vector of the belt's point of departure"""
+  aDepart::Geometry2D.Radian
+  """convenience name of the pulley"""
+  name::String
 end
+
+"""
+    Pulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) :: Pulley
+Models a Pulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
+"""
 Pulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String)                            = Pulley(circle,axis,0u"rad",0u"rad",name) 
+
+"""
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) :: Pulley
+Models a Pulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `aArrive` and `aDepart` when rotated postively according to the `axis`, and an optional `name`.
+"""
 Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String)     = Pulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name) 
+
+"""
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) :: Pulley
+Models a Pulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `aArrive` and `aDepart` when rotated postively according to the `axis`, and an optional `name`.
+"""
 Pulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector)                   = Pulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad","") 
+
+"""
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length, name::String) :: Pulley
+Models a Pulley in a BeltTransmission, located at `center` with pitch `radius` and `name`.
+"""
 Pulley(center::Geometry2D.Point, radius::Unitful.Length, name::String)                                  = Pulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad",name) 
+
+"""
+    Pulley(center::Geometry2D.Point, radius::Unitful.Length) :: Pulley
+Models a Pulley in a BeltTransmission, located at `center` with pitch `radius`.
+"""
 Pulley(center::Geometry2D.Point, radius::Unitful.Length)                                                = Pulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad","") 
 
 @kwdispatch Pulley()
+
+"""
+    Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) :: Pulley
+Models a Pulley in a BeltTransmission through keyword arguments.
+"""
 @kwmethod Pulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = Pulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name)
+"""
+    Pulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) :: Pulley
+Models a Pulley in a BeltTransmission through keyword arguments.
+"""
 @kwmethod Pulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = Pulley(circle,axis,0u"rad",0u"rad",name)
+"""
+    Pulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, aArrive::Geometry2D.Radian, aDepart::Geometry2D.Radian, name::String) :: Pulley
+Models a Pulley in a BeltTransmission through keyword arguments.
+"""
 @kwmethod Pulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, aArrive::Geometry2D.Radian, aDepart::Geometry2D.Radian, name::String) = Pulley(circle,axis,aArrive,aDepart,name)
 
-
+"""
+    Base.show(io::IO, p::Pulley)
+Function to `show()` a Pulley via [`pulley2String`](@ref).
+"""
 function Base.show(io::IO, p::Pulley)
   print(io, pulley2String(p))
 end
 
 
 """
+    plotRecipe(p::Pulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
+
 A plot recipe for plotting Pulleys under Plots.jl.
 Keyword `n` can be used to increase the number of points constituting the pulley edge.
-`lengthUnit` is a Unitful unit for scaling the linear axes. [atm UnitfulRecipes doesn't apply to nested @series]
-`arrowFactor` controls the size of the arrow head at aDepart
+`lengthUnit` is a Unitful unit for scaling the linear axes.
+`arrowFactor` controls the size of the arrow head at aDepart.
 ```
-p = Pulley( Geometry2D.Circle(1mm,2mm,3mm), Geometry2D.uk, "recipe" )
+using Plots, Unitful, BeltTransmission, Geometry2D
+p = Pulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
 plot(p)
 ```
-#this help will not display unless attached to a plotpulley function
 """
-# @userplot PlotPulley #expands to plotpulley() ...this doesn't seem to work right now, postpone
 @recipe function plotRecipe(p::Pulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
   col = get(plotattributes, :seriescolor, :auto)
 
@@ -95,7 +146,7 @@ plot(p)
 end
 
 """
-`getDeparturePoint(p::Pulley)::Geometry2D.Point`
+    getDeparturePoint(p::Pulley)::Geometry2D.Point
 Returns the point of departure.
 """
 function getDeparturePoint(p::Pulley)::Geometry2D.Point
@@ -103,7 +154,7 @@ function getDeparturePoint(p::Pulley)::Geometry2D.Point
 end
 
 """
-`getArrivalPoint(p::Pulley)::Geometry2D.Point`
+    getArrivalPoint(p::Pulley)::Geometry2D.Point
 Returns the point of arrival.
 """
 function getArrivalPoint(p::Pulley)::Geometry2D.Point
@@ -112,9 +163,9 @@ end
 
 
 """
-`calculateWrappedAngle(p::Pulley) :: Geometry2D.Angle`
-Given `p::Pulley`, calculate the wrapped angle from aArrive to aDepart.
-Note that the wrapped angle is not restricted to <= 1 revolution, the pulley may be wrapped multiple times.
+    calculateWrappedAngle(p::Pulley) :: Geometry2D.Angle
+Given `p`, calculate the wrapped angle from `p.aArrive` to `p.aDepart`.
+Note that the wrapped angle is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
 function calculateWrappedAngle(p::Pulley) :: Geometry2D.Angle
   if Geometry2D.isapprox(p.axis, Geometry2D.uk, rtol=1e-3) #+z == cw
@@ -144,9 +195,9 @@ function calculateWrappedAngle(p::Pulley) :: Geometry2D.Angle
 end
 
 """
-`calculateWrappedLength(p::Pulley) :: Unitful.Length`
-Given `p::Pulley`, calculate the length of the wrapped segment from aArrive to aDepart
-Note that the wrapped length is not restricted to <= 1 revolution, the pulley may be wrapped multiple times.
+    calculateWrappedLength(p::Pulley) :: Unitful.Length
+Given `p`, calculate the arclength of the wrapped segment from `p.aArrive` to `p.aDepart`
+Note that the wrapped length is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
 function calculateWrappedLength(p::Pulley) :: Unitful.Length
   # cwa = calculateWrappedAngle(p)
@@ -158,15 +209,17 @@ function calculateWrappedLength(p::Pulley) :: Unitful.Length
 end
 
 """
-`pulley2Circle(p::Pulley)::Geometry2D.Circle`
+    pulley2Circle(p::Pulley) :: Geometry2D.Circle
+Returns the pitch Circle of `p`.
 """
 function pulley2Circle(p::Pulley) :: Geometry2D.Circle
     return p.pitch
 end
 
 """
-`pulley2String(p::Pulley)::String`
-Returns a descriptive string of the given Pulley `p`
+    pulley2String(p::Pulley) :: String
+Returns a descriptive string of the given Pulley `p` of the form:
+    pulley[struct] @ [1.000,2.000] r[3.000] mm arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.000]"
 """
 function pulley2String(p::Pulley)::String 
   un = unit(p.pitch.radius)
@@ -186,8 +239,8 @@ function pulley2String(p::Pulley)::String
 end
 
 """
-`printPulley(p::Pulley)`
-Prints the result of `pulley2String(p)` to the standard output
+    printPulley(p::Pulley)
+Prints the result of [`pulley2String`](@ref) to the standard output
 """
 function printPulley(p::Pulley)
   println(pulley2String(p))

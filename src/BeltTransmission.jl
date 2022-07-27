@@ -1,4 +1,10 @@
-"""Geometric modeling of 2D closed belt transmissions"""
+"""
+Geometric modeling of 2D closed belt transmissions.
+
+Exports methods:
+$(EXPORTS)
+
+"""
 module BeltTransmission
 
   using Unitful, Unitful.DefaultSymbols
@@ -6,7 +12,6 @@ module BeltTransmission
 
   using DocStringExtensions 
 
-  # using BPlot
   using Printf
   using StaticArrays #for defined-length arrays: SVector{3,T}
   using Utility
