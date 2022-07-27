@@ -12,7 +12,7 @@ mutable struct SyncPulley <: AbstractPulley
     pitchLength::Unitful.Length # circumferential length
     axis::Geometry2D.UnitVector #unit vector in the direction of positive axis rotation
     arrive::Radian #angle of the point of tangency 
-    aDepart::Radian
+    depart::Radian
 end
 # 220526: KeywordDispatch can't have default arguments: https://github.com/simonbyrne/KeywordDispatch.jl/issues/1
 @kwdispatch SyncPulley()

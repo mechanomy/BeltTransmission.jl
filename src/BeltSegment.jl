@@ -7,9 +7,9 @@ export Segment, getDeparturePoint, getArrivalPoint, distance, findTangents, isSe
 Describes a belt segment between `depart` and `arrive` Pulleys.
 $FIELDS
 """
-struct Segment #this should set arrive & aDepart on the pulleys...mutable pulley?
+struct Segment #this should set arrive & depart on the pulleys...mutable pulley?
   """Departing PlainPulley"""
-  depart::PlainPulley #expanded to the Point on the `pitch` circle at `aDepart`
+  depart::PlainPulley #expanded to the Point on the `pitch` circle at `depart`
   """Arriving PlainPulley"""
   arrive::PlainPulley #expanded to the Point on the `pitch` circle at `arrive`
 end
@@ -189,15 +189,15 @@ function findTangents(seg::Segment) :: Vector{Segment}
   b4 = Geometry2D.angleWrap( pi+aCenter-aCross )
 
   #                       old circle        newly found tangent angle  old: 
-  depart1 = PlainPulley(circle=seg.depart.pitch, aDepart=a1*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart2 = PlainPulley(circle=seg.depart.pitch, aDepart=a2*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart3 = PlainPulley(circle=seg.depart.pitch, aDepart=a3*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart4 = PlainPulley(circle=seg.depart.pitch, aDepart=a4*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  depart1 = PlainPulley(circle=seg.depart.pitch, depart=a1*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  depart2 = PlainPulley(circle=seg.depart.pitch, depart=a2*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  depart3 = PlainPulley(circle=seg.depart.pitch, depart=a3*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  depart4 = PlainPulley(circle=seg.depart.pitch, depart=a4*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
 
-  arrive1 = PlainPulley(circle=seg.arrive.pitch, arrive=b1*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive2 = PlainPulley(circle=seg.arrive.pitch, arrive=b2*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive3 = PlainPulley(circle=seg.arrive.pitch, arrive=b3*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive4 = PlainPulley(circle=seg.arrive.pitch, arrive=b4*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
+  arrive1 = PlainPulley(circle=seg.arrive.pitch, arrive=b1*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
+  arrive2 = PlainPulley(circle=seg.arrive.pitch, arrive=b2*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
+  arrive3 = PlainPulley(circle=seg.arrive.pitch, arrive=b3*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
+  arrive4 = PlainPulley(circle=seg.arrive.pitch, arrive=b4*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
   ret = [Segment(depart=depart1, arrive=arrive1),Segment(depart=depart2, arrive=arrive2),Segment(depart=depart3, arrive=arrive3),Segment(depart=depart4, arrive=arrive4)]
   return ret
 end 
@@ -213,7 +213,7 @@ function isSegmentMutuallyTangent( seg::Segment ) :: Bool
  #versus Geometry2D.isSegmentMutuallyTangent(), this compares the cross product to the pulley axis to test that the cross is in the same direction as the pulley's positive roatation
 
   a =   seg.depart
-  thA = seg.depart.aDepart
+  thA = seg.depart.depart
   b =   seg.arrive
   thB = seg.arrive.arrive
   
@@ -233,7 +233,7 @@ end
 
 """
     calculateRouteAngles(route::Vector{PlainPulley}, plotSegments::Bool=false) :: Vector{PlainPulley}
-Given an ordered vector of Pulleys, output a vector of new Pulleys whose arrive and aDepart angles are set to connect the pulleys with mutually tangent segments.
+Given an ordered vector of Pulleys, output a vector of new Pulleys whose arrive and depart angles are set to connect the pulleys with mutually tangent segments.
 Convention: pulleys are listed in 'positive' belt rotation order, consistent with the direction of each PlainPulley's rotation axis.
 """
 function calculateRouteAngles(route::Vector{PlainPulley})::Vector{PlainPulley}

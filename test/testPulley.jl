@@ -6,7 +6,7 @@
   @test calculateWrappedAngle( pa ) == 1u"rad"
 
   pa = PlainPulley(cir, uk, 1u"rad", 0u"rad", "struct" ) 
-  @test calculateWrappedAngle( pa ) == (2*π-1)u"rad" #from arrive to aDepart
+  @test calculateWrappedAngle( pa ) == (2*π-1)u"rad" #from arrive to depart
 
   pa = PlainPulley(cir, uk, 0u"rad", 7u"rad", "struct" ) 
   @test calculateWrappedAngle( pa ) == 7u"rad" 

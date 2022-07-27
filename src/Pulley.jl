@@ -3,7 +3,7 @@ export AbstractPulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle
 
 """
 Subtypes of AbstractPulley model a particular form of pulley.
-All subtypes have basic fields of `pitch::Circle`, `axis::UnitVector`, `arrive::Angle`, `aDepart::Angle`, and a `name::String`.
+All subtypes have basic fields of `pitch::Circle`, `axis::UnitVector`, `arrive::Angle`, `depart::Angle`, and a `name::String`.
 """
 abstract type AbstractPulley end
 
@@ -33,7 +33,7 @@ end
 Returns the point of departure.
 """
 function getDeparturePoint(p::AbstractPulley)::Geometry2D.Point
-  return Geometry2D.pointOnCircle( p.pitch, p.aDepart )
+  return Geometry2D.pointOnCircle( p.pitch, p.depart )
 end
 
 """
@@ -47,28 +47,28 @@ end
 
 """
     calculateWrappedAngle(p::AbstractPulley) :: Geometry2D.Angle
-Given `p`, calculate the wrapped angle from `p.arrive` to `p.aDepart`.
+Given `p`, calculate the wrapped angle from `p.arrive` to `p.depart`.
 Note that the wrapped angle is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
 function calculateWrappedAngle(p::AbstractPulley) :: Geometry2D.Angle
   if Geometry2D.isapprox(p.axis, Geometry2D.uk, rtol=1e-3) #+z == cw
-    if p.aDepart < p.arrive #negative to positive zero crossing
-      angle = (2u"rad"*pi - p.arrive) + p.aDepart 
-      # @printf("W] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.arrive, p.aDepart, angle)
+    if p.depart < p.arrive #negative to positive zero crossing
+      angle = (2u"rad"*pi - p.arrive) + p.depart 
+      # @printf("W] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.depart), uconvert(u"°",angle), p.arrive, p.depart, angle)
       return uconvert(u"rad", angle) #lest Unitful drop the angle units
     else
-      angle = p.aDepart - p.arrive
-      # @printf("X] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.arrive, p.aDepart, angle)
+      angle = p.depart - p.arrive
+      # @printf("X] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.depart), uconvert(u"°",angle), p.arrive, p.depart, angle)
       return uconvert(u"rad", angle)
     end
   elseif Geometry2D.isapprox(p.axis, -Geometry2D.uk, rtol=1e-3) #-z == cw
-    if p.aDepart < p.arrive
-      angle = p.arrive-p.aDepart
-      # @printf("Y] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.arrive, p.aDepart, angle)
+    if p.depart < p.arrive
+      angle = p.arrive-p.depart
+      # @printf("Y] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.depart), uconvert(u"°",angle), p.arrive, p.depart, angle)
       return uconvert(u"rad", angle)
     else
-      angle = 2u"rad"*pi - p.aDepart + p.arrive
-      # @printf("Z] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.aDepart), uconvert(u"°",angle), p.arrive, p.aDepart, angle)
+      angle = 2u"rad"*pi - p.depart + p.arrive
+      # @printf("Z] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.depart), uconvert(u"°",angle), p.arrive, p.depart, angle)
       return uconvert(u"rad", angle)
     end       
   else
@@ -79,7 +79,7 @@ end
 
 """
     calculateWrappedLength(p::AbstractPulley) :: Unitful.Length
-Given `p`, calculate the arclength of the wrapped segment from `p.arrive` to `p.aDepart`
+Given `p`, calculate the arclength of the wrapped segment from `p.arrive` to `p.depart`
 Note that the wrapped length is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
 function calculateWrappedLength(p::AbstractPulley) :: Unitful.Length

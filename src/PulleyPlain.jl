@@ -12,7 +12,7 @@ struct PlainPulley <: AbstractPulley
   """angle of the radial vector of the belt's point of arrival"""
   arrive::Geometry2D.Radian #angle of the point of tangency, arrive comes first in the struct from the view of positive rotation..
   """angle of the radial vector of the belt's point of departure"""
-  aDepart::Geometry2D.Radian
+  depart::Geometry2D.Radian
   """convenience name of the pulley"""
   name::String
 end
@@ -25,13 +25,13 @@ PlainPulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String
 
 """
     PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `aDepart` when rotated postively according to the `axis`, and an optional `name`.
+Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `depart` when rotated postively according to the `axis`, and an optional `name`.
 """
 PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = PlainPulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name) 
 
 """
     PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) :: PlainPulley
-Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `aDepart` when rotated postively according to the `axis`, and an optional `name`.
+Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `depart` when rotated postively according to the `axis`, and an optional `name`.
 """
 PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = PlainPulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad","") 
 
@@ -62,10 +62,10 @@ Models a PlainPulley in a BeltTransmission through keyword arguments.
 @kwmethod PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(circle,axis,0u"rad",0u"rad",name)
 
 """
-    PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, aDepart::Geometry2D.Radian, name::String) :: PlainPulley
+    PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) :: PlainPulley
 Models a PlainPulley in a BeltTransmission through keyword arguments.
 """
-@kwmethod PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, aDepart::Geometry2D.Radian, name::String) = PlainPulley(circle,axis,arrive,aDepart,name)
+@kwmethod PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = PlainPulley(circle,axis,arrive,depart,name)
 
 """
     pulley2String(p::PlainPulley) :: String
@@ -78,7 +78,7 @@ function pulley2String(p::PlainPulley)::String
     p.name, 
     ustrip(un, p.pitch.center.x), ustrip(un, p.pitch.center.y), ustrip(un, p.pitch.radius),
     string(un),
-    ustrip(u"°",p.arrive), ustrip(u"°",p.aDepart),
+    ustrip(u"°",p.arrive), ustrip(u"°",p.depart),
     ustrip(u"°",calculateWrappedAngle(p)), ustrip(un,calculateWrappedLength(p)) )
 
   # #without computing wrapped angle or length:
@@ -86,7 +86,7 @@ function pulley2String(p::PlainPulley)::String
   #   p.name, 
   #   ustrip(un, p.pitch.center.x), ustrip(un, p.pitch.center.y), ustrip(un, p.pitch.radius),
   #   string(un),
-  #   ustrip(u"°",p.arrive), ustrip(u"°",p.aDepart) )
+  #   ustrip(u"°",p.arrive), ustrip(u"°",p.depart) )
 end
 
 
@@ -97,7 +97,7 @@ end
 A plot recipe for plotting Pulleys under Plots.jl.
 Keyword `n` can be used to increase the number of points constituting the pulley edge.
 `lengthUnit` is a Unitful unit for scaling the linear axes.
-`arrowFactor` controls the size of the arrow head at aDepart.
+`arrowFactor` controls the size of the arrow head at depart.
 ```
 using Plots, Unitful, BeltTransmission, Geometry2D
 p = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
@@ -116,19 +116,19 @@ plot(p)
     [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
   end
 
-  @series begin #draw the arc segment between arrive and aDepart
+  @series begin #draw the arc segment between arrive and depart
     seriestype := :path
     primary := false
     linecolor := segmentColor
     linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...
 
     #fix zero crossings
-    pad = p.aDepart
-    if p.axis≈Geometry2D.uk && p.aDepart < p.arrive #positive rotation, need to increase aDepart by 2pi
+    pad = p.depart
+    if p.axis≈Geometry2D.uk && p.depart < p.arrive #positive rotation, need to increase depart by 2pi
       pad += 2*π*u"rad"
     end
     paa = p.arrive
-    if p.axis ≈ -Geometry2D.uk && p.arrive < p.aDepart
+    if p.axis ≈ -Geometry2D.uk && p.arrive < p.depart
       paa += 2*π*u"rad"
     end
     
