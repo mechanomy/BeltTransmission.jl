@@ -4,11 +4,11 @@
 
 uk = Geometry2D.UnitVector(0,0,1)
 #a square of pulleys, arranged ccw from quadrant1
-pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), axis=uk, name="A")
-pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"), axis=uk, name="B")
-pC = Pulley( circle=Geometry2D.Circle(-100u"mm",-100u"mm", 43u"mm"), axis=uk, name="C")
-pD = Pulley( circle=Geometry2D.Circle( 100u"mm",-100u"mm", 14u"mm"), axis=uk, name="D") 
-pE = Pulley( circle=Geometry2D.Circle( 80u"mm",-200u"mm", 14u"mm"), axis=-uk, name="E") 
+pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), axis=uk, name="A")
+pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"), axis=uk, name="B")
+pC = PlainPulley( circle=Geometry2D.Circle(-100u"mm",-100u"mm", 43u"mm"), axis=uk, name="C")
+pD = PlainPulley( circle=Geometry2D.Circle( 100u"mm",-100u"mm", 14u"mm"), axis=uk, name="D") 
+pE = PlainPulley( circle=Geometry2D.Circle( 80u"mm",-200u"mm", 14u"mm"), axis=-uk, name="E") 
 route = [pA, pB, pC, pD, pE]
 
 @testset "Segment constructors" begin
@@ -29,24 +29,24 @@ end
 
   tans = findTangents(sab)
   for i=1:4
-    @test Geometry2D.isSegmentMutuallyTangent(cA=tans[i].depart.pitch, thA=tans[i].depart.aDepart, cB=tans[i].arrive.pitch, thB=tans[i].arrive.aArrive )
+    @test Geometry2D.isSegmentMutuallyTangent(cA=tans[i].depart.pitch, thA=tans[i].depart.aDepart, cB=tans[i].arrive.pitch, thB=tans[i].arrive.arrive )
   end
 
   tans = findTangents(sac)
   for i=1:4
-    @test Geometry2D.isSegmentMutuallyTangent(cA=tans[i].depart.pitch, thA=tans[i].depart.aDepart, cB=tans[i].arrive.pitch, thB=tans[i].arrive.aArrive )
+    @test Geometry2D.isSegmentMutuallyTangent(cA=tans[i].depart.pitch, thA=tans[i].depart.aDepart, cB=tans[i].arrive.pitch, thB=tans[i].arrive.arrive )
   end
 
 end
 
 @testset "isSegmentMutuallyTangent" begin
-  pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=(π/2)u"rad",               axis=uk, name="A")
-  pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=(π/2)u"rad", aDepart=200°, axis=uk, name="B")
+  pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, aDepart=(π/2)u"rad",               axis=uk, name="A")
+  pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=(π/2)u"rad", aDepart=200°, axis=uk, name="B")
   seg = Segment( depart=pA, arrive=pB )
   @test isSegmentMutuallyTangent( seg )
 
-  pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
-  pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+  pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, aDepart=90°,               axis=uk, name="A")
+  pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, aDepart=200°, axis=uk, name="B")
   seg = Segment( depart=pA, arrive=pB )
   @test isSegmentMutuallyTangent( seg )
 end
@@ -55,44 +55,44 @@ end
   solved = calculateRouteAngles(route)
 
   #test confirmed via plot, copying angles into below to guard changes
-  # @test isapprox(solved[1].aArrive, 5.327rad, rtol=1e-3) # E@0,0
-  @test isapprox(solved[1].aArrive, 6.136rad, rtol=1e-3) # E@80,-200
-  @test isapprox(solved[2].aArrive, 1.571rad, rtol=1e-3) # == [1].aDepart
-  @test isapprox(solved[3].aArrive, 2.976rad, rtol=1e-3)
-  @test isapprox(solved[4].aArrive, 4.858rad, rtol=1e-3)
-  # @test isapprox(solved[5].aArrive, 4.126rad, rtol=1e-3)
-  @test isapprox(solved[5].aArrive, 0.0807rad, rtol=1e-3) #E@80,-200
+  # @test isapprox(solved[1].arrive, 5.327rad, rtol=1e-3) # E@0,0
+  @test isapprox(solved[1].arrive, 6.136rad, rtol=1e-3) # E@80,-200
+  @test isapprox(solved[2].arrive, 1.571rad, rtol=1e-3) # == [1].aDepart
+  @test isapprox(solved[3].arrive, 2.976rad, rtol=1e-3)
+  @test isapprox(solved[4].arrive, 4.858rad, rtol=1e-3)
+  # @test isapprox(solved[5].arrive, 4.126rad, rtol=1e-3)
+  @test isapprox(solved[5].arrive, 0.0807rad, rtol=1e-3) #E@80,-200
 end
 
 @testset "toStringShort" begin
-  pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
-  pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+  pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, aDepart=90°,               axis=uk, name="A")
+  pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, aDepart=200°, axis=uk, name="B")
   seg = Segment( depart=pA, arrive=pB )
   @test toStringShort(seg) == "A--B"
 end
 
 @testset "toStringPoints" begin
-  pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
-  pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+  pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, aDepart=90°,               axis=uk, name="A")
+  pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, aDepart=200°, axis=uk, name="B")
   seg = Segment( depart=pA, arrive=pB )
   @test toStringPoints(seg) == "Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]"
 end
 
 @testset "toStringVector" begin
-  pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
-  pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+  pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, aDepart=90°,               axis=uk, name="A")
+  pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, aDepart=200°, axis=uk, name="B")
   seg = Segment( depart=pA, arrive=pB )
   @test toStringVectors(seg) == "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
 end
 
 @testset "calculateBeltLength" begin
   # #one complete revolution
-  pp = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), axis=uk, name="A", aArrive=0°, aDepart=360°) # one complete revolution
+  pp = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), axis=uk, name="A", arrive=0°, aDepart=360°) # one complete revolution
   @test isapprox( calculateBeltLength( [pp] ), calculateWrappedLength(pp), rtol=1e-3 )
 
   # an open belt, 180d wrap on both pulleys, separated by 200mm
-  pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=270°, aDepart=90°,               axis=uk, name="A")
-  pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=270°, axis=uk, name="B")
+  pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=270°, aDepart=90°,               axis=uk, name="A")
+  pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, aDepart=270°, axis=uk, name="B")
   seg = Segment( depart=pA, arrive=pB )
   @test isapprox( calculateBeltLength( [seg] ), π*2*10mm + 200mm, rtol=1e-3 )
 
@@ -115,8 +115,8 @@ end
 
 @testset "plotSegment" begin
   pyplot()
-  pA = Pulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), aArrive=0°, aDepart=90°,               axis=uk, name="A")
-  pB = Pulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             aArrive=90°, aDepart=200°, axis=uk, name="B")
+  pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, aDepart=90°,               axis=uk, name="A")
+  pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, aDepart=200°, axis=uk, name="B")
   seg = Segment( depart=pA, arrive=pB )
   p = plot(seg, reuse=false, title="plot(::Segment)")
   p = plot!(seg.depart)
@@ -129,7 +129,7 @@ end
   @test typeof(p) <: Plots.AbstractPlot
 end
 
-@testset "plotRoute of Pulley" begin
+@testset "plotRoute of PlainPulley" begin
   pyplot()
   solved = calculateRouteAngles(route)
   p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)

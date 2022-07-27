@@ -7,27 +7,27 @@ export Segment, getDeparturePoint, getArrivalPoint, distance, findTangents, isSe
 Describes a belt segment between `depart` and `arrive` Pulleys.
 $FIELDS
 """
-struct Segment #this should set aArrive & aDepart on the pulleys...mutable pulley?
-  """Departing Pulley"""
-  depart::Pulley #expanded to the Point on the `pitch` circle at `aDepart`
-  """Arriving Pulley"""
-  arrive::Pulley #expanded to the Point on the `pitch` circle at `aArrive`
+struct Segment #this should set arrive & aDepart on the pulleys...mutable pulley?
+  """Departing PlainPulley"""
+  depart::PlainPulley #expanded to the Point on the `pitch` circle at `aDepart`
+  """Arriving PlainPulley"""
+  arrive::PlainPulley #expanded to the Point on the `pitch` circle at `arrive`
 end
 @kwdispatch Segment()
 
 """
-    Segment(; depart::Pulley, arrive::Pulley) :: Segment
+    Segment(; depart::PlainPulley, arrive::PlainPulley) :: Segment
 Create a belt Segment between `depart` and `arrive` Pulleys
 """
-@kwmethod Segment(; depart::Pulley, arrive::Pulley) = Segment(depart,arrive)
+@kwmethod Segment(; depart::PlainPulley, arrive::PlainPulley) = Segment(depart,arrive)
 
 """
     plotRecipe(seg::Segment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
 Plot recipe to plot the free sections of a segment, does not plot the pulleys.
 ```
 using Plots, Unitful, BeltTransmission, Geometry2D
-a = Pulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-b = Pulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
 seg = Segment(depart=a, arrive=b)
 plot(seg)
 ```
@@ -50,17 +50,17 @@ plot(seg)
 end
 
 """
-    plotRecipe(route::Vector{Pulley})
+    plotRecipe(route::Vector{PlainPulley})
 Plots the Pulleys in a `route`.
 ```
 using Plots, Unitful, BeltTransmission, Geometry2D
-a = Pulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-b = Pulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
 route = calculateRouteAngles([a,b])
 plot(route)
 ```
 """
-@recipe function plotRecipe(route::Vector{Pulley})
+@recipe function plotRecipe(route::Vector{PlainPulley})
   nr = length(route)
 
   #plot segments first, behind pulleys
@@ -83,8 +83,8 @@ end
 Plots the Pulleys and Segments in a `route`.
 ```
 using Plots, Unitful, BeltTransmission, Geometry2D
-a = Pulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-b = Pulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
 route = calculateRouteAngles([a,b])
 segments = route2Segments(route)
 plot(segments)
@@ -158,8 +158,8 @@ end
 
 
 """
-    findTangents(; a::Pulley, b::Pulley, plotResult::Bool=false) :: Vector{Segment}
-Find four lines tangent to both Pulley `a` and `b`, returns 4 Segments with departure and arrival angles locating the points of tangency on the circles.
+    findTangents(; a::PlainPulley, b::PlainPulley, plotResult::Bool=false) :: Vector{Segment}
+Find four lines tangent to both PlainPulley `a` and `b`, returns 4 Segments with departure and arrival angles locating the points of tangency on the circles.
 """
 function findTangents(seg::Segment) :: Vector{Segment}
   lCenter = Geometry2D.distance( seg.depart.pitch.center, seg.arrive.pitch.center )
@@ -189,15 +189,15 @@ function findTangents(seg::Segment) :: Vector{Segment}
   b4 = Geometry2D.angleWrap( pi+aCenter-aCross )
 
   #                       old circle        newly found tangent angle  old: 
-  depart1 = Pulley(circle=seg.depart.pitch, aDepart=a1*u"rad",         aArrive=seg.depart.aArrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart2 = Pulley(circle=seg.depart.pitch, aDepart=a2*u"rad",         aArrive=seg.depart.aArrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart3 = Pulley(circle=seg.depart.pitch, aDepart=a3*u"rad",         aArrive=seg.depart.aArrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart4 = Pulley(circle=seg.depart.pitch, aDepart=a4*u"rad",         aArrive=seg.depart.aArrive, axis=seg.depart.axis, name=seg.depart.name)
+  depart1 = PlainPulley(circle=seg.depart.pitch, aDepart=a1*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  depart2 = PlainPulley(circle=seg.depart.pitch, aDepart=a2*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  depart3 = PlainPulley(circle=seg.depart.pitch, aDepart=a3*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  depart4 = PlainPulley(circle=seg.depart.pitch, aDepart=a4*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
 
-  arrive1 = Pulley(circle=seg.arrive.pitch, aArrive=b1*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive2 = Pulley(circle=seg.arrive.pitch, aArrive=b2*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive3 = Pulley(circle=seg.arrive.pitch, aArrive=b3*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive4 = Pulley(circle=seg.arrive.pitch, aArrive=b4*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
+  arrive1 = PlainPulley(circle=seg.arrive.pitch, arrive=b1*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
+  arrive2 = PlainPulley(circle=seg.arrive.pitch, arrive=b2*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
+  arrive3 = PlainPulley(circle=seg.arrive.pitch, arrive=b3*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
+  arrive4 = PlainPulley(circle=seg.arrive.pitch, arrive=b4*u"rad",         aDepart=seg.arrive.aDepart, axis=seg.arrive.axis, name=seg.arrive.name)
   ret = [Segment(depart=depart1, arrive=arrive1),Segment(depart=depart2, arrive=arrive2),Segment(depart=depart3, arrive=arrive3),Segment(depart=depart4, arrive=arrive4)]
   return ret
 end 
@@ -215,7 +215,7 @@ function isSegmentMutuallyTangent( seg::Segment ) :: Bool
   a =   seg.depart
   thA = seg.depart.aDepart
   b =   seg.arrive
-  thB = seg.arrive.aArrive
+  thB = seg.arrive.arrive
   
   raa4 = a.pitch.radius * [cos(thA), sin(thA),0]
   rbb4 = b.pitch.radius * [cos(thB), sin(thB),0]
@@ -232,11 +232,11 @@ function isSegmentMutuallyTangent( seg::Segment ) :: Bool
 end
 
 """
-    calculateRouteAngles(route::Vector{Pulley}, plotSegments::Bool=false) :: Vector{Pulley}
-Given an ordered vector of Pulleys, output a vector of new Pulleys whose aArrive and aDepart angles are set to connect the pulleys with mutually tangent segments.
-Convention: pulleys are listed in 'positive' belt rotation order, consistent with the direction of each Pulley's rotation axis.
+    calculateRouteAngles(route::Vector{PlainPulley}, plotSegments::Bool=false) :: Vector{PlainPulley}
+Given an ordered vector of Pulleys, output a vector of new Pulleys whose arrive and aDepart angles are set to connect the pulleys with mutually tangent segments.
+Convention: pulleys are listed in 'positive' belt rotation order, consistent with the direction of each PlainPulley's rotation axis.
 """
-function calculateRouteAngles(route::Vector{Pulley})::Vector{Pulley}
+function calculateRouteAngles(route::Vector{PlainPulley})::Vector{PlainPulley}
   nr = size(route,1)
   solved = route #allocate the array
 
@@ -256,10 +256,10 @@ function calculateRouteAngles(route::Vector{Pulley})::Vector{Pulley}
 end
 
 """
-    route2Segments(route::Vector{Pulley}) :: Vector{Segment}
+    route2Segments(route::Vector{PlainPulley}) :: Vector{Segment}
 Given the ordered Pulleys of a belt routing, returns a vector of the free-space Segments connecting the Pulleys.
 """
-function route2Segments(route::Vector{Pulley}) :: Vector{Segment}
+function route2Segments(route::Vector{PlainPulley}) :: Vector{Segment}
   nr = length(route) 
   segments = Vector{Segment}(undef, nr) # #pulleys == #segments
   for ir in 1:nr
@@ -288,10 +288,10 @@ function calculateBeltLength(segments::Vector{Segment}) :: Unitful.Length
 end
 
 """
-    calculateBeltLength(route::Vector{Pulley}) :: Unitful.Length
-Calculates the belt length over the given `route` as the sum of circular sections at the Pulley pitch radii between the arrival and departure angles.
+    calculateBeltLength(route::Vector{PlainPulley}) :: Unitful.Length
+Calculates the belt length over the given `route` as the sum of circular sections at the PlainPulley pitch radii between the arrival and departure angles.
 """
-function calculateBeltLength(route::Vector{Pulley}) :: Unitful.Length
+function calculateBeltLength(route::Vector{PlainPulley}) :: Unitful.Length
   return calculateBeltLength( route2Segments(route) ) 
 end
 
@@ -305,7 +305,7 @@ end
 
 """
     toStringShort(seg::Segment) :: String
-Returns a short string of the form 'A -- B', for a departing Pulley named A arriving at a Pulley named B.
+Returns a short string of the form 'A -- B', for a departing PlainPulley named A arriving at a PlainPulley named B.
 """
 function toStringShort(seg::Segment) :: String
   return "$(seg.depart.name)--$(seg.arrive.name)"
@@ -359,10 +359,10 @@ function toStringVectors(seg::Segment)
 end
 
 """
-    printRoute(route::Vector{Pulley})
+    printRoute(route::Vector{PlainPulley})
 Prints the Pulleys and total belt length for the given `route`.
 """
-function printRoute(route::Vector{Pulley})
+function printRoute(route::Vector{PlainPulley})
   for r in route #r is pulleys
     println(pulley2String(r))
   end
