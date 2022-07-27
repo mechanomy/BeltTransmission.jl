@@ -15,9 +15,9 @@ import Geometry2D
 using BeltTransmission
 
 
-include("testBeltSegment.jl")
-include("testPulley.jl")
-include("testPulleyPlain.jl")
+# include("testBeltSegment.jl")
+# include("testPulley.jl")
+# include("testPulleyPlain.jl")
 include("testPulleyTiming.jl")
 
 close("all")

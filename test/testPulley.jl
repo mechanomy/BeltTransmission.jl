@@ -2,20 +2,23 @@
 
 @testset "calculateWrappedAngle" begin
   cir = Geometry2D.Circle(3u"mm",5u"mm", 4u"mm" )
-  pa = PlainPulley(cir, uk, 1u"rad", 2u"rad", "struct" ) 
+  pa = PlainPulley(cir, Geometry2D.uk, 1u"rad", 2u"rad", "struct" ) 
   @test calculateWrappedAngle( pa ) == 1u"rad"
 
-  pa = PlainPulley(cir, uk, 1u"rad", 0u"rad", "struct" ) 
+  pa = PlainPulley(cir, Geometry2D.uk, 1u"rad", 0u"rad", "struct" ) 
   @test calculateWrappedAngle( pa ) == (2*π-1)u"rad" #from arrive to depart
 
-  pa = PlainPulley(cir, uk, 0u"rad", 7u"rad", "struct" ) 
+  pa = PlainPulley(cir, Geometry2D.uk, 0u"rad", 7u"rad", "struct" ) 
   @test calculateWrappedAngle( pa ) == 7u"rad" 
 end
 
 @testset "calculateWrappedLength" begin
   cir = Geometry2D.Circle(3u"mm",5u"mm", 4u"mm" )
-  pa = PlainPulley(cir, uk, 1u"rad", 2u"rad", "struct" ) 
+  pa = PlainPulley(cir, Geometry2D.uk, 1u"rad", 2u"rad", "struct" ) 
   @test calculateWrappedLength( pa ) == 4u"mm"
+
+  @test typeof(pa) <: AbstractPulley
+  @test pitchLength(pa) ≈ 2*π*4mm
 end
 
 @testset "pulley2Circle" begin #not a useful test
@@ -31,8 +34,6 @@ end
   pa = PlainPulley(Geometry2D.Circle(0mm,0mm, 4mm), Geometry2D.uk, 1u"rad", 2u"rad", "pulley") 
   @test typeof( pulley2String(pa) ) <: String #this can't break...but still want to exercise the function
 end
-
-
 
 
 @testset "plotPulley" begin

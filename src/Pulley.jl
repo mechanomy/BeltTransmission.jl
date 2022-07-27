@@ -1,4 +1,4 @@
-export AbstractPulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle, calculateWrappedLength, pulley2Circle, pulley2String, printPulley
+export AbstractPulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle, calculateWrappedLength, pulley2Circle, pulley2String, printPulley, pitchLength
 
 
 """
@@ -43,6 +43,16 @@ Returns the point of arrival.
 function getArrivalPoint(p::AbstractPulley)::Geometry2D.Point
   return Geometry2D.pointOnCircle( p.pitch, p.arrive )
 end
+
+"""
+    pitchLength(p::AbstractPulley) :: Unitful.Length
+Returns the circumferential length of the pitch diameter of the pulley.
+"""
+function pitchLength(p::AbstractPulley) :: Unitful.Length
+  # return Geometry2D.circumference(p.pitch)
+  return p.pitch.radius * 2 * π
+end
+
 
 
 """
