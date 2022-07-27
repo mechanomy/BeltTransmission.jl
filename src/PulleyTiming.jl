@@ -2,9 +2,9 @@
 
 
 
-export SyncPulley, nGrooves2Radius, radius2NGrooves, nGrooves2Length
+export TimingPulley, nGrooves2Radius, radius2NGrooves, nGrooves2Length
 
-mutable struct SyncPulley <: AbstractPulley
+mutable struct TimingPulley <: AbstractPulley
     pitch::Unitful.Length #[mm/groove] -- would like a Synchrounous meta-class to provide these definitions, not sure if julia classes allow this..
     nGrooves::Integer #[#grooves]
     center::Geometry2D.Point #[x,y] of the pulley center
@@ -14,11 +14,13 @@ mutable struct SyncPulley <: AbstractPulley
     arrive::Radian #angle of the point of tangency 
     depart::Radian
 end
-# 220526: KeywordDispatch can't have default arguments: https://github.com/simonbyrne/KeywordDispatch.jl/issues/1
-@kwdispatch SyncPulley()
+@kwdispatch TimingPulley()
+
+
+
 
 """computes the `pitchRadius` from `pitch` and `nGrooves`"""
-@kwmethod SyncPulley(; pitch::Unitful.Length, nGrooves::Integer, center::Geometry2D.Point, axis::Geometry2D.UnitVector) = SyncPulley(pitch, nGrooves, center, nGrooves2Radius(pitch,nGrooves), nGrooves2Length(pitch,nGrooves), axis, 0u"rad", 0u"rad") 
+@kwmethod TimingPulley(; pitch::Unitful.Length, nGrooves::Integer, center::Geometry2D.Point, axis::Geometry2D.UnitVector) = TimingPulley(pitch, nGrooves, center, nGrooves2Radius(pitch,nGrooves), nGrooves2Length(pitch,nGrooves), axis, 0u"rad", 0u"rad") 
 
 function nGrooves2Radius(pitch::Unitful.Length, nGrooves::Integer)::Unitful.Length
     return (nGrooves*pitch)/(2*pi)

@@ -2,9 +2,9 @@
 
 ctr = Geometry2D.Point(3u"mm",5u"mm")
 uk = Geometry2D.uk
-sp = SyncPulley( pitch=2mm, nGrooves=10, center=ctr, axis=uk )
+sp = TimingPulley( pitch=2mm, nGrooves=10, center=ctr, axis=uk )
 
-@testset "SyncPulley constructor" begin
+@testset "TimingPulley constructor" begin
   @test sp.pitchLength == 20mm
 end
 @testset "nGrooves2Length" begin
