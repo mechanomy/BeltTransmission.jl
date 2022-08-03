@@ -114,7 +114,7 @@ end
 
 """
     Base.show(io::IO, seg::Segment)
-show()s the Segment via [`toStringShort`](@ref).
+show()s the Segment via [`toStringShort`](#BeltTransmission.toStringShort).
 """
 function Base.show(io::IO, seg::Segment)
   println(toStringShort(seg))
@@ -150,7 +150,7 @@ end
 import Base.length
 """
     Base.length(seg::Segment) :: Unitful.Length
-Returns the straight-line distance or length of Segment `seg` via [`distance`](@ref).
+Returns the straight-line distance or length of Segment `seg` via [`distance`](#BeltTransmission.distance).
 """
 function Base.length(seg::Segment) :: Unitful.Length
   return distance(seg)
@@ -297,7 +297,7 @@ end
 
 """
     toString(seg::Segment) :: String
-Calls [`toStringShort`](@ref).
+Calls [`toStringShort`](#BeltTransmission.toStringShort).
 """
 function toString(seg::Segment) :: String
   return toStringShort(seg)

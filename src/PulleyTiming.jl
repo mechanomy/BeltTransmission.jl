@@ -15,6 +15,9 @@ export TimingPulley, nGrooves2Radius, radius2NGrooves, nGrooves2Length
 #     depart::Radian
 # end
 
+"""
+Models a TimingPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis` and `beltPitch`.
+"""
 struct TimingPulley <: AbstractPulley
   """Circle describing the pitch diameter."""
   pitch::Geometry2D.Circle

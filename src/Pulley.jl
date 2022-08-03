@@ -3,6 +3,7 @@ export AbstractPulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle
 
 """
 Subtypes of AbstractPulley model a particular form of pulley.
+At present that includes [PlainPulley](#BeltTransmission.PlainPulley)s, having cylindrical faces, and [TimingPulley](#BeltTransmission.TimingPulley).
 All subtypes have basic fields of `pitch::Circle`, `axis::UnitVector`, `arrive::Angle`, `depart::Angle`, and a `name::String`.
 """
 abstract type AbstractPulley end
@@ -19,10 +20,9 @@ abstract type AbstractPulley end
 
 # these methods work on all AbstractPulleys:
 
-
 """
     Base.show(io::IO, p::AbstractPulley)
-Function to `show()` a AbstractPulley via [`pulley2String`](@ref).
+Function to `show()` a AbstractPulley via [`pulley2String`](#BeltTransmission.pulley2String).
 """
 function Base.show(io::IO, p::AbstractPulley)
   print(io, pulley2String(p))
@@ -52,8 +52,6 @@ function pitchLength(p::AbstractPulley) :: Unitful.Length
   # return Geometry2D.circumference(p.pitch)
   return p.pitch.radius * 2 * π
 end
-
-
 
 """
     calculateWrappedAngle(p::AbstractPulley) :: Geometry2D.Angle
@@ -111,7 +109,7 @@ end
 
 """
     printPulley(p::AbstractPulley)
-Prints the result of [`pulley2String`](@ref) to the standard output
+Prints the result of [`pulley2String`](#BeltTransmission.pulley2String) to the standard output
 """
 function printPulley(p::AbstractPulley)
   println(pulley2String(p))

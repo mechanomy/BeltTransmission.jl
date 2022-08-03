@@ -12,8 +12,7 @@ The module uses Julia's type system to differentiate between these belt types.
 
 Timing and plain pulleys are specializaitons of AbstractPulley, permitting functions that need only the pulley location, rotation axis, or pitch diameter to accept any argument that maps to AbstractPulley, while allowing those needing tooth properties to specify arguments of TimingPulley type.
 
-As is standard, calculations are perfomed on the pulley or belt pitch line.
-
+Calculations are perfomed on the pulley or belt pitch line.
 
 Exports methods:
 $(EXPORTS)
@@ -27,8 +26,6 @@ module BeltTransmission
   @unit rev "rev" Revolution (2*π)u"rad" false
   # @derived_dimension Pitch dimension(u"mm/1") #per what in Unitful? Number?
   Angle{T} = Union{Quantity{T,NoDims,Radian}, Quantity{T,NoDims,Degree}} where T 
-
-
 
   using KeywordDispatch
 

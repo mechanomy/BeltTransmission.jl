@@ -6,6 +6,7 @@ version = "0.1.0"
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterTools = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
 Geometry2D = "91d09732-8952-4fe9-a745-3bacf4fd5e58"
 KeywordDispatch = "5888135b-5456-5c80-a1b6-c91ef8180460"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
