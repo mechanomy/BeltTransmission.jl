@@ -1,5 +1,6 @@
 # Modeling Planar Belt Transmissions
 
+[GitHub source](https://github.com/mechanomy/BeltTransmission.jl)
 
 ## Background
 Belt transmissions involve several moving elements and a variety of materials, enabling flexible power transmission but leading to complex and interdependent system design requirements.
