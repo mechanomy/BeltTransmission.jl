@@ -9,6 +9,7 @@ on:
 
 env:
   JULIA_PKG_USE_CLI_GIT: true #github runner was not checking out Utility...https://discourse.julialang.org/t/prepare-self-hosted-runner-on-windows-10-for-github-actions-and-julia-private-registry-and-packages/82367
+  GKSwstype: 100 # for gr() headless.. https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988/5
 jobs:
   build:
     permissions:

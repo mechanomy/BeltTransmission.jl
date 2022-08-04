@@ -5,8 +5,9 @@
 using Test
 using Unitful, Unitful.DefaultSymbols
 using Plots
-pyplot()
-close("all")
+# pyplot()
+# close("all")
+gr()
 
 
 # Both Geometry2D and BeltTransmission export a method distance(), leading to a collision even though they are differentiated by type, as https://discourse.julialang.org/t/two-modules-with-the-same-exported-function-name-but-different-signature/15231/13

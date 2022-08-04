@@ -114,7 +114,7 @@ end
 
 
 @testset "plotSegment" begin
-  pyplot()
+  # pyplot()
   pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=90°,               axis=uk, name="A")
   pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=200°, axis=uk, name="B")
   seg = Segment( depart=pA, arrive=pB )
@@ -130,7 +130,7 @@ end
 end
 
 @testset "plotRoute of PlainPulley" begin
-  pyplot()
+  # pyplot()
   solved = calculateRouteAngles(route)
   p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
   display(p)
@@ -139,7 +139,7 @@ end
 end
 
 @testset "plotRoute of Segment" begin
-  pyplot()
+  # pyplot()
   solved = calculateRouteAngles(route)
   segments = route2Segments(solved)
   p = plot(segments, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
