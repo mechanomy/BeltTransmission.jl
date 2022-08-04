@@ -28,8 +28,12 @@ jobs:
       #   run: if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get install -y python3-matplotlib; fi
       #   shell: bash
 
-      - uses: mechanomy/Geometry2D.jl
-      - uses: mechanomy/Utility.jl
+      - uses: actions/checkout@v3
+        with: 
+          repository: 'mechanomy/Geometry2D.jl'
+      - uses: actions/checkout@v3
+        with: 
+          repository: 'mechanomy/Utility.jl'
 
       - uses: julia-actions/setup-julia@v1
         with:
