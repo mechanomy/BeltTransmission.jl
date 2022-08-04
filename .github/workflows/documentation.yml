@@ -46,6 +46,13 @@ jobs:
         env:
           PYTHON: "" #By setting python to null, the PyPlot in docs/Project.toml will install matplotlib itself
 
+      - name: pre Build and deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # If authenticating with SSH deploy key
+        # run: julia --project=docs/ docs/make.jl
+        run: pwd && ls && tree && julia --project=docs/ -e 'pwd()'
+
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
