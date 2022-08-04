@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Install Qt
       - uses: actions/checkout@v2
-        uses: jurplel/install-qt-action@v3
+      - uses: jurplel/install-qt-action@v3
       - name: Install matplotlib
         run: if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get install -y python3-matplotlib; fi
         shell: bash
