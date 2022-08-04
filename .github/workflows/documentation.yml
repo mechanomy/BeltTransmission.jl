@@ -23,7 +23,7 @@ jobs:
         with:
           version: '1.6'
       - name: Install dependencies
-        run: julia --project=docs/ -e 'using Pkg; Pkg.add("Documenter"); Pkg.add(url="git@github.com:mechanomy/Utility.jl.git#main"); Pkg.add(url="git@github.com:mechanomy/Geometry2D.jl.git#main"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: julia --project=docs/ -e 'using Pkg; Pkg.add("Documenter"); Pkg.add(url="https://github.com/mechanomy/Utility.jl.git#main"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl.git#main"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
