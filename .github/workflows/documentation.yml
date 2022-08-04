@@ -7,6 +7,8 @@ on:
       - main
     tags: '*'
 
+env:
+  JULIA_PKG_USE_CLI_GIT: true #github runner was not checking out Utility...https://discourse.julialang.org/t/prepare-self-hosted-runner-on-windows-10-for-github-actions-and-julia-private-registry-and-packages/82367
 jobs:
   build:
     permissions:
