@@ -49,18 +49,18 @@ jobs:
       - run: git lfs pull #pull the objects (favicon.ico, logo.png) down
 
       - name: Install dependencies
+        env:
+          PYTHON: "" #By setting python to null, the PyPlot in docs/Project.toml will install matplotlib itself
         # run: julia --project=docs/ -e 'using Pkg; Pkg.add("Documenter"); Pkg.add("DocumenterTools"); Pkg.add("DocStringExtensions"); Pkg.add(url="https://github.com/mechanomy/Utility.jl"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
         # run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
         run: julia --project=docs/ -e 'using Pkg; Pkg.add(url="https://github.com/mechanomy/Utility.jl"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-        env:
-          PYTHON: "" #By setting python to null, the PyPlot in docs/Project.toml will install matplotlib itself
 
-      - name: pre Build and deploy
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # If authenticating with SSH deploy key
-        # run: julia --project=docs/ docs/make.jl
-        run: pwd && ls && tree && julia --project=docs/ -e 'pwd()'
+      # - name: pre Build and deploy
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
+      #     DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # If authenticating with SSH deploy key
+      #   # run: julia --project=docs/ docs/make.jl
+      #   run: pwd && ls && tree && julia --project=docs/ -e 'pwd()'
 
       - name: Build and deploy
         env:

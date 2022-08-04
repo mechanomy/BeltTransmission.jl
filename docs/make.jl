@@ -11,7 +11,7 @@ makedocs(
   build = "build",
   clean=true,
   doctest=true,
-  repo = "github.com/mechanomy/BeltTransmission.jl.git",
+  # repo = "github.com/mechanomy/BeltTransmission.jl.git", this will be set correctly, automatically, unless set here
   draft=false,
   checkdocs=:all,
   # linkcheck=true, fails to find internal links to bookmarks..
