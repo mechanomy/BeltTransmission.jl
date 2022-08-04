@@ -31,20 +31,23 @@ jobs:
       #   run: if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get install -y python3-matplotlib; fi
       #   shell: bash
 
-      - uses: actions/checkout@v3
-        with: 
-          repository: 'mechanomy/Geometry2D.jl'
+      # # manually checking-out leads to a version conflict with BT's expected versions..?
+      # - uses: actions/checkout@v3
+      #   with: 
+      #     repository: 'mechanomy/Utility.jl'
 
-      - uses: actions/checkout@v3
-        with: 
-          repository: 'mechanomy/Utility.jl'
+      # - uses: actions/checkout@v3
+      #   with: 
+      #     repository: 'mechanomy/Geometry2D.jl'
+
 
       - name: Checkout BeltTransmission
         uses: actions/checkout@v2 
 
       - name: Install dependencies
         # run: julia --project=docs/ -e 'using Pkg; Pkg.add("Documenter"); Pkg.add("DocumenterTools"); Pkg.add("DocStringExtensions"); Pkg.add(url="https://github.com/mechanomy/Utility.jl"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-        run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        # run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: julia --project=docs/ -e 'using Pkg; Pkg.add(url="https://github.com/mechanomy/Utility.jl"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
         env:
           PYTHON: "" #By setting python to null, the PyPlot in docs/Project.toml will install matplotlib itself
 
