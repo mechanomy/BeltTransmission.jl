@@ -15,7 +15,8 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      # - uses: actions/checkout@v2 #checkout BeltTransmission
+      - name: Checkout BeltTransmission
+        uses: actions/checkout@v2 
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2 #220804, v3 broken: https://github.com/jurplel/install-qt-action/issues/153
@@ -23,19 +24,19 @@ jobs:
           host: 'linux'
           target: 'desktop'
 
-      # - name: Install matplotlib
-      #   run: if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get install -y python3-matplotlib; fi
-      #   shell: bash
+      - name: Install matplotlib
+        run: if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get install -y python3-matplotlib; fi
+        shell: bash
 
-      # - uses: julia-actions/setup-julia@v1
-      #   with:
-      #     version: '1.6'
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.6'
 
-      # - name: Install dependencies
-      #   run: julia --project=docs/ -e 'using Pkg; Pkg.add("Documenter"); Pkg.add("DocumenterTools"); Pkg.add("DocStringExtensions"); Pkg.add(url="https://github.com/mechanomy/Utility.jl"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+      - name: Install dependencies
+        run: julia --project=docs/ -e 'using Pkg; Pkg.add("Documenter"); Pkg.add("DocumenterTools"); Pkg.add("DocStringExtensions"); Pkg.add(url="https://github.com/mechanomy/Utility.jl"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
 
-      # - name: Build and deploy
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
-      #     DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # If authenticating with SSH deploy key
-      #   run: julia --project=docs/ docs/make.jl
+      - name: Build and deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # If authenticating with SSH deploy key
+        run: julia --project=docs/ docs/make.jl
