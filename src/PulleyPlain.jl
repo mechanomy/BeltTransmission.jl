@@ -47,6 +47,9 @@ Models a PlainPulley in a BeltTransmission, located at `center` with pitch `radi
 """
 PlainPulley(center::Geometry2D.Point, radius::Unitful.Length) = PlainPulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad","") 
 
+
+PlainPulley(pp::PlainPulley, arrive::Geometry2D.Radian, depart::Geometry2D.Radian) = PlainPulley(pp.pitch,pp.axis,arrive,depart,pp.name) 
+
 @kwdispatch PlainPulley()
 
 """
