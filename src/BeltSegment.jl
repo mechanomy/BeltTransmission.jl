@@ -8,10 +8,13 @@ Describes a belt segment between `depart` and `arrive` Pulleys.
 $FIELDS
 """
 struct Segment #this should set arrive & depart on the pulleys...mutable pulley?
+  # depart::PlainPulley #expanded to the Point on the `pitch` circle at `depart`
   """Departing PlainPulley"""
-  depart::PlainPulley #expanded to the Point on the `pitch` circle at `depart`
+  depart::T where T <: AbstractPulley #expanded to the Point on the `pitch` circle at `depart`
+
   """Arriving PlainPulley"""
-  arrive::PlainPulley #expanded to the Point on the `pitch` circle at `arrive`
+  # arrive::PlainPulley #expanded to the Point on the `pitch` circle at `arrive`
+  arrive::T where T <: AbstractPulley #expanded to the Point on the `pitch` circle at `arrive`
 end
 @kwdispatch Segment()
 
@@ -19,7 +22,8 @@ end
     Segment(; depart::PlainPulley, arrive::PlainPulley) :: Segment
 Create a belt Segment between `depart` and `arrive` Pulleys
 """
-@kwmethod Segment(; depart::PlainPulley, arrive::PlainPulley) = Segment(depart,arrive)
+# @kwmethod Segment(; depart::PlainPulley, arrive::PlainPulley) = Segment(depart,arrive)
+@kwmethod Segment(; depart::T, arrive::T) where T<:AbstractPulley = Segment(depart,arrive)
 
 """
     plotRecipe(seg::Segment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
@@ -236,7 +240,7 @@ end
 Given an ordered vector of Pulleys, output a vector of new Pulleys whose arrive and depart angles are set to connect the pulleys with mutually tangent segments.
 Convention: pulleys are listed in 'positive' belt rotation order, consistent with the direction of each PlainPulley's rotation axis.
 """
-function calculateRouteAngles(route::Vector{PlainPulley})::Vector{PlainPulley}
+function calculateRouteAngles(route::Vector{T})::Vector{T} where T <: AbstractPulley
   nr = size(route,1)
   solved = route #allocate the array
 
@@ -259,7 +263,7 @@ end
     route2Segments(route::Vector{PlainPulley}) :: Vector{Segment}
 Given the ordered Pulleys of a belt routing, returns a vector of the free-space Segments connecting the Pulleys.
 """
-function route2Segments(route::Vector{PlainPulley}) :: Vector{Segment}
+function route2Segments(route::Vector{T}) :: Vector{Segment} where T<:AbstractPulley
   nr = length(route) 
   segments = Vector{Segment}(undef, nr) # #pulleys == #segments
   for ir in 1:nr
@@ -291,7 +295,7 @@ end
     calculateBeltLength(route::Vector{PlainPulley}) :: Unitful.Length
 Calculates the belt length over the given `route` as the sum of circular sections at the PlainPulley pitch radii between the arrival and departure angles.
 """
-function calculateBeltLength(route::Vector{PlainPulley}) :: Unitful.Length
+function calculateBeltLength(route::Vector{T}) :: Unitful.Length where T<:AbstractPulley
   return calculateBeltLength( route2Segments(route) ) 
 end
 
@@ -362,7 +366,7 @@ end
     printRoute(route::Vector{PlainPulley})
 Prints the Pulleys and total belt length for the given `route`.
 """
-function printRoute(route::Vector{PlainPulley})
+function printRoute(route::Vector{T}) where T<:AbstractPulley
   for r in route #r is pulleys
     println(pulley2String(r))
   end
