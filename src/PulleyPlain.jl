@@ -48,6 +48,9 @@ Models a PlainPulley in a BeltTransmission, located at `center` with pitch `radi
 PlainPulley(center::Geometry2D.Point, radius::Unitful.Length) = PlainPulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad","") 
 
 
+"""
+Copy constructor
+"""
 PlainPulley(pp::PlainPulley, arrive::Geometry2D.Radian, depart::Geometry2D.Radian) = PlainPulley(pp.pitch,pp.axis,arrive,depart,pp.name) 
 
 @kwdispatch PlainPulley()
@@ -164,3 +167,31 @@ plot(p)
   ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
 end
 
+"""
+    plotRecipe(route::Vector{PlainPulley})
+Plots the Pulleys in a `route`.
+```
+using Plots, Unitful, BeltTransmission, Geometry2D
+a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+route = calculateRouteAngles([a,b])
+plot(route)
+```
+"""
+@recipe function plotRecipe(route::Vector{PlainPulley})
+  nr = length(route)
+
+  #plot segments first, behind pulleys
+  for ir in 1:nr
+    @series begin
+      Segment( depart=route[ir], arrive=route[Utility.iNext(ir,nr)] )
+    end
+  end
+
+  #plot pulleys
+  for ir in 1:nr
+    @series begin
+      route[ir] #route[ir] is returned to _ to be plotted
+    end
+  end
+end

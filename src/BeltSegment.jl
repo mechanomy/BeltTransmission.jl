@@ -7,12 +7,10 @@ Describes a belt segment between `depart` and `arrive` Pulleys.
 $FIELDS
 """
 struct Segment #this should set arrive & depart on the pulleys...mutable pulley?
-  # depart::PlainPulley #expanded to the Point on the `pitch` circle at `depart`
-  """Departing PlainPulley"""
+  """Departing pulley"""
   depart::T where T <: AbstractPulley #expanded to the Point on the `pitch` circle at `depart`
 
-  """Arriving PlainPulley"""
-  # arrive::PlainPulley #expanded to the Point on the `pitch` circle at `arrive`
+  """Arriving pulley"""
   arrive::T where T <: AbstractPulley #expanded to the Point on the `pitch` circle at `arrive`
 end
 @kwdispatch Segment()
@@ -21,7 +19,6 @@ end
     Segment(; depart::PlainPulley, arrive::PlainPulley) :: Segment
 Create a belt Segment between `depart` and `arrive` Pulleys
 """
-# @kwmethod Segment(; depart::PlainPulley, arrive::PlainPulley) = Segment(depart,arrive)
 @kwmethod Segment(; depart::T, arrive::T) where T<:AbstractPulley = Segment(depart,arrive)
 
 """
@@ -52,34 +49,7 @@ plot(seg)
   ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
 end
 
-"""
-    plotRecipe(route::Vector{PlainPulley})
-Plots the Pulleys in a `route`.
-```
-using Plots, Unitful, BeltTransmission, Geometry2D
-a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-route = calculateRouteAngles([a,b])
-plot(route)
-```
-"""
-@recipe function plotRecipe(route::Vector{PlainPulley})
-  nr = length(route)
 
-  #plot segments first, behind pulleys
-  for ir in 1:nr
-    @series begin
-      Segment( depart=route[ir], arrive=route[Utility.iNext(ir,nr)] )
-    end
-  end
-
-  #plot pulleys
-  for ir in 1:nr
-    @series begin
-      route[ir] #route[ir] is returned to _ to be plotted
-    end
-  end
-end
 
 """
     plotRecipe(segments::Vector{Segment})
@@ -166,6 +136,8 @@ Find four lines tangent to both PlainPulley `a` and `b`, returns 4 Segments with
 """
 function findTangents(seg::Segment) :: Vector{Segment}
   lCenter = Geometry2D.distance( seg.depart.pitch.center, seg.arrive.pitch.center )
+  DType = typeof(seg.depart)
+  AType = typeof(seg.arrive)
 
   #ensure that pulleys are not coincident...this would manifest more clearly in aCross/aPara...
   if lCenter < 0.001mm
@@ -191,16 +163,36 @@ function findTangents(seg::Segment) :: Vector{Segment}
   b3 = Geometry2D.angleWrap( -(pi-aCenter-aCross) )
   b4 = Geometry2D.angleWrap( pi+aCenter-aCross )
 
-  #                       old circle        newly found tangent angle  old: 
-  depart1 = PlainPulley(circle=seg.depart.pitch, depart=a1*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart2 = PlainPulley(circle=seg.depart.pitch, depart=a2*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart3 = PlainPulley(circle=seg.depart.pitch, depart=a3*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  depart4 = PlainPulley(circle=seg.depart.pitch, depart=a4*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  # #                       old circle        newly found tangent angle  old: 
+  # depart1 = PlainPulley(circle=seg.depart.pitch, depart=a1*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  # depart2 = PlainPulley(circle=seg.depart.pitch, depart=a2*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  # depart3 = PlainPulley(circle=seg.depart.pitch, depart=a3*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  # depart4 = PlainPulley(circle=seg.depart.pitch, depart=a4*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
+  # arrive1 = PlainPulley(circle=seg.arrive.pitch, arrive=b1*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
+  # arrive2 = PlainPulley(circle=seg.arrive.pitch, arrive=b2*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
+  # arrive3 = PlainPulley(circle=seg.arrive.pitch, arrive=b3*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
+  # arrive4 = PlainPulley(circle=seg.arrive.pitch, arrive=b4*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
+  # ret = [Segment(depart=depart1, arrive=arrive1),Segment(depart=depart2, arrive=arrive2),Segment(depart=depart3, arrive=arrive3),Segment(depart=depart4, arrive=arrive4)]
 
-  arrive1 = PlainPulley(circle=seg.arrive.pitch, arrive=b1*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive2 = PlainPulley(circle=seg.arrive.pitch, arrive=b2*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive3 = PlainPulley(circle=seg.arrive.pitch, arrive=b3*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
-  arrive4 = PlainPulley(circle=seg.arrive.pitch, arrive=b4*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
+  #                       old circle        newly found tangent angle  old: 
+  # depart1 = DType(seg.depart, depart=a1*u"rad", arrive=seg.depart.arrive)
+  # depart2 = DType(seg.depart, depart=a2*u"rad", arrive=seg.depart.arrive)
+  # depart3 = DType(seg.depart, depart=a3*u"rad", arrive=seg.depart.arrive)
+  # depart4 = DType(seg.depart, depart=a4*u"rad", arrive=seg.depart.arrive)
+  # arrive1 = AType(seg.arrive, arrive=b1*u"rad", depart=seg.arrive.depart)
+  # arrive2 = AType(seg.arrive, arrive=b2*u"rad", depart=seg.arrive.depart)
+  # arrive3 = AType(seg.arrive, arrive=b3*u"rad", depart=seg.arrive.depart)
+  # arrive4 = AType(seg.arrive, arrive=b4*u"rad", depart=seg.arrive.depart)
+
+  depart1 = DType(seg.depart, seg.depart.arrive, a1*u"rad")
+  depart2 = DType(seg.depart, seg.depart.arrive, a2*u"rad")
+  depart3 = DType(seg.depart, seg.depart.arrive, a3*u"rad")
+  depart4 = DType(seg.depart, seg.depart.arrive, a4*u"rad")
+
+  arrive1 = AType(seg.arrive, b1*u"rad", seg.arrive.depart)
+  arrive2 = AType(seg.arrive, b2*u"rad", seg.arrive.depart)
+  arrive3 = AType(seg.arrive, b3*u"rad", seg.arrive.depart)
+  arrive4 = AType(seg.arrive, b4*u"rad", seg.arrive.depart)
   ret = [Segment(depart=depart1, arrive=arrive1),Segment(depart=depart2, arrive=arrive2),Segment(depart=depart3, arrive=arrive3),Segment(depart=depart4, arrive=arrive4)]
   return ret
 end 

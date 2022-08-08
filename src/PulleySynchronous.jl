@@ -31,10 +31,10 @@ end
 SynchronousPulley(pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive=0u"rad", depart=0u"rad", name="") = SynchronousPulley(pitch,axis,toothPitch,arrive,depart,name)
 SynchronousPulley(center::Geometry2D.Point, nGrooves::Integer, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, nGrooves2Radius(toothPitch, nGrooves)),axis,toothPitch, 0u"rad", 0u"rad", name) 
 
-# """
-# A copy constructor for setting the `arrive` and `depart` angles.
-# """
-# SynchronousPulley(sp::SynchronousPulley; arrive=0u"rad", depart=0u"rad") = SynchronousPulley(sp.pitch,sp.axis,sp.toothPitch,arrive,depart,sp.name) #copy constructor
+"""
+A copy constructor for setting the `arrive` and `depart` angles.
+"""
+SynchronousPulley(sp::SynchronousPulley; arrive=0u"rad", depart=0u"rad") = SynchronousPulley(sp.pitch,sp.axis,sp.toothPitch,arrive,depart,sp.name) #copy constructor
 
 
 @kwdispatch SynchronousPulley() #kwdispatch can't have default arguments, so define first with everything, then narrow:

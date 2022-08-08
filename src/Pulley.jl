@@ -3,7 +3,7 @@ export AbstractPulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle
 
 """
 Subtypes of AbstractPulley model a particular form of pulley.
-At present that includes [PlainPulley](#BeltTransmission.PlainPulley)s, having cylindrical faces, and [TimingPulley](#BeltTransmission.TimingPulley).
+At present that includes [PlainPulley](#BeltTransmission.PlainPulley)s, having cylindrical faces, and [SynchronousPulley](#BeltTransmission.TimingPulley).
 All subtypes have basic fields of `pitch::Circle`, `axis::UnitVector`, `arrive::Angle`, `depart::Angle`, and a `name::String`.
 """
 abstract type AbstractPulley end
