@@ -2,7 +2,6 @@
 
 export Segment, getDeparturePoint, getArrivalPoint, distance, findTangents, isSegmentMutuallyTangent, calculateRouteAngles, route2Segments, calculateBeltLength, toString, toStringShort, toStringPoints, toStringVectors, printRoute, printSegments, length
 
-
 """
 Describes a belt segment between `depart` and `arrive` Pulleys.
 $FIELDS

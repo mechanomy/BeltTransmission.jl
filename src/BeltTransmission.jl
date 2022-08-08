@@ -36,12 +36,18 @@ module BeltTransmission
   using Utility
   using Geometry2D
   using LinearAlgebra:normalize, cross, dot
+  using UUIDs
 
   using RecipesBase
   include("Pulley.jl")
-  include("PulleyPlain.jl")
-  include("PulleyTiming.jl")
+  include("PulleyPlain.jl") #INCLUDE ORDER MATTERS! Must introduce PlainPulley before using it in BS, though this should go away with Abstract types.
   include("BeltSegment.jl")
+
+
+  include("SynchronousPulley.jl")
+  include("SynchronousBelt.jl")
+
+  # include("PulleyTiming.jl")
 
 end # BeltTransmission
 

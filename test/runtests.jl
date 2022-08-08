@@ -5,6 +5,7 @@
 using Test
 using Unitful, Unitful.DefaultSymbols
 using Plots
+using UUIDs
 pyplot()
 close("all")
 # gr()
@@ -15,10 +16,13 @@ close("all")
 import Geometry2D
 using BeltTransmission
 
-
 include("testBeltSegment.jl")
 include("testPulley.jl")
 include("testPulleyPlain.jl")
-include("testPulleyTiming.jl")
+
+include("testSynchronousPulley.jl")
+include("testSynchronousBelt.jl")
+
+# include("testPulleyTiming.jl")
 
 close("all")

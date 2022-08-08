@@ -1,4 +1,4 @@
-
+# all of these should succeed for all pulley types...for p in [pulleys array]: ?
 
 @testset "calculateWrappedAngle" begin
   cir = Geometry2D.Circle(3u"mm",5u"mm", 4u"mm" )
