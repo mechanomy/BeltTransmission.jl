@@ -44,8 +44,8 @@ module BeltTransmission
   include("BeltSegment.jl")
 
 
-  include("SynchronousPulley.jl")
-  include("SynchronousBelt.jl")
+  include("PulleySynchronous.jl")
+  include("BeltSynchronous.jl")
 
   # include("PulleyTiming.jl")
 

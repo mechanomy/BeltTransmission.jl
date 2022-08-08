@@ -20,9 +20,7 @@ include("testBeltSegment.jl")
 include("testPulley.jl")
 include("testPulleyPlain.jl")
 
-include("testSynchronousPulley.jl")
-include("testSynchronousBelt.jl")
-
-# include("testPulleyTiming.jl")
+include("testPulleySynchronous.jl")
+include("testBeltSynchronous.jl")
 
 close("all")
