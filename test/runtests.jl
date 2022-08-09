@@ -21,4 +21,6 @@ include("testPulleyPlain.jl")
 
 include("testSynchronous.jl")
 
+include("testBeltTable.jl")
+
 close("all")

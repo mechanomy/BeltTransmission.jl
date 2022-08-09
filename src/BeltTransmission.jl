@@ -51,6 +51,8 @@ module BeltTransmission
 
   include("Synchronous.jl")
 
+  include("BeltTable.jl")
+
 
   struct BeltTrans
     pulleys::Vector{T} where T<:AbstractPulley
