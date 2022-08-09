@@ -42,6 +42,7 @@ module BeltTransmission
   include("Pulley.jl")
   include("PulleyPlain.jl") #INCLUDE ORDER MATTERS! Must introduce PlainPulley before using it in BS, though this should go away with Abstract types.
   include("BeltSegment.jl")
+  include("SegmentFree.jl")
 
 
   include("PulleySynchronous.jl")

@@ -184,7 +184,7 @@ plot(route)
   #plot segments first, behind pulleys
   for ir in 1:nr
     @series begin
-      Segment( depart=route[ir], arrive=route[Utility.iNext(ir,nr)] )
+      FreeSegment( depart=route[ir], arrive=route[Utility.iNext(ir,nr)] )
     end
   end
 

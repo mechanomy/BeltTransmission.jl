@@ -11,19 +11,19 @@ pD = PlainPulley( circle=Geometry2D.Circle( 100u"mm",-100u"mm", 14u"mm"), axis=u
 pE = PlainPulley( circle=Geometry2D.Circle( 80u"mm",-200u"mm", 14u"mm"), axis=-uk, name="E") 
 route = [pA, pB, pC, pD, pE]
 
-@testset "Segment constructors" begin
-  sab = Segment( pA, pB )
+@testset "FreeSegment constructors" begin
+  sab = FreeSegment( pA, pB )
   # @test length(sab) == Geometry2D.distance(pB.pitch.center, pA.pitch.center)
   @test distance(sab) == Geometry2D.distance(pB.pitch.center, pA.pitch.center)
 
-  sab = Segment( depart=pA, arrive=pB)
+  sab = FreeSegment( depart=pA, arrive=pB)
   @test length(sab) == Geometry2D.distance(pB.pitch.center, pA.pitch.center)
 end
 
 @testset "findTangents" begin
-  saa = Segment(depart=pA, arrive=pA)
-  sab = Segment(depart=pA, arrive=pB)
-  sac = Segment(depart=pA, arrive=pC)
+  saa = FreeSegment(depart=pA, arrive=pA)
+  sab = FreeSegment(depart=pA, arrive=pB)
+  sac = FreeSegment(depart=pA, arrive=pC)
   @test_throws DomainError findTangents(saa) #overlap, throws
 
 
@@ -42,12 +42,12 @@ end
 @testset "isSegmentMutuallyTangent" begin
   pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=(π/2)u"rad",               axis=uk, name="A")
   pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=(π/2)u"rad", depart=200°, axis=uk, name="B")
-  seg = Segment( depart=pA, arrive=pB )
+  seg = FreeSegment( depart=pA, arrive=pB )
   @test isSegmentMutuallyTangent( seg )
 
   pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=90°,               axis=uk, name="A")
   pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=200°, axis=uk, name="B")
-  seg = Segment( depart=pA, arrive=pB )
+  seg = FreeSegment( depart=pA, arrive=pB )
   @test isSegmentMutuallyTangent( seg )
 end
 
@@ -67,21 +67,21 @@ end
 @testset "toStringShort" begin
   pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=90°,               axis=uk, name="A")
   pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=200°, axis=uk, name="B")
-  seg = Segment( depart=pA, arrive=pB )
+  seg = FreeSegment( depart=pA, arrive=pB )
   @test toStringShort(seg) == "A--B"
 end
 
 @testset "toStringPoints" begin
   pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=90°,               axis=uk, name="A")
   pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=200°, axis=uk, name="B")
-  seg = Segment( depart=pA, arrive=pB )
-  @test toStringPoints(seg) == "Segment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]"
+  seg = FreeSegment( depart=pA, arrive=pB )
+  @test toStringPoints(seg) == "FreeSegment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]"
 end
 
 @testset "toStringVector" begin
   pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=90°,               axis=uk, name="A")
   pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=200°, axis=uk, name="B")
-  seg = Segment( depart=pA, arrive=pB )
+  seg = FreeSegment( depart=pA, arrive=pB )
   @test toStringVectors(seg) == "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
 end
 
@@ -93,7 +93,7 @@ end
   # an open belt, 180d wrap on both pulleys, separated by 200mm
   pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=270°, depart=90°,               axis=uk, name="A")
   pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=270°, axis=uk, name="B")
-  seg = Segment( depart=pA, arrive=pB )
+  seg = FreeSegment( depart=pA, arrive=pB )
   @test isapprox( calculateBeltLength( [seg] ), π*2*10mm + 200mm, rtol=1e-3 )
 
   solved = calculateRouteAngles(route)
@@ -117,14 +117,14 @@ end
   # pyplot()
   pA = PlainPulley( circle=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=90°,               axis=uk, name="A")
   pB = PlainPulley( circle=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=200°, axis=uk, name="B")
-  seg = Segment( depart=pA, arrive=pB )
-  p = plot(seg, reuse=false, title="plot(::Segment)")
+  seg = FreeSegment( depart=pA, arrive=pB )
+  p = plot(seg, reuse=false, title="plot(::FreeSegment)")
   p = plot!(seg.depart)
   p = plot!(seg.arrive)
   # display(p)
   @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
 
-  p = plot([seg], reuse=false, title="plot(::Vector{Segment})")
+  p = plot([seg], reuse=false, title="plot(::Vector{FreeSegment})")
   # display(p)
   @test typeof(p) <: Plots.AbstractPlot
 end
@@ -138,7 +138,7 @@ end
   @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
 end
 
-@testset "plotRoute of Segment" begin
+@testset "plotRoute of FreeSegment" begin
   # pyplot()
   solved = calculateRouteAngles(route)
   segments = route2Segments(solved)
