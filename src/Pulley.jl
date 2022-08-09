@@ -2,9 +2,9 @@ export AbstractPulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle
 
 
 """
-Subtypes of AbstractPulley model a particular form of pulley.
-At present that includes [PlainPulley](#BeltTransmission.PlainPulley)s, having cylindrical faces, and [SynchronousPulley](#BeltTransmission.TimingPulley).
-All subtypes have basic fields of `pitch::Circle`, `axis::UnitVector`, `arrive::Angle`, `depart::Angle`, and a `name::String`.
+  Subtypes of AbstractPulley model a particular form of pulley.
+  At present that includes [PlainPulley](#BeltTransmission.PlainPulley)s, having cylindrical faces, and [SynchronousPulley](#BeltTransmission.TimingPulley).
+  All subtypes have basic fields of `pitch::Circle`, `axis::UnitVector`, `arrive::Angle`, `depart::Angle`, and a `name::String`.
 """
 abstract type AbstractPulley end
 
@@ -22,7 +22,7 @@ abstract type AbstractPulley end
 
 """
     Base.show(io::IO, p::AbstractPulley)
-Function to `show()` a AbstractPulley via [`pulley2String`](#BeltTransmission.pulley2String).
+  Function to `show()` a AbstractPulley via [`pulley2String`](#BeltTransmission.pulley2String).
 """
 function Base.show(io::IO, p::AbstractPulley)
   print(io, pulley2String(p))
@@ -30,7 +30,7 @@ end
 
 """
     getDeparturePoint(p::AbstractPulley)::Geometry2D.Point
-Returns the point of departure.
+  Returns the point of departure.
 """
 function getDeparturePoint(p::AbstractPulley)::Geometry2D.Point
   return Geometry2D.pointOnCircle( p.pitch, p.depart )
@@ -38,7 +38,7 @@ end
 
 """
     getArrivalPoint(p::AbstractPulley)::Geometry2D.Point
-Returns the point of arrival.
+  Returns the point of arrival.
 """
 function getArrivalPoint(p::AbstractPulley)::Geometry2D.Point
   return Geometry2D.pointOnCircle( p.pitch, p.arrive )
@@ -46,7 +46,7 @@ end
 
 """
     pitchLength(p::AbstractPulley) :: Unitful.Length
-Returns the circumferential length of the pitch diameter of the pulley.
+  Returns the circumferential length of the pitch diameter of the pulley.
 """
 function pitchLength(p::AbstractPulley) :: Unitful.Length
   # return Geometry2D.circumference(p.pitch)
@@ -55,8 +55,8 @@ end
 
 """
     calculateWrappedAngle(p::AbstractPulley) :: Geometry2D.Angle
-Given `p`, calculate the wrapped angle from `p.arrive` to `p.depart`.
-Note that the wrapped angle is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
+  Given `p`, calculate the wrapped angle from `p.arrive` to `p.depart`.
+  Note that the wrapped angle is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
 function calculateWrappedAngle(p::AbstractPulley) :: Geometry2D.Angle
   if Geometry2D.isapprox(p.axis, Geometry2D.uk, rtol=1e-3) #+z == cw
@@ -87,8 +87,8 @@ end
 
 """
     calculateWrappedLength(p::AbstractPulley) :: Unitful.Length
-Given `p`, calculate the arclength of the wrapped segment from `p.arrive` to `p.depart`
-Note that the wrapped length is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
+  Given `p`, calculate the arclength of the wrapped segment from `p.arrive` to `p.depart`
+  Note that the wrapped length is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
 function calculateWrappedLength(p::AbstractPulley) :: Unitful.Length
   # cwa = calculateWrappedAngle(p)
@@ -101,7 +101,7 @@ end
 
 """
     pulley2Circle(p::AbstractPulley) :: Geometry2D.Circle
-Returns the pitch Circle of `p`.
+  Returns the pitch Circle of `p`.
 """
 function pulley2Circle(p::AbstractPulley) :: Geometry2D.Circle
     return p.pitch
@@ -109,7 +109,7 @@ end
 
 """
     printPulley(p::AbstractPulley)
-Prints the result of [`pulley2String`](#BeltTransmission.pulley2String) to the standard output
+  Prints the result of [`pulley2String`](#BeltTransmission.pulley2String) to the standard output
 """
 function printPulley(p::AbstractPulley)
   println(pulley2String(p))

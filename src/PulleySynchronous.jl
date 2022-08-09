@@ -6,9 +6,9 @@ export SynchronousPulley, nGrooves2Radius, radius2NGrooves, nGrooves2Length
 
 
 """
-Models a SynchronousPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis`, and `toothPitch`.
+  Models a SynchronousPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis`, and `toothPitch`.
 
-$FIELDS
+  $FIELDS
 """
 struct SynchronousPulley <: AbstractPulley
   """Circle describing the pitch diameter."""
@@ -32,7 +32,7 @@ SynchronousPulley(pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPi
 SynchronousPulley(center::Geometry2D.Point, nGrooves::Integer, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, nGrooves2Radius(toothPitch, nGrooves)),axis,toothPitch, 0u"rad", 0u"rad", name) 
 
 """
-A copy constructor for setting the `arrive` and `depart` angles.
+  A copy constructor for setting the `arrive` and `depart` angles.
 """
 SynchronousPulley(sp::SynchronousPulley; arrive=0u"rad", depart=0u"rad") = SynchronousPulley(sp.pitch,sp.axis,sp.toothPitch,arrive,depart,sp.name) #copy constructor
 
@@ -41,9 +41,9 @@ SynchronousPulley(sp::SynchronousPulley; arrive=0u"rad", depart=0u"rad") = Synch
 
 """
     SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) :: SynchronousPulley
-Models a SynchronousPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis` and `toothPitch`.
-Optional angles `arrive` and `depart` specify belt's arrival and departure tangent points.
-`name` identifies the pulley when plotting and printing.
+  Models a SynchronousPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis` and `toothPitch`.
+  Optional angles `arrive` and `depart` specify belt's arrival and departure tangent points.
+  `name` identifies the pulley when plotting and printing.
 """
 @kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = SynchronousPulley(pitch,axis,toothPitch,arrive,depart,name) 
 @kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian ) = SynchronousPulley(pitch,axis,toothPitch,arrive,depart,"") 
@@ -52,21 +52,21 @@ Optional angles `arrive` and `depart` specify belt's arrival and departure tange
 
 """
     SynchronousPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) 
-Models a SynchronousPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
+  Models a SynchronousPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
 """
 @kwmethod SynchronousPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, radius),axis,toothPitch, 0u"rad", 0u"rad", name) 
 
 """
     SynchronousPulley(; center::Geometry2D.Point, nGrooves::Integer, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, name::String)
-Models a SynchronousPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
-`nGrooves` and `toothPitch` are used to find the pulley pitch diameter.
+  Models a SynchronousPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
+  `nGrooves` and `toothPitch` are used to find the pulley pitch diameter.
 """
 @kwmethod SynchronousPulley(; center::Geometry2D.Point, axis::Geometry2D.UnitVector, nGrooves::Integer, toothPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, nGrooves2Radius(toothPitch, nGrooves)),axis,toothPitch, 0u"rad", 0u"rad", name) 
 
 
 """
     nGrooves2Radius(pitch::Unitful.Length, nGrooves::Integer)::Unitful.Length
-Convert the `pitch` and `nGrooves` to the pitch radius.
+  Convert the `pitch` and `nGrooves` to the pitch radius.
 """
 function nGrooves2Radius(pitch::Unitful.Length, nGrooves::Integer)::Unitful.Length
     return (nGrooves*pitch)/(2*pi)
@@ -74,7 +74,7 @@ end
 
 """
     radius2NGrooves(pitch::Unitful.Length, radius::Unitful.Length)::Integer
-Convert the `pitch` and `radius` to the number of grooves.
+  Convert the `pitch` and `radius` to the number of grooves.
 """
 function radius2NGrooves(pitch::Unitful.Length, radius::Unitful.Length)::Integer
     return convert(Int32,round(2*pi*radius/pitch))
@@ -82,7 +82,7 @@ end
 
 """
     nGrooves2Length(pitch::Unitful.Length, nGrooves::Integer)::Unitful.Length
-Convert the `pitch` and `nGrooves` to the circumferential length.
+  Convert the `pitch` and `nGrooves` to the circumferential length.
 """
 function nGrooves2Length(pitch::Unitful.Length, nGrooves::Integer)::Unitful.Length
   return pitch * nGrooves
@@ -96,7 +96,7 @@ end
 
 """
     pulley2String(p::SynchronousPulley) :: String
-Returns a descriptive string of the given SynchronousPulley `p` of the form:
+  Returns a descriptive string of the given SynchronousPulley `p` of the form:
     timing pulley[struct] @ [1.000,2.000] r[3.000] mm arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.000]"
 """
 function pulley2String(p::SynchronousPulley)::String 
@@ -112,15 +112,15 @@ end
 """
     plotRecipe(p::SynchronousPulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
 
-A plot recipe for plotting Pulleys under Plots.jl.
-Keyword `n` can be used to increase the number of points constituting the pulley edge.
-`lengthUnit` is a Unitful unit for scaling the linear axes.
-`arrowFactor` controls the size of the arrow head at depart.
-```
-using Plots, Unitful, BeltTransmission, Geometry2D
-p = SynchronousPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-plot(p)
-```
+  A plot recipe for plotting Pulleys under Plots.jl.
+  Keyword `n` can be used to increase the number of points constituting the pulley edge.
+  `lengthUnit` is a Unitful unit for scaling the linear axes.
+  `arrowFactor` controls the size of the arrow head at depart.
+  ```
+  using Plots, Unitful, BeltTransmission, Geometry2D
+  p = SynchronousPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+  plot(p)
+  ```
 """
 @recipe function plotRecipe(p::SynchronousPulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
   col = get(plotattributes, :seriescolor, :auto)

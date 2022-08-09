@@ -39,16 +39,28 @@ module BeltTransmission
   using UUIDs
 
   using RecipesBase
+
   include("Pulley.jl")
-  include("PulleyPlain.jl") #INCLUDE ORDER MATTERS! Must introduce PlainPulley before using it in BS, though this should go away with Abstract types.
+
   include("BeltSegment.jl")
   include("SegmentFree.jl")
+  # include("SegmentEngaged.jl")
 
+  #specific belt/pulley types
+  include("PulleyPlain.jl") #INCLUDE ORDER MATTERS! Must introduce PlainPulley before using it in BS, though this should go away with Abstract types.
 
   include("PulleySynchronous.jl")
   include("BeltSynchronous.jl")
 
-  # include("PulleyTiming.jl")
+
+  struct BeltTrans
+    pulleys::Vector{T} where T<:AbstractPulley
+    segments::Vector{T} where T<:AbstractSegment
+    belt::AbstractBelt
+  end
+  # calcLength(BT)
+  # calcRatios(BT)
+  # calcPowerLimits(BT)
 
 end # BeltTransmission
 

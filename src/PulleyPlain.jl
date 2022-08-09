@@ -1,8 +1,8 @@
 export PlainPulley, pulley2String
 
 """
-Models a cylindrical plain pulley in a BeltTransmission with:
-$FIELDS
+  Models a cylindrical plain pulley in a BeltTransmission with:
+  $FIELDS
 """
 struct PlainPulley <: AbstractPulley
   """the pitch Circle"""
@@ -19,37 +19,37 @@ end
 
 """
     PlainPulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-Models a PlainPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
+  Models a PlainPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
 """
 PlainPulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(circle,axis,0u"rad",0u"rad",name) 
 
 """
     PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `depart` when rotated postively according to the `axis`, and an optional `name`.
+  Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `depart` when rotated postively according to the `axis`, and an optional `name`.
 """
 PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = PlainPulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name) 
 
 """
     PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) :: PlainPulley
-Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `depart` when rotated postively according to the `axis`, and an optional `name`.
+  Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `depart` when rotated postively according to the `axis`, and an optional `name`.
 """
 PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = PlainPulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad","") 
 
 """
     PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, name::String) :: PlainPulley
-Models a PlainPulley in a BeltTransmission, located at `center` with pitch `radius` and `name`.
+  Models a PlainPulley in a BeltTransmission, located at `center` with pitch `radius` and `name`.
 """
 PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, name::String) = PlainPulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad",name) 
 
 """
     PlainPulley(center::Geometry2D.Point, radius::Unitful.Length) :: PlainPulley
-Models a PlainPulley in a BeltTransmission, located at `center` with pitch `radius`.
+  Models a PlainPulley in a BeltTransmission, located at `center` with pitch `radius`.
 """
 PlainPulley(center::Geometry2D.Point, radius::Unitful.Length) = PlainPulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad","") 
 
 
 """
-Copy constructor
+  Copy constructor
 """
 PlainPulley(pp::PlainPulley, arrive::Geometry2D.Radian, depart::Geometry2D.Radian) = PlainPulley(pp.pitch,pp.axis,arrive,depart,pp.name) 
 
@@ -57,25 +57,25 @@ PlainPulley(pp::PlainPulley, arrive::Geometry2D.Radian, depart::Geometry2D.Radia
 
 """
     PlainPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-Models a PlainPulley in a BeltTransmission through keyword arguments.
+  Models a PlainPulley in a BeltTransmission through keyword arguments.
 """
 @kwmethod PlainPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = PlainPulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name)
 
 """
     PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-Models a PlainPulley in a BeltTransmission through keyword arguments.
+  Models a PlainPulley in a BeltTransmission through keyword arguments.
 """
 @kwmethod PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(circle,axis,0u"rad",0u"rad",name)
 
 """
     PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) :: PlainPulley
-Models a PlainPulley in a BeltTransmission through keyword arguments.
+  Models a PlainPulley in a BeltTransmission through keyword arguments.
 """
 @kwmethod PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = PlainPulley(circle,axis,arrive,depart,name)
 
 """
     pulley2String(p::PlainPulley) :: String
-Returns a descriptive string of the given PlainPulley `p` of the form:
+  Returns a descriptive string of the given PlainPulley `p` of the form:
     pulley[struct] @ [1.000,2.000] r[3.000] mm arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.000]"
 """
 function pulley2String(p::PlainPulley)::String 
@@ -100,15 +100,15 @@ end
 """
     plotRecipe(p::PlainPulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
 
-A plot recipe for plotting Pulleys under Plots.jl.
-Keyword `n` can be used to increase the number of points constituting the pulley edge.
-`lengthUnit` is a Unitful unit for scaling the linear axes.
-`arrowFactor` controls the size of the arrow head at depart.
-```
-using Plots, Unitful, BeltTransmission, Geometry2D
-p = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-plot(p)
-```
+  A plot recipe for plotting Pulleys under Plots.jl.
+  Keyword `n` can be used to increase the number of points constituting the pulley edge.
+  `lengthUnit` is a Unitful unit for scaling the linear axes.
+  `arrowFactor` controls the size of the arrow head at depart.
+  ```
+  using Plots, Unitful, BeltTransmission, Geometry2D
+  p = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+  plot(p)
+  ```
 """
 @recipe function plotRecipe(p::PlainPulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
   col = get(plotattributes, :seriescolor, :auto)
@@ -169,14 +169,14 @@ end
 
 """
     plotRecipe(route::Vector{PlainPulley})
-Plots the Pulleys in a `route`.
-```
-using Plots, Unitful, BeltTransmission, Geometry2D
-a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-route = calculateRouteAngles([a,b])
-plot(route)
-```
+  Plots the Pulleys in a `route`.
+  ```
+  using Plots, Unitful, BeltTransmission, Geometry2D
+  a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+  b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+  route = calculateRouteAngles([a,b])
+  plot(route)
+  ```
 """
 @recipe function plotRecipe(route::Vector{PlainPulley})
   nr = length(route)

@@ -2,7 +2,8 @@
 
 export SynchronousBelt, pitchLength2NTeeth, nTeeth2PitchLength#, belt2NTeeth, belt2PitchLength
 
-"""Represents a synchronous belt with parameters:
+"""
+  Represents a synchronous belt with parameters:
   `profile::String` - tooth profile name
   `pitch::Unitful.Length` - distance between belt grooves
   `length::Unitful.Length` - belt linear length if cut
@@ -39,8 +40,8 @@ end
 @kwmethod SynchronousBelt(; pitch::Unitful.Length, nTeeth::Int,                          width::Unitful.Length, profile::String) = SynchronousBelt( profile, pitch, nTeeth2PitchLength(pitch=pitch, nTeeth=nTeeth), nTeeth,                width, "pn00", "spA", "url0", UUIDs.uuid4() )
 
 """
-`SynchronousBelt( belt::SynchronousBelt; partNumber="", supplier="", url="" ) :: SynchronousBelt`
-A copy constructor for adding/changing `partNumber`, `supplier`, or `url`
+  `SynchronousBelt( belt::SynchronousBelt; partNumber="", supplier="", url="" ) :: SynchronousBelt`
+  A copy constructor for adding/changing `partNumber`, `supplier`, or `url`
   """
 function SynchronousBelt( belt::SynchronousBelt; partNumber="", supplier="", url="" ) :: SynchronousBelt
   pn = belt.partNumber
@@ -60,7 +61,7 @@ end
 
 
 """
-plots the free section of a segment, does not plot the pulleys
+  plots the free section of a segment, does not plot the pulleys
 """
 @recipe function plotRecipe(belt::SynchronousBelt; n=100, lengthUnit=u"mm")#, segmentColor=:magenta, arrowFactor=0.03)
   seriestype := :path 
@@ -77,16 +78,16 @@ end
 
 
 """
-`pitchLength2NTeeth(; pitch::Unitful.Length, length::Unitful.Length )::Integer`
-`nTeeth` is simply `length`/`pitch`
+  `pitchLength2NTeeth(; pitch::Unitful.Length, length::Unitful.Length )::Integer`
+  `nTeeth` is simply `length`/`pitch`
 """
 function pitchLength2NTeeth(; pitch::Unitful.Length, length::Unitful.Length )::Integer
   return convert(Int64, round(length/pitch))
 end
 
 """
-`nTeeth2PitchLength(; pitch::Unitful.Length, nTeeth::Integer) :: Unitful.Length`
-Belt `length` is `pitch` * `nTeeth`
+  `nTeeth2PitchLength(; pitch::Unitful.Length, nTeeth::Integer) :: Unitful.Length`
+  Belt `length` is `pitch` * `nTeeth`
 """
 function nTeeth2PitchLength(; pitch::Unitful.Length, nTeeth::Integer) :: Unitful.Length
   return pitch * nTeeth
