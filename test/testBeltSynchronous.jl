@@ -1,6 +1,6 @@
 
-ba = SyncBelt(pitch=2mm, length=54mm, width=6mm, profile="gt2")
-bb = SyncBelt(pitch=2mm, nTeeth=27, width=6mm, profile="gt2")
+ba = SynchronousBelt(pitch=2mm, length=54mm, width=6mm, profile="gt2")
+bb = SynchronousBelt(pitch=2mm, nTeeth=27, width=6mm, profile="gt2")
 
 @testset "SynchronousBelt constructors" begin
   @test ba.pitch == bb.pitch
@@ -9,8 +9,8 @@ bb = SyncBelt(pitch=2mm, nTeeth=27, width=6mm, profile="gt2")
   @test ba.id == tryparse(UUID, string(ba.id))
 end
 
-@testset "SyncBelt copy constructor" begin
-  bs = SyncBelt( ba, supplier="SDP/SI", url="https://sdpsi.com/", partNumber="135-246")
+@testset "SynchronousBelt copy constructor" begin
+  bs = SynchronousBelt( ba, supplier="SDP/SI", url="https://sdpsi.com/", partNumber="135-246")
   @test ba.id == bs.id
   @test bs.partNumber == "135-246"
   @test bs.supplier == "SDP/SI"

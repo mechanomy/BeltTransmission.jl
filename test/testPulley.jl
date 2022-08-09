@@ -42,9 +42,8 @@ end
   pb = PlainPulley(Geometry2D.Circle(10mm,0mm, 4mm), -Geometry2D.uk, 1u"rad", 4u"rad", "pulleyB") 
   p = plot(pa, reuse=false)
   p = plot!(pb)
-  display(p);
-
-  @test true
+  # display(p);
+  @test typeof(p) <: Plots.AbstractPlot
 end
 
 

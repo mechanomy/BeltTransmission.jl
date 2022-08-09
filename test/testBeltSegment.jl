@@ -121,11 +121,11 @@ end
   p = plot(seg, reuse=false, title="plot(::Segment)")
   p = plot!(seg.depart)
   p = plot!(seg.arrive)
-  display(p)
+  # display(p)
   @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
 
   p = plot([seg], reuse=false, title="plot(::Vector{Segment})")
-  display(p)
+  # display(p)
   @test typeof(p) <: Plots.AbstractPlot
 end
 
@@ -133,7 +133,7 @@ end
   # pyplot()
   solved = calculateRouteAngles(route)
   p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
-  display(p)
+  # display(p)
   
   @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
 end
@@ -143,7 +143,7 @@ end
   solved = calculateRouteAngles(route)
   segments = route2Segments(solved)
   p = plot(segments, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
-  display(p)
+  # display(p)
   
   @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
 end

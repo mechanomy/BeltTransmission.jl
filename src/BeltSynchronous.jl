@@ -1,6 +1,6 @@
 
 
-export SyncBelt, pitchLength2NTeeth, nTeeth2PitchLength#, belt2NTeeth, belt2PitchLength
+export SynchronousBelt, pitchLength2NTeeth, nTeeth2PitchLength#, belt2NTeeth, belt2PitchLength
 
 """Represents a synchronous belt with parameters:
   `profile::String` - tooth profile name
@@ -13,7 +13,11 @@ export SyncBelt, pitchLength2NTeeth, nTeeth2PitchLength#, belt2NTeeth, belt2Pitc
   `url::String` - sourcing link
   `id::UUID` - unique id
 """
-struct SyncBelt # should agree with BeltTable.jl's DataFrame columns; mutable until copy constructor is added
+struct SynchronousBelt 
+  # arrive::AbstractPulley
+  # depart::AbstractPulley
+  #    or 
+  # segments::Vector{Segment}
   profile::String #tooth profile name
   pitch::Unitful.Length # distance between belt grooves
   length::Unitful.Length # belt linear length if cut
@@ -24,17 +28,21 @@ struct SyncBelt # should agree with BeltTable.jl's DataFrame columns; mutable un
   url::String #sourcing link
   id::UUID #unique id
 end 
+
 # 220526: KeywordDispatch can't have default arguments: https://github.com/simonbyrne/KeywordDispatch.jl/issues/1
-@kwdispatch SyncBelt()
-@kwmethod SyncBelt(; pitch::Unitful.Length, length::Unitful.Length, nTeeth::Int,  width::Unitful.Length, profile::String, partNumber::String, supplier::String, url::String, id::UUID ) = SyncBelt( profile, pitch, length, nTeeth, width, partNumber, supplier, url, id)
-@kwmethod SyncBelt(; pitch::Unitful.Length, length::Unitful.Length,               width::Unitful.Length, profile::String) = SyncBelt( profile, pitch, length, pitchLength2NTeeth(pitch=pitch, length=length), width, "pn00", "spA", "url0", UUIDs.uuid4() )
-@kwmethod SyncBelt(; pitch::Unitful.Length, nTeeth::Int,                          width::Unitful.Length, profile::String) = SyncBelt( profile, pitch, nTeeth2PitchLength(pitch=pitch, nTeeth=nTeeth), nTeeth,                width, "pn00", "spA", "url0", UUIDs.uuid4() )
+@kwdispatch SynchronousBelt()
+
+@kwmethod SynchronousBelt(; pitch::Unitful.Length, length::Unitful.Length, nTeeth::Int,  width::Unitful.Length, profile::String, partNumber::String, supplier::String, url::String, id::UUID ) = SynchronousBelt( profile, pitch, length, nTeeth, width, partNumber, supplier, url, id)
+
+@kwmethod SynchronousBelt(; pitch::Unitful.Length, length::Unitful.Length,               width::Unitful.Length, profile::String) = SynchronousBelt( profile, pitch, length, pitchLength2NTeeth(pitch=pitch, length=length), width, "pn00", "spA", "url0", UUIDs.uuid4() )
+
+@kwmethod SynchronousBelt(; pitch::Unitful.Length, nTeeth::Int,                          width::Unitful.Length, profile::String) = SynchronousBelt( profile, pitch, nTeeth2PitchLength(pitch=pitch, nTeeth=nTeeth), nTeeth,                width, "pn00", "spA", "url0", UUIDs.uuid4() )
 
 """
-`SyncBelt( belt::SyncBelt; partNumber="", supplier="", url="" ) :: SyncBelt`
+`SynchronousBelt( belt::SynchronousBelt; partNumber="", supplier="", url="" ) :: SynchronousBelt`
 A copy constructor for adding/changing `partNumber`, `supplier`, or `url`
   """
-function SyncBelt( belt::SyncBelt; partNumber="", supplier="", url="" ) :: SyncBelt
+function SynchronousBelt( belt::SynchronousBelt; partNumber="", supplier="", url="" ) :: SynchronousBelt
   pn = belt.partNumber
   if partNumber != ""
       pn = partNumber
@@ -47,14 +55,14 @@ function SyncBelt( belt::SyncBelt; partNumber="", supplier="", url="" ) :: SyncB
   if url != ""
       ur = url
   end
-  return SyncBelt( belt.profile, belt.pitch, belt.length, belt.nTeeth, belt.width, pn, sp, ur, belt.id )
+  return SynchronousBelt( belt.profile, belt.pitch, belt.length, belt.nTeeth, belt.width, pn, sp, ur, belt.id )
 end
 
 
 """
 plots the free section of a segment, does not plot the pulleys
 """
-@recipe function plotRecipe(belt::SyncBelt; n=100, lengthUnit=u"mm")#, segmentColor=:magenta, arrowFactor=0.03)
+@recipe function plotRecipe(belt::SynchronousBelt; n=100, lengthUnit=u"mm")#, segmentColor=:magenta, arrowFactor=0.03)
   seriestype := :path 
   linecolor --> segmentColor
   linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...

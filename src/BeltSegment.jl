@@ -1,4 +1,6 @@
-# A belt segment is a free section of belt beginning and ending at a pulley tangent point.  It is assumed straight and loaded only in tension. 
+# A belt segment is some section of a belt, delineated by lines of contact with pulleys
+# A free belt segment is a free section of belt beginning and ending at a pulley tangent point.  It is assumed straight and loaded only in tension. 
+# An engaged belt segment is nominally in contact with some pulley
 
 export Segment, getDeparturePoint, getArrivalPoint, distance, findTangents, isSegmentMutuallyTangent, calculateRouteAngles, route2Segments, calculateBeltLength, toString, toStringShort, toStringPoints, toStringVectors, printRoute, printSegments, length
 
@@ -8,15 +10,16 @@ $FIELDS
 """
 struct Segment #this should set arrive & depart on the pulleys...mutable pulley?
   """Departing pulley"""
-  depart::T where T <: AbstractPulley #expanded to the Point on the `pitch` circle at `depart`
+  depart::AbstractPulley #expanded to the Point on the `pitch` circle at `depart`
 
   """Arriving pulley"""
-  arrive::T where T <: AbstractPulley #expanded to the Point on the `pitch` circle at `arrive`
+  # arrive::T where T <: AbstractPulley #expanded to the Point on the `pitch` circle at `arrive`
+  arrive::AbstractPulley #expanded to the Point on the `pitch` circle at `arrive`
 end
 @kwdispatch Segment()
 
 """
-    Segment(; depart::PlainPulley, arrive::PlainPulley) :: Segment
+    Segment(; depart::AbstractPulley, arrive::AbstractPulley) :: Segment
 Create a belt Segment between `depart` and `arrive` Pulleys
 """
 @kwmethod Segment(; depart::T, arrive::T) where T<:AbstractPulley = Segment(depart,arrive)
@@ -131,8 +134,8 @@ end
 
 
 """
-    findTangents(; a::PlainPulley, b::PlainPulley, plotResult::Bool=false) :: Vector{Segment}
-Find four lines tangent to both PlainPulley `a` and `b`, returns 4 Segments with departure and arrival angles locating the points of tangency on the circles.
+    findTangents(seg::Segment) :: Vector{Segment}
+Find four lines tangent to both pulleys `a` and `b`, returns 4 Segments with departure and arrival angles locating the points of tangency on the circles.
 """
 function findTangents(seg::Segment) :: Vector{Segment}
   lCenter = Geometry2D.distance( seg.depart.pitch.center, seg.arrive.pitch.center )
@@ -163,27 +166,6 @@ function findTangents(seg::Segment) :: Vector{Segment}
   b3 = Geometry2D.angleWrap( -(pi-aCenter-aCross) )
   b4 = Geometry2D.angleWrap( pi+aCenter-aCross )
 
-  # #                       old circle        newly found tangent angle  old: 
-  # depart1 = PlainPulley(circle=seg.depart.pitch, depart=a1*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  # depart2 = PlainPulley(circle=seg.depart.pitch, depart=a2*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  # depart3 = PlainPulley(circle=seg.depart.pitch, depart=a3*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  # depart4 = PlainPulley(circle=seg.depart.pitch, depart=a4*u"rad",         arrive=seg.depart.arrive, axis=seg.depart.axis, name=seg.depart.name)
-  # arrive1 = PlainPulley(circle=seg.arrive.pitch, arrive=b1*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
-  # arrive2 = PlainPulley(circle=seg.arrive.pitch, arrive=b2*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
-  # arrive3 = PlainPulley(circle=seg.arrive.pitch, arrive=b3*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
-  # arrive4 = PlainPulley(circle=seg.arrive.pitch, arrive=b4*u"rad",         depart=seg.arrive.depart, axis=seg.arrive.axis, name=seg.arrive.name)
-  # ret = [Segment(depart=depart1, arrive=arrive1),Segment(depart=depart2, arrive=arrive2),Segment(depart=depart3, arrive=arrive3),Segment(depart=depart4, arrive=arrive4)]
-
-  #                       old circle        newly found tangent angle  old: 
-  # depart1 = DType(seg.depart, depart=a1*u"rad", arrive=seg.depart.arrive)
-  # depart2 = DType(seg.depart, depart=a2*u"rad", arrive=seg.depart.arrive)
-  # depart3 = DType(seg.depart, depart=a3*u"rad", arrive=seg.depart.arrive)
-  # depart4 = DType(seg.depart, depart=a4*u"rad", arrive=seg.depart.arrive)
-  # arrive1 = AType(seg.arrive, arrive=b1*u"rad", depart=seg.arrive.depart)
-  # arrive2 = AType(seg.arrive, arrive=b2*u"rad", depart=seg.arrive.depart)
-  # arrive3 = AType(seg.arrive, arrive=b3*u"rad", depart=seg.arrive.depart)
-  # arrive4 = AType(seg.arrive, arrive=b4*u"rad", depart=seg.arrive.depart)
-
   depart1 = DType(seg.depart, seg.depart.arrive, a1*u"rad")
   depart2 = DType(seg.depart, seg.depart.arrive, a2*u"rad")
   depart3 = DType(seg.depart, seg.depart.arrive, a3*u"rad")
@@ -193,6 +175,7 @@ function findTangents(seg::Segment) :: Vector{Segment}
   arrive2 = AType(seg.arrive, b2*u"rad", seg.arrive.depart)
   arrive3 = AType(seg.arrive, b3*u"rad", seg.arrive.depart)
   arrive4 = AType(seg.arrive, b4*u"rad", seg.arrive.depart)
+
   ret = [Segment(depart=depart1, arrive=arrive1),Segment(depart=depart2, arrive=arrive2),Segment(depart=depart3, arrive=arrive3),Segment(depart=depart4, arrive=arrive4)]
   return ret
 end 
@@ -227,9 +210,9 @@ function isSegmentMutuallyTangent( seg::Segment ) :: Bool
 end
 
 """
-    calculateRouteAngles(route::Vector{PlainPulley}, plotSegments::Bool=false) :: Vector{PlainPulley}
+    calculateRouteAngles(route::Vector{AbstractPulley}, plotSegments::Bool=false) :: Vector{AbstractPulley}
 Given an ordered vector of Pulleys, output a vector of new Pulleys whose arrive and depart angles are set to connect the pulleys with mutually tangent segments.
-Convention: pulleys are listed in 'positive' belt rotation order, consistent with the direction of each PlainPulley's rotation axis.
+Convention: pulleys are listed in 'positive' belt rotation order, consistent with the direction of each pulley's rotation axis.
 """
 function calculateRouteAngles(route::Vector{T})::Vector{T} where T <: AbstractPulley
   nr = size(route,1)
@@ -251,7 +234,7 @@ function calculateRouteAngles(route::Vector{T})::Vector{T} where T <: AbstractPu
 end
 
 """
-    route2Segments(route::Vector{PlainPulley}) :: Vector{Segment}
+    route2Segments(route::Vector{AbstractPulley}) :: Vector{Segment}
 Given the ordered Pulleys of a belt routing, returns a vector of the free-space Segments connecting the Pulleys.
 """
 function route2Segments(route::Vector{T}) :: Vector{Segment} where T<:AbstractPulley
@@ -283,8 +266,8 @@ function calculateBeltLength(segments::Vector{Segment}) :: Unitful.Length
 end
 
 """
-    calculateBeltLength(route::Vector{PlainPulley}) :: Unitful.Length
-Calculates the belt length over the given `route` as the sum of circular sections at the PlainPulley pitch radii between the arrival and departure angles.
+    calculateBeltLength(route::Vector{AbstractPulley}) :: Unitful.Length
+Calculates the belt length over the given `route` as the sum of circular sections at the pulley pitch radii between the arrival and departure angles.
 """
 function calculateBeltLength(route::Vector{T}) :: Unitful.Length where T<:AbstractPulley
   return calculateBeltLength( route2Segments(route) ) 
@@ -300,7 +283,7 @@ end
 
 """
     toStringShort(seg::Segment) :: String
-Returns a short string of the form 'A -- B', for a departing PlainPulley named A arriving at a PlainPulley named B.
+Returns a short string of the form 'A -- B', for a departing pulley named A arriving at a pulley named B.
 """
 function toStringShort(seg::Segment) :: String
   return "$(seg.depart.name)--$(seg.arrive.name)"
@@ -354,7 +337,7 @@ function toStringVectors(seg::Segment)
 end
 
 """
-    printRoute(route::Vector{PlainPulley})
+    printRoute(route::Vector{AbstractPulley})
 Prints the Pulleys and total belt length for the given `route`.
 """
 function printRoute(route::Vector{T}) where T<:AbstractPulley

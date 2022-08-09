@@ -21,11 +21,11 @@ $(EXPORTS)
 module BeltTransmission
 
   using Unitful, Unitful.DefaultSymbols
-  @derived_dimension Radian dimension(u"rad")
-  @derived_dimension Degree dimension(u"°")
-  @unit rev "rev" Revolution (2*π)u"rad" false
-  # @derived_dimension Pitch dimension(u"mm/1") #per what in Unitful? Number?
-  Angle{T} = Union{Quantity{T,NoDims,Radian}, Quantity{T,NoDims,Degree}} where T 
+  # @derived_dimension Radian dimension(u"rad")
+  # @derived_dimension Degree dimension(u"°")
+  # @unit rev "rev" Revolution (2*π)u"rad" false
+  # # @derived_dimension Pitch dimension(u"mm/1") #per what in Unitful? Number?
+  # Angle{T} = Union{Quantity{T,NoDims,Radian}, Quantity{T,NoDims,Degree}} where T 
 
   using KeywordDispatch
 
