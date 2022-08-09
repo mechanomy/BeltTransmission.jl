@@ -1,3 +1,6 @@
+
+
+
 export PlainPulley, pulley2String
 
 """
@@ -21,57 +24,25 @@ end
     PlainPulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
   Models a PlainPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
 """
-PlainPulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(circle,axis,0u"rad",0u"rad",name) 
+PlainPulley(pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(pitch,axis,0u"rad",0u"rad",name) 
 
 """
-    PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-  Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `depart` when rotated postively according to the `axis`, and an optional `name`.
+    PlainPulley(pp::PlainPulley, arrive=0u"rad", depart=0u"rad")
+  Copy constructor setting `arrive` and `depart`
 """
-PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = PlainPulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name) 
-
-"""
-    PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) :: PlainPulley
-  Models a PlainPulley in a BeltTransmission, having a `pitch` diameter, rotation `axis`, angles `arrive` and `depart` when rotated postively according to the `axis`, and an optional `name`.
-"""
-PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector) = PlainPulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad","") 
-
-"""
-    PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, name::String) :: PlainPulley
-  Models a PlainPulley in a BeltTransmission, located at `center` with pitch `radius` and `name`.
-"""
-PlainPulley(center::Geometry2D.Point, radius::Unitful.Length, name::String) = PlainPulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad",name) 
-
-"""
-    PlainPulley(center::Geometry2D.Point, radius::Unitful.Length) :: PlainPulley
-  Models a PlainPulley in a BeltTransmission, located at `center` with pitch `radius`.
-"""
-PlainPulley(center::Geometry2D.Point, radius::Unitful.Length) = PlainPulley(Geometry2D.Circle(center,radius),Geometry2D.uk,0u"rad",0u"rad","") 
-
-
-"""
-  Copy constructor
-"""
-PlainPulley(pp::PlainPulley, arrive::Geometry2D.Radian, depart::Geometry2D.Radian) = PlainPulley(pp.pitch,pp.axis,arrive,depart,pp.name) 
+PlainPulley(pp::PlainPulley, arrive=0u"rad", depart=0u"rad") = PlainPulley(pp.pitch,pp.axis,arrive,depart,pp.name) 
 
 @kwdispatch PlainPulley()
 
 """
-    PlainPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-  Models a PlainPulley in a BeltTransmission through keyword arguments.
-"""
-@kwmethod PlainPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, name::String) = PlainPulley(Geometry2D.Circle(center,radius),axis,0u"rad",0u"rad",name)
-
-"""
     PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-  Models a PlainPulley in a BeltTransmission through keyword arguments.
-"""
-@kwmethod PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(circle,axis,0u"rad",0u"rad",name)
-
-"""
     PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) :: PlainPulley
   Models a PlainPulley in a BeltTransmission through keyword arguments.
 """
-@kwmethod PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = PlainPulley(circle,axis,arrive,depart,name)
+@kwmethod PlainPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(pitch,axis,0u"rad",0u"rad",name)
+@kwmethod PlainPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = PlainPulley(pitch,axis,arrive,depart,name)
+
+
 
 """
     pulley2String(p::PlainPulley) :: String

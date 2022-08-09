@@ -49,8 +49,7 @@ module BeltTransmission
   #specific belt/pulley types
   include("PulleyPlain.jl") #INCLUDE ORDER MATTERS! Must introduce PlainPulley before using it in BS, though this should go away with Abstract types.
 
-  include("PulleySynchronous.jl")
-  include("BeltSynchronous.jl")
+  include("Synchronous.jl")
 
 
   struct BeltTrans

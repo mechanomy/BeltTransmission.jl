@@ -7,13 +7,12 @@
 
   @test typeof( PlainPulley(Geometry2D.Circle(ctr, rad), Geometry2D.uk, aa, ad, "struct" ) ) <: AbstractPulley
   @test typeof( PlainPulley(Geometry2D.Circle(ctr, rad), Geometry2D.uk, aa, ad, "struct" ) ) <: PlainPulley
-  @test typeof( PlainPulley(ctr, rad, Geometry2D.uk, "cran" ) ) <: PlainPulley
-  @test typeof( PlainPulley(ctr, rad, Geometry2D.uk ) ) <: PlainPulley
-  @test typeof( PlainPulley(ctr, rad, "crn" ) ) <: PlainPulley
-  @test typeof( PlainPulley(ctr, rad, "name" )) <: PlainPulley
-  @test typeof( PlainPulley(center=ctr, radius=rad, axis=Geometry2D.uk, name="key" ) ) <: PlainPulley
-  @test typeof( PlainPulley(circle=Geometry2D.Circle(ctr, rad), axis=Geometry2D.uk, name="circle key" ) ) <: PlainPulley
-
+  # @test typeof( PlainPulley(ctr, rad, Geometry2D.uk, "cran" ) ) <: PlainPulley
+  # @test typeof( PlainPulley(ctr, rad, Geometry2D.uk ) ) <: PlainPulley
+  # @test typeof( PlainPulley(ctr, rad, "crn" ) ) <: PlainPulley
+  # @test typeof( PlainPulley(ctr, rad, "name" )) <: PlainPulley
+  # @test typeof( PlainPulley(center=ctr, radius=rad, axis=Geometry2D.uk, name="key" ) ) <: PlainPulley
+  @test typeof( PlainPulley(pitch=Geometry2D.Circle(ctr, rad), axis=Geometry2D.uk, name="circle key" ) ) <: PlainPulley
 
   tp = PlainPulley(Geometry2D.Circle(1mm, 2mm, 3mm), Geometry2D.uk, 1u"rad", 2u"rad", "struct" ) 
   tc = PlainPulley(tp, 1.1u"rad", 2.2u"rad")
