@@ -20,11 +20,11 @@
   @series begin # put a dot/x on the pulley center, indicating the direction of the axis
     seriestype := :path 
     primary := false
-    linecolor := :black
     markershape := (p.axis==Geometry2D.uk ? :circle : :x ) #if axis is positive uk, the axis rotation vector is 'coming out of the page' whereas negative is into the page and we see the vector arrow's fletching
-    if p.axis == Geometry2D.uk #don't set the fill color of :x to avoid a warning
-      markercolor := :black
-    end
+    markercolor := :black
+    # if p.axis == Geometry2D.uk #don't set the fill color of :x to avoid a warning
+    #   linecolor := :black
+    # end
     [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
   end
 
@@ -97,11 +97,11 @@ end
   @series begin # put a dot/x on the pulley center, indicating the direction of the axis
     seriestype := :path 
     primary := false
-    linecolor := :black
+    markercolor := :black
     markershape := (p.axis==Geometry2D.uk ? :circle : :x ) #if axis is positive uk, the axis rotation vector is 'coming out of the page' whereas negative is into the page and we see the vector arrow's fletching
-    if p.axis == Geometry2D.uk #don't set the fill color of :x to avoid a warning
-      markercolor := :black
-    end
+    # if p.axis == Geometry2D.uk # :x doesn't have a linecolor, avoid setting
+    #   linecolor := :black
+    # end
     [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
   end
 

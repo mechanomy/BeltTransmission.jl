@@ -13,7 +13,7 @@ using BeltTransmission
 #describe the pulleys
 uk = Geometry2D.UnitVector(0,0,1)
 #a square of pulleys, arranged ccw from quadrant1
-pA = SynchronousPulley( center=Geometry2D.Point( 100mm, 100mm), axis=uk, nGrooves=62, beltPitch=2mm, name="A" )
+pA = SynchronousPulley( center=Geometry2D.Point( 100mm, 100mm), axis=uk, nGrooves=62, beltPitch=2mm, name="A:" )
 pB = SynchronousPulley( center=Geometry2D.Point(-100mm, 100mm), axis=uk, nGrooves=30, beltPitch=2mm, name="B" )
 pC = SynchronousPulley( center=Geometry2D.Point(-100mm,-100mm), axis=uk, nGrooves=80, beltPitch=2mm, name="C" )
 pD = SynchronousPulley( center=Geometry2D.Point( 100mm,-100mm), axis=uk, nGrooves=30, beltPitch=2mm, name="D" )
@@ -49,7 +49,6 @@ p = plot!(solved, segmentColor=:cyan)#, legend_background_color=:transparent, le
 display(p)
 
 println("Iteration 100: l=$(calculateBeltLength(solved)) with dx=$dx")
-# @show calculateBeltLength(solved)
 @show pE
 
 
