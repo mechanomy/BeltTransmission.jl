@@ -26,14 +26,3 @@ end
 end
 
 
-
-@testset "plotPulley" begin
-  # pyplot()
-  pa = PlainPulley(Geometry2D.Circle(0mm,0mm, 4mm), Geometry2D.uk, 1u"rad", 4u"rad", "pulleyA") 
-  pb = PlainPulley(Geometry2D.Circle(10mm,0mm, 4mm), -Geometry2D.uk, 1u"rad", 4u"rad", "pulleyB") 
-  p = plot(pa, reuse=false)
-  p = plot!(pb)
-  # display(p);
-  @test typeof(p) <: Plots.AbstractPlot
-end
-

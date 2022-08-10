@@ -108,19 +108,3 @@ end
 end
 
 
-@testset "plotSegment of a single SegmentFree" begin
-  # pyplot()
-  pA = PlainPulley( pitch=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=90°,               axis=uk, name="A")
-  pB = PlainPulley( pitch=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=200°, axis=uk, name="B")
-  seg = FreeSegment( depart=pA, arrive=pB )
-  p = plot(seg, reuse=false, title="plot(::FreeSegment)")
-  p = plot!(seg.depart)
-  p = plot!(seg.arrive)
-  # display(p)
-  @test typeof(p) <: Plots.AbstractPlot #did the plot draw at all?
-
-  p = plot([seg], reuse=false, title="plot(::Vector{FreeSegment})")
-  # display(p)
-  @test typeof(p) <: Plots.AbstractPlot
-end
-

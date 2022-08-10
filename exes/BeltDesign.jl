@@ -26,11 +26,6 @@ solved = calculateRouteAngles(route)
 println("Initial belt length is $(calculateBeltLength(solved))")
 
 # plot the system
-# p = plot(pA)
-# p = plot!(pB)
-# route = [pA, pB, pC, pD, pE]
-# p = plot(route)#, legend_background_color=:transparent, legend_position=:outerright)
-# p = plot!([pS, pB, pC, pD, pE])
 p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
 display(p)
 

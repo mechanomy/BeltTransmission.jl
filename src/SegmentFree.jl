@@ -27,35 +27,6 @@ end
 
 
 """
-    plotRecipe(seg::FreeSegment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
-  Plot recipe to plot the free sections of a segment, does not plot the pulleys.
-  ```
-  using Plots, Unitful, BeltTransmission, Geometry2D
-  a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-  b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-  seg = FreeSegment(depart=a, arrive=b)
-  plot(seg)
-  ```
-"""
-@recipe function plotRecipe(seg::FreeSegment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
-  println("prFreeSegment")
-  pd = getDeparturePoint( seg )
-  pa = getArrivalPoint( seg )
-  x = LinRange( pd.x, pa.x, n )
-  y = LinRange( pd.y, pa.y, n )
-
-  seriestype := :path 
-  linecolor --> segmentColor
-  linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...
-  aspect_ratio := :equal 
-  label --> toString(seg)
-  legend_background_color --> :transparent
-  legend_position --> :outerright
-
-  ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
-end
-
-"""
     Base.show(io::IO, seg::FreeSegment)
   show()s the FreeSegment via [`toStringShort`](#BeltTransmission.toStringShort).
 """
@@ -299,75 +270,5 @@ function toStringVectors(seg::FreeSegment)
     ustrip(un,avec.tip.x), ustrip(un,avec.tip.y) )
   str = dstr * "--" * astr
   return str
-end
-
-"""
-    plotRecipe(segments::Vector{T}) where T<:AbstractSegment
-  Plots the Pulleys and Segments in a `route`.
-  ```
-  using Plots, Unitful, BeltTransmission, Geometry2D
-  a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-  b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-  route = calculateRouteAngles([a,b])
-  segments = route2Segments(route)
-  plot(segments)
-  ```
-"""
-@recipe function plotRecipe(segments::Vector{T}) where T<:AbstractSegment
-# @recipe function plotRecipe(segments::Vector{T}) where T<:FreeSegment
-# @recipe function plotRecipe(segments::Vector{T}) where T<:AbstractPulley
-  println("prVectorAbstractSegment")
-  #plot segments first, behind pulleys
-  for seg in segments
-    @series begin
-      seg
-    end
-  end
-
-  nr = length(segments)
-  #plot pulleys
-  for ir in 1:nr
-    @series begin
-      segments[ir].depart #route[ir] is returned to _ to be plotted
-    end
-  end
-  #for open belts, add the missed pulley
-  if segments[1].arrive != last(segments).depart
-    segments[1].arrive 
-  end
-end
-
-@recipe function plotRecipe(pulleys::Vector{T}) where T<:AbstractPulley
-  println("prVectorAbstractPulley: segments")
-  #plot segments first, behind pulleys
-  for p in pulleys
-    @series begin
-      p
-    end
-  end
-
-  println("prVectorAbstractPulley: pulleys")
-  nr = length(pulleys)
-  #plot pulleys
-  for ir in 1:nr
-    @show pulleys[ir]
-    @show pulleys[ir].depart
-    @series begin
-      pulleys[ir] #route[ir] is returned to _ to be plotted
-    end
-    # if typeof(segments[ir].depart) <: AbstractPulley
-    #   @series begin
-    #     segments[ir].depart #route[ir] is returned to _ to be plotted
-    #   end
-    # else
-    #   @series begin
-    #     segments[ir]
-    #   end
-    # end
-  end
-  # #for open belts, add the missed pulley
-  # if pulleys[1].arrive != last(pulleys).depart
-  #   pulleys[1]
-  # end
 end
 

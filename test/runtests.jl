@@ -20,6 +20,8 @@ include("testSynchronous.jl")
 
 include("testSynchronousBeltTable.jl")
 
+include("testPlotsRecipes.jl")
+
 
 # also run all examples to detect errors..
 include("../exes/BeltDesign.jl")
