@@ -104,7 +104,7 @@ end
   p2 = plot(solved2, reuse=false)
   @test typeof(p2) <: Plots.AbstractPlot
 
-  p3 = plot(solved3, reuse=false)
+  p3 = plot(solved3, reuse=false, segmentColor=:green, lengthUnit=u"inch")
   @test typeof(p3) <: Plots.AbstractPlot
 
   # display(p1)

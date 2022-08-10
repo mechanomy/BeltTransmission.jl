@@ -1,4 +1,5 @@
 # All type recipes are placed here for better consistiency between them
+# cf https://docs.juliaplots.org/latest/generated/attributes_series/
 
 """
     plotRecipe(p::PlainPulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
@@ -21,7 +22,9 @@
     primary := false
     linecolor := :black
     markershape := (p.axis==Geometry2D.uk ? :circle : :x ) #if axis is positive uk, the axis rotation vector is 'coming out of the page' whereas negative is into the page and we see the vector arrow's fletching
-    # markercolor := :black
+    if p.axis == Geometry2D.uk #don't set the fill color of :x to avoid a warning
+      markercolor := :black
+    end
     [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
   end
 
@@ -62,6 +65,11 @@
   label --> p.name
   legend_background_color --> :transparent
   legend_position --> :outerright
+  linewidth := 1 #hide the pulley edge
+  linestyle := :solid
+  linecolor := :gray
+  xlabel := "X [$lengthUnit]"
+  ylabel := "Y [$lengthUnit]"
 
   th = LinRange(0,2*π, 100)
   x = p.pitch.center.x .+ p.pitch.radius .* cos.(th) #with UnitfulRecipes, applies a unit label to the axes
@@ -91,7 +99,9 @@ end
     primary := false
     linecolor := :black
     markershape := (p.axis==Geometry2D.uk ? :circle : :x ) #if axis is positive uk, the axis rotation vector is 'coming out of the page' whereas negative is into the page and we see the vector arrow's fletching
-    # markercolor := :black
+    if p.axis == Geometry2D.uk #don't set the fill color of :x to avoid a warning
+      markercolor := :black
+    end
     [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
   end
 
@@ -132,6 +142,11 @@ end
   label --> p.name
   legend_background_color --> :transparent
   legend_position --> :outerright
+  linewidth := 1 #hide the pulley edge
+  linestyle := :dash
+  linecolor := :gray
+  xlabel := "X [$lengthUnit]"
+  ylabel := "Y [$lengthUnit]"
 
   th = LinRange(0,2*π, 100)
   x = p.pitch.center.x .+ p.pitch.radius .* cos.(th) #with UnitfulRecipes, applies a unit label to the axes
@@ -151,7 +166,7 @@ end
   plot(route)
   ```
 """
-@recipe function plotRecipe(route::Vector{T}) where T<:AbstractPulley
+@recipe function plotRecipe(route::Vector{T}, lengthUnit=u"mm", segmentColor=:magenta) where T<:AbstractPulley
   nr = length(route)
 
   #plot segments first, behind pulleys
@@ -209,10 +224,13 @@ end
   plot(segments)
   ```
 """
-@recipe function plotRecipe(segments::Vector{T}) where T<:AbstractSegment
+@recipe function plotRecipe(segments::Vector{T}, lengthUnit=u"mm", segmentColor=:magenta) where T<:AbstractSegment
   #plot segments first, behind pulleys
   for seg in segments
     @series begin
+      # lengthUnit := lengthUnit
+      # segmentColor := segmentColor
+      linecolor := :red
       seg
     end
   end

@@ -13,12 +13,11 @@ using BeltTransmission
 #describe the pulleys
 uk = Geometry2D.UnitVector(0,0,1)
 #a square of pulleys, arranged ccw from quadrant1
-pA = PlainPulley( pitch=Geometry2D.Circle( 100u"mm", 100u"mm", 20u"mm"), axis=uk, name="A")
-pS = SynchronousPulley( center=Geometry2D.Point(100mm,100mm), axis=uk, nGrooves=62, beltPitch=2mm, name="A" )
-pB = PlainPulley( pitch=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"), axis=uk, name="B")
-pC = PlainPulley( pitch=Geometry2D.Circle(-100u"mm",-100u"mm", 43u"mm"), axis=uk, name="C")
-pD = PlainPulley( pitch=Geometry2D.Circle( 100u"mm",-100u"mm", 14u"mm"), axis=uk, name="D") 
-pE = PlainPulley( pitch=Geometry2D.Circle(   0u"mm",   0u"mm", 14u"mm"), axis=-uk, name="E") 
+pA = SynchronousPulley( center=Geometry2D.Point( 100mm, 100mm), axis=uk, nGrooves=62, beltPitch=2mm, name="A" )
+pB = SynchronousPulley( center=Geometry2D.Point(-100mm, 100mm), axis=uk, nGrooves=30, beltPitch=2mm, name="B" )
+pC = SynchronousPulley( center=Geometry2D.Point(-100mm,-100mm), axis=uk, nGrooves=80, beltPitch=2mm, name="C" )
+pD = SynchronousPulley( center=Geometry2D.Point( 100mm,-100mm), axis=uk, nGrooves=30, beltPitch=2mm, name="D" )
+pE = PlainPulley( pitch=Geometry2D.Circle(   0u"mm",   0u"mm", 14u"mm"), axis=-uk, name="E") # -uk axis engages the backside of the belt
 route = [pA, pB, pC, pD, pE]
 
 # solve the system
@@ -30,7 +29,7 @@ p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_pos
 display(p)
 
 # generate a catalog of GT2 belts
-belts = SynchronousBeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", toothRange=500:5:700)
+belts = SynchronousBeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", toothRange=500:10:700)
 
 # filter by length
 @show belt = SynchronousBeltTable.lookupLength( belts, calculateBeltLength(solved), pitch=2mm, width=6mm, n=1 )
