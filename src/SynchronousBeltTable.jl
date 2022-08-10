@@ -117,7 +117,6 @@ module SynchronousBeltTable
   """
   function lookupLength(belts::DataFrame, length::Unitful.Length; pitch=-1u"mm", width=-1u"mm", n = 0)
     # println("Searching for pitch[$pitch] width[$width] length[$length]")
-
     nb = size(belts,1)
 
     #restrict to pitch and width:
@@ -132,10 +131,14 @@ module SynchronousBeltTable
     id = sortperm(abs.(dists)) #get the permutation vector
     bls = beltsFilter[ id, : ] #reorder
 
-    if n == 1
-      return bls[1,:]
-    else
+    if ustrip(u"mm", bls[1,:pitch])*10 < dists[id[1]]
+      @warn "None of the given `belts` were close to the desired `length` of $length, closest is $(dists[1])mm away."
+    end
+
+    if n == 0 || size(bls,1) < n
       return bls
+    else
+      return bls[n,:]
     end
   end #lookupLength()
 

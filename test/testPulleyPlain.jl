@@ -24,3 +24,16 @@ end
   p = PlainPulley(Geometry2D.Circle(1mm, 2mm, 3mm), Geometry2D.uk, 1u"rad", 2u"rad", "struct" ) 
   @test pulley2String(p) == "pulley[struct] @ [1.000,2.000] r[3.000] mm arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.000]"
 end
+
+
+
+@testset "plotPulley" begin
+  # pyplot()
+  pa = PlainPulley(Geometry2D.Circle(0mm,0mm, 4mm), Geometry2D.uk, 1u"rad", 4u"rad", "pulleyA") 
+  pb = PlainPulley(Geometry2D.Circle(10mm,0mm, 4mm), -Geometry2D.uk, 1u"rad", 4u"rad", "pulleyB") 
+  p = plot(pa, reuse=false)
+  p = plot!(pb)
+  # display(p);
+  @test typeof(p) <: Plots.AbstractPlot
+end
+

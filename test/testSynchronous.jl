@@ -37,6 +37,7 @@ end
   tp = SynchronousPulley(ctr, 10, Geometry2D.uk, 2mm, "B")
   @test typeof(tp) <: AbstractPulley
 
+  pA = SynchronousPulley( center=Geometry2D.Point(100mm,100mm), axis=Geometry2D.uk, nGrooves=62, beltPitch=2mm, name="A" )
   tp = SynchronousPulley(center=ctr, axis=Geometry2D.uk, nGrooves=10, beltPitch=2mm, name="H")
   @test typeof(tp) <: AbstractPulley
 
@@ -59,5 +60,51 @@ end
   p = SynchronousPulley(center=Geometry2D.Point(1mm, 2mm), nGrooves=10, axis=Geometry2D.uk, beltPitch=2mm, arrive=1u"rad", depart=2u"rad", name="struct" ) 
   @show p
   @test pulley2String(p) == "timing pulley[struct] @ [1.000,2.000] r[3.183] mm arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.183]"
+end
+
+
+@testset "plotSynchronousPulley" begin
+  # pyplot()
+  pa = SynchronousPulley( center=Geometry2D.Point(0mm,0mm), axis=Geometry2D.uk, nGrooves=62, beltPitch=2mm, arrive=1u"rad", depart=2u"rad", name="A" )
+  pb = SynchronousPulley( center=Geometry2D.Point(20mm,40mm), axis=-Geometry2D.uk, nGrooves=42, beltPitch=2mm, arrive=-1u"rad", depart=2u"rad", name="B" )
+  p = plot(pa, reuse=false)
+  p = plot!(pb)
+  display(p);
+  @test typeof(p) <: Plots.AbstractPlot
+end
+
+@testset "plotSynchronousPulley system" begin
+  # pyplot()
+  pa = SynchronousPulley( center=Geometry2D.Point(0mm,0mm), axis=Geometry2D.uk, nGrooves=62, beltPitch=2mm,name="A" )
+  pb = SynchronousPulley( center=Geometry2D.Point(20mm,40mm), axis=Geometry2D.uk, nGrooves=42, beltPitch=2mm,name="B" )
+
+  route = [pa,pb]
+  p = plot(route)
+  display(p);
+  @test typeof(p) <: Plots.AbstractPlot
+
+  sys = calculateRouteAngles([pa,pb])
+  @show typeof(sys)
+  p = plot(sys, reuse=false)
+  display(p);
+  @test typeof(p) <: Plots.AbstractPlot
+end
+
+@testset "plotSynchronousPulley mixed system" begin
+  # pyplot()
+  pa = SynchronousPulley( center=Geometry2D.Point(0mm,0mm), axis=Geometry2D.uk, nGrooves=62, beltPitch=2mm,name="SyncPulleyA" )
+  pb = PlainPulley(Geometry2D.Circle(30mm,0mm, 4mm), Geometry2D.uk, 1u"rad", 4u"rad", "plainPulleyB") 
+
+  route = [pa,pb]
+  @show typeof(route)
+  p = plot(route)
+  display(p);
+  @test typeof(p) <: Plots.AbstractPlot
+
+  # sys = calculateRouteAngles([pa,pb])
+  # @show typeof(sys)
+  # p = plot(sys, reuse=false)
+  # display(p);
+  # @test typeof(p) <: Plots.AbstractPlot
 end
 

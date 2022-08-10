@@ -9,39 +9,6 @@ struct Route
   routing::Vector{T} where T<:AbstractSegment
 end
 
-"""
-    plotRecipe(segments::Vector{T}) where T<:AbstractSegment
-  Plots the Pulleys and Segments in a `route`.
-  ```
-  using Plots, Unitful, BeltTransmission, Geometry2D
-  a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-  b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
-  route = calculateRouteAngles([a,b])
-  segments = route2Segments(route)
-  plot(segments)
-  ```
-"""
-@recipe function plotRecipe(segments::Vector{T}) where T<:AbstractSegment
-  #plot segments first, behind pulleys
-  for seg in segments
-    @series begin
-      seg
-    end
-  end
-
-  nr = length(segments)
-  #plot pulleys
-  for ir in 1:nr
-    @series begin
-      segments[ir].depart #route[ir] is returned to _ to be plotted
-    end
-  end
-  #for open belts, add the missed pulley
-  if segments[1].arrive != last(segments).depart
-    segments[1].arrive 
-  end
-end
-
 
 """
     printRoute(route::Vector{AbstractPulley})

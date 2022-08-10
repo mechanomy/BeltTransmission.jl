@@ -14,7 +14,6 @@ struct FreeSegment <: AbstractFreeSegment #this should set arrive & depart on th
   depart::AbstractPulley #expanded to the Point on the `pitch` circle at `depart`
 
   """Arriving pulley"""
-  # arrive::T where T <: AbstractPulley #expanded to the Point on the `pitch` circle at `arrive`
   arrive::AbstractPulley #expanded to the Point on the `pitch` circle at `arrive`
 end
 @kwdispatch FreeSegment()
@@ -23,7 +22,8 @@ end
     FreeSegment(; depart::AbstractPulley, arrive::AbstractPulley) :: FreeSegment
   Create a belt FreeSegment between `depart` and `arrive` Pulleys
 """
-@kwmethod FreeSegment(; depart::T, arrive::T) where T<:AbstractPulley = FreeSegment(depart,arrive)
+# @kwmethod FreeSegment(; depart::T, arrive::T) where T<:AbstractPulley = FreeSegment(depart,arrive)
+@kwmethod FreeSegment(; depart::T, arrive::U) where {T<:AbstractPulley, U<:AbstractPulley} = FreeSegment(depart,arrive)
 
 
 """
@@ -38,6 +38,7 @@ end
   ```
 """
 @recipe function plotRecipe(seg::FreeSegment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
+  println("prFreeSegment")
   pd = getDeparturePoint( seg )
   pa = getArrivalPoint( seg )
   x = LinRange( pd.x, pa.x, n )
@@ -83,7 +84,7 @@ end
     distance(seg::FreeSegment) :: Unitful.Length
   Returns the straight-line distance or length of FreeSegment `seg`.
 """
-function distance(seg::FreeSegment) :: Unitful.Length
+function Geometry2D.distance(seg::FreeSegment) :: Unitful.Length
   return Geometry2D.distance( getDeparturePoint(seg), getArrivalPoint(seg) )
 end
 
@@ -103,8 +104,6 @@ end
 """
 function findTangents(seg::FreeSegment) :: Vector{FreeSegment}
   lCenter = Geometry2D.distance( seg.depart.pitch.center, seg.arrive.pitch.center )
-  DType = typeof(seg.depart)
-  AType = typeof(seg.arrive)
 
   #ensure that pulleys are not coincident...this would manifest more clearly in aCross/aPara...
   if lCenter < 0.001mm
@@ -130,11 +129,13 @@ function findTangents(seg::FreeSegment) :: Vector{FreeSegment}
   b3 = Geometry2D.angleWrap( -(pi-aCenter-aCross) )
   b4 = Geometry2D.angleWrap( pi+aCenter-aCross )
 
+  DType = typeof(seg.depart)
   depart1 = DType(seg.depart, seg.depart.arrive, a1*u"rad")
   depart2 = DType(seg.depart, seg.depart.arrive, a2*u"rad")
   depart3 = DType(seg.depart, seg.depart.arrive, a3*u"rad")
   depart4 = DType(seg.depart, seg.depart.arrive, a4*u"rad")
 
+  AType = typeof(seg.arrive)
   arrive1 = AType(seg.arrive, b1*u"rad", seg.arrive.depart)
   arrive2 = AType(seg.arrive, b2*u"rad", seg.arrive.depart)
   arrive3 = AType(seg.arrive, b3*u"rad", seg.arrive.depart)
@@ -298,5 +299,75 @@ function toStringVectors(seg::FreeSegment)
     ustrip(un,avec.tip.x), ustrip(un,avec.tip.y) )
   str = dstr * "--" * astr
   return str
+end
+
+"""
+    plotRecipe(segments::Vector{T}) where T<:AbstractSegment
+  Plots the Pulleys and Segments in a `route`.
+  ```
+  using Plots, Unitful, BeltTransmission, Geometry2D
+  a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+  b = PlainPulley( Geometry2D.Circle(10u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
+  route = calculateRouteAngles([a,b])
+  segments = route2Segments(route)
+  plot(segments)
+  ```
+"""
+@recipe function plotRecipe(segments::Vector{T}) where T<:AbstractSegment
+# @recipe function plotRecipe(segments::Vector{T}) where T<:FreeSegment
+# @recipe function plotRecipe(segments::Vector{T}) where T<:AbstractPulley
+  println("prVectorAbstractSegment")
+  #plot segments first, behind pulleys
+  for seg in segments
+    @series begin
+      seg
+    end
+  end
+
+  nr = length(segments)
+  #plot pulleys
+  for ir in 1:nr
+    @series begin
+      segments[ir].depart #route[ir] is returned to _ to be plotted
+    end
+  end
+  #for open belts, add the missed pulley
+  if segments[1].arrive != last(segments).depart
+    segments[1].arrive 
+  end
+end
+
+@recipe function plotRecipe(pulleys::Vector{T}) where T<:AbstractPulley
+  println("prVectorAbstractPulley: segments")
+  #plot segments first, behind pulleys
+  for p in pulleys
+    @series begin
+      p
+    end
+  end
+
+  println("prVectorAbstractPulley: pulleys")
+  nr = length(pulleys)
+  #plot pulleys
+  for ir in 1:nr
+    @show pulleys[ir]
+    @show pulleys[ir].depart
+    @series begin
+      pulleys[ir] #route[ir] is returned to _ to be plotted
+    end
+    # if typeof(segments[ir].depart) <: AbstractPulley
+    #   @series begin
+    #     segments[ir].depart #route[ir] is returned to _ to be plotted
+    #   end
+    # else
+    #   @series begin
+    #     segments[ir]
+    #   end
+    # end
+  end
+  # #for open belts, add the missed pulley
+  # if pulleys[1].arrive != last(pulleys).depart
+  #   pulleys[1]
+  # end
 end
 

@@ -1,4 +1,5 @@
 
+__precompile__(false) #for dev
 """
 Geometric modeling of 2D closed belt transmissions.
 

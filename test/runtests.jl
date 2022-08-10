@@ -1,8 +1,4 @@
 
-__precompile__(false) #for dev
-# using Pkg
-# Pkg.activate( normpath(joinpath(@__DIR__, "..")) ) #activate this package
-
 using Test
 using Unitful, Unitful.DefaultSymbols
 using Plots
@@ -24,4 +20,8 @@ include("testSynchronous.jl")
 
 include("testSynchronousBeltTable.jl")
 
-close("all")
+
+# also run all examples to detect errors..
+include("../exes/BeltDesign.jl")
+
+# close("all")

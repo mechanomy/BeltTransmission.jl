@@ -82,14 +82,16 @@ end
   ```
 """
 @recipe function plotRecipe(p::PlainPulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
+  println("prPlainPulley")
+  @show p
   col = get(plotattributes, :seriescolor, :auto)
 
   @series begin # put a dot/x on the pulley center, indicating the direction of the axis
     seriestype := :path 
     primary := false
-    linecolor := nothing
+    linecolor := :black
     markershape := (p.axis==Geometry2D.uk ? :circle : :x ) #if axis is positive uk, the axis rotation vector is 'coming out of the page' whereas negative is into the page and we see the vector arrow's fletching
-    markercolor := :black
+    # markercolor := :black
     [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
   end
 
@@ -150,6 +152,8 @@ end
   ```
 """
 @recipe function plotRecipe(route::Vector{PlainPulley})
+  println("prVectorPlainPulley")
+  @show route
   nr = length(route)
 
   #plot segments first, behind pulleys

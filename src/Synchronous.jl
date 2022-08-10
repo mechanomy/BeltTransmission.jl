@@ -58,20 +58,21 @@ function SynchronousBelt( belt::SynchronousBelt; partNumber="", supplier="", url
   return SynchronousBelt( belt.profile, belt.pitch, belt.length, belt.nTeeth, belt.width, pn, sp, ur, belt.id )
 end
 
-"""
-  plots the free section of a segment, does not plot the pulleys
-"""
-@recipe function plotRecipe(belt::SynchronousBelt; n=100, lengthUnit=u"mm")#, segmentColor=:magenta, arrowFactor=0.03)
-  seriestype := :path 
-  linecolor --> segmentColor
-  linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...
-  aspect_ratio := :equal 
-  label --> toString(seg)
-  legend_background_color --> :transparent
-  legend_position --> :outerright
+# """
+#   plots the free section of a segment, does not plot the pulleys
+# """
+# @recipe function plotRecipe(belt::SynchronousBelt; n=100, lengthUnit=u"mm")#, segmentColor=:magenta, arrowFactor=0.03)
+#   println("prSyncB")
+#   seriestype := :path 
+#   linecolor --> segmentColor
+#   linewidth --> 3 #would like this to be 3x default...above lwd is ":auto" not a number when this runs...
+#   aspect_ratio := :equal 
+#   label --> toString(seg)
+#   legend_background_color --> :transparent
+#   legend_position --> :outerright
 
-  ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
-end
+#   ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
+# end
 
 """
   `pitchLength2NTeeth(; pitch::Unitful.Length, length::Unitful.Length )::Integer`
@@ -121,7 +122,7 @@ SynchronousPulley(center::Geometry2D.Point, nGrooves::Integer, axis::Geometry2D.
 """
   A copy constructor for setting the `arrive` and `depart` angles.
 """
-SynchronousPulley(sp::SynchronousPulley; arrive=0u"rad", depart=0u"rad") = SynchronousPulley(sp.pitch,sp.axis,sp.beltPitch,arrive,depart,sp.name) #copy constructor
+SynchronousPulley(sp::SynchronousPulley, arrive=0u"rad", depart=0u"rad") = SynchronousPulley(sp.pitch,sp.axis,sp.beltPitch,arrive,depart,sp.name) #copy constructor
 
 
 @kwdispatch SynchronousPulley() #kwdispatch can't have default arguments, so define first with everything, then narrow:
@@ -210,14 +211,17 @@ end
   ```
 """
 @recipe function plotRecipe(p::SynchronousPulley; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
+  println("prSynchronousPulley")
+  @show p
+
   col = get(plotattributes, :seriescolor, :auto)
 
   @series begin # put a dot/x on the pulley center, indicating the direction of the axis
     seriestype := :path 
     primary := false
-    linecolor := nothing
+    linecolor := :black
     markershape := (p.axis==Geometry2D.uk ? :circle : :x ) #if axis is positive uk, the axis rotation vector is 'coming out of the page' whereas negative is into the page and we see the vector arrow's fletching
-    markercolor := :black
+    # markercolor := :black
     [ustrip(lengthUnit, p.pitch.center.x)], [ustrip(lengthUnit, p.pitch.center.y)] #the location data, [make into a 1-element vector]
   end
 
@@ -266,5 +270,23 @@ end
   ustrip.(lengthUnit,x), ustrip.(lengthUnit,y) #return the data
 end
 
+@recipe function plotRecipe(route::Vector{SynchronousPulley})
+  println("prVectorSynchronousPulley")
+  @show route
 
+  nr = length(route)
 
+  #plot segments first, behind pulleys
+  for ir in 1:nr
+    @series begin
+      FreeSegment( depart=route[ir], arrive=route[Utility.iNext(ir,nr)] )
+    end
+  end
+
+  #plot pulleys
+  for ir in 1:nr
+    @series begin
+      route[ir] #route[ir] is returned to _ to be plotted
+    end
+  end
+end
