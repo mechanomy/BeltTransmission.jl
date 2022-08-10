@@ -93,7 +93,7 @@ end
 export SynchronousPulley, nGrooves2Radius, radius2NGrooves, nGrooves2Length
 
 """
-  Models a SynchronousPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis`, and `toothPitch`.
+  Models a SynchronousPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis`, and `beltPitch`.
   $FIELDS
 """
 struct SynchronousPulley <: AbstractPulley
@@ -103,7 +103,7 @@ struct SynchronousPulley <: AbstractPulley
   axis::Geometry2D.UnitVector 
 
   """Distance between belt teeth"""
-  toothPitch::Unitful.Length #[mm/groove] -- would like a Synchrounous meta-class to provide these definitions, not sure if this is allowed
+  beltPitch::Unitful.Length #[mm/groove] -- would like a Synchrounous meta-class to provide these definitions, not sure if this is allowed
 
   """Angle of the radial vector of the belt's point of arrival."""
   arrive::Geometry2D.Radian
@@ -115,43 +115,41 @@ struct SynchronousPulley <: AbstractPulley
   name::String
 end
 
-
-
-SynchronousPulley(pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive=0u"rad", depart=0u"rad", name="") = SynchronousPulley(pitch,axis,toothPitch,arrive,depart,name)
-SynchronousPulley(center::Geometry2D.Point, nGrooves::Integer, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, nGrooves2Radius(toothPitch, nGrooves)),axis,toothPitch, 0u"rad", 0u"rad", name) 
+# SynchronousPulley(pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, arrive=0u"rad", depart=0u"rad", name="") = SynchronousPulley(pitch,axis,beltPitch,arrive,depart,name)
+SynchronousPulley(center::Geometry2D.Point, nGrooves::Integer, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, nGrooves2Radius(beltPitch, nGrooves)),axis,beltPitch, 0u"rad", 0u"rad", name) 
 
 """
   A copy constructor for setting the `arrive` and `depart` angles.
 """
-SynchronousPulley(sp::SynchronousPulley; arrive=0u"rad", depart=0u"rad") = SynchronousPulley(sp.pitch,sp.axis,sp.toothPitch,arrive,depart,sp.name) #copy constructor
+SynchronousPulley(sp::SynchronousPulley; arrive=0u"rad", depart=0u"rad") = SynchronousPulley(sp.pitch,sp.axis,sp.beltPitch,arrive,depart,sp.name) #copy constructor
 
 
 @kwdispatch SynchronousPulley() #kwdispatch can't have default arguments, so define first with everything, then narrow:
 
 """
-    SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) :: SynchronousPulley
-  Models a SynchronousPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis` and `toothPitch`.
+    SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) :: SynchronousPulley
+  Models a SynchronousPulley in a BeltTransmission, described by a `pitch` circle, rotation `axis` and `beltPitch`.
   Optional angles `arrive` and `depart` specify belt's arrival and departure tangent points.
   `name` identifies the pulley when plotting and printing.
 """
-@kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = SynchronousPulley(pitch,axis,toothPitch,arrive,depart,name) 
-@kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian ) = SynchronousPulley(pitch,axis,toothPitch,arrive,depart,"") 
-@kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, name::String) = SynchronousPulley(pitch,axis,toothPitch,0u"rad",0u"rad",name) 
-@kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length) = SynchronousPulley(pitch,axis,toothPitch,0u"rad",0u"rad","") 
+# @kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = SynchronousPulley(pitch,axis,beltPitch,arrive,depart,name) 
+# @kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian ) = SynchronousPulley(pitch,axis,beltPitch,arrive,depart,"") 
+# @kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, name::String) = SynchronousPulley(pitch,axis,beltPitch,0u"rad",0u"rad",name) 
+# @kwmethod SynchronousPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length) = SynchronousPulley(pitch,axis,beltPitch,0u"rad",0u"rad","") 
 
 """
-    SynchronousPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) 
+    SynchronousPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) 
   Models a SynchronousPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
 """
-@kwmethod SynchronousPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, radius),axis,toothPitch, 0u"rad", 0u"rad", name) 
+# @kwmethod SynchronousPulley(; center::Geometry2D.Point, radius::Unitful.Length, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, radius),axis,beltPitch, 0u"rad", 0u"rad", name) 
 
 """
-    SynchronousPulley(; center::Geometry2D.Point, nGrooves::Integer, axis::Geometry2D.UnitVector, toothPitch::Unitful.Length, name::String)
+    SynchronousPulley(; center::Geometry2D.Point, nGrooves::Integer, axis::Geometry2D.UnitVector, beltPitch::Unitful.Length, name::String)
   Models a SynchronousPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
-  `nGrooves` and `toothPitch` are used to find the pulley pitch diameter.
+  `nGrooves` and `beltPitch` are used to find the pulley pitch diameter.
 """
-@kwmethod SynchronousPulley(; center::Geometry2D.Point, axis::Geometry2D.UnitVector, nGrooves::Integer, toothPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, nGrooves2Radius(toothPitch, nGrooves)),axis,toothPitch, 0u"rad", 0u"rad", name) 
-
+@kwmethod SynchronousPulley(; center::Geometry2D.Point, axis::Geometry2D.UnitVector, nGrooves::Integer, beltPitch::Unitful.Length, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = SynchronousPulley(Geometry2D.Circle(center, nGrooves2Radius(beltPitch, nGrooves)), axis, beltPitch, arrive, depart, name) 
+@kwmethod SynchronousPulley(; center::Geometry2D.Point, axis::Geometry2D.UnitVector, nGrooves::Integer, beltPitch::Unitful.Length, name::String) = SynchronousPulley(Geometry2D.Circle(center, nGrooves2Radius(beltPitch, nGrooves)),axis,beltPitch, 0u"rad", 0u"rad", name) 
 
 """
     nGrooves2Radius(pitch::Unitful.Length, nGrooves::Integer)::Unitful.Length
