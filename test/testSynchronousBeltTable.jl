@@ -1,10 +1,10 @@
 
-@testset "BeltTable roundtrip test: generateBeltDataFrame() -> writeBeltCSV() -> readBeltCSV()" begin
+@testset "SynchronousBeltTable roundtrip test: generateBeltDataFrame() -> writeBeltCSV() -> readBeltCSV()" begin
   tdir = tempdir()
   bpath = joinpath(tdir, "generateBeltTable.csv") 
-  bdf = BeltTable.generateBeltDataFrame(pitch=3.5u"mm", width=4u"mm", toothRange=10:5:30)
-  BeltTable.writeBeltCSV(bdf, bpath)
-  bcs = BeltTable.readBeltCSVIntoDataFrame( bpath )
+  bdf = SynchronousBeltTable.generateBeltDataFrame(pitch=3.5u"mm", width=4u"mm", toothRange=10:5:30)
+  SynchronousBeltTable.writeBeltCSV(bdf, bpath)
+  bcs = SynchronousBeltTable.readBeltCSVIntoDataFrame( bpath )
 
   ret = true
   for ir in 1:size(bdf,1)
@@ -21,17 +21,17 @@
   @test ret
 end
 
-@testset "BeltTable dataframe SyncBelt conversion" begin
+@testset "SynchronousBeltTable dataframe SyncBelt conversion" begin
   sb = SynchronousBelt( pitch=2mm, width=6mm, nTeeth=34, profile="mxl" )
-  dfrow = BeltTable.SyncBelt2dfRow( sb )
-  sb2 = BeltTable.dfRow2SyncBelt( dfrow[1, :] )
+  dfrow = SynchronousBeltTable.dfRow( sb )
+  sb2 = SynchronousBeltTable.dfRow2SyncBelt( dfrow[1, :] )
   @test sb == sb2
 end
 
-@testset "BeltTable lookups" begin
-  bdf = BeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", toothRange=10:15:300)
-  append!(bdf, BeltTable.generateBeltDataFrame(pitch=4u"mm", width=6u"mm", toothRange=10:15:300) )
-  append!(bdf, BeltTable.generateBeltDataFrame(pitch=4u"mm", width=9u"mm", toothRange=10:15:300) )
+@testset "SynchronousBeltTable lookups" begin
+  bdf = SynchronousBeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", toothRange=10:15:300)
+  append!(bdf, SynchronousBeltTable.generateBeltDataFrame(pitch=4u"mm", width=6u"mm", toothRange=10:15:300) )
+  append!(bdf, SynchronousBeltTable.generateBeltDataFrame(pitch=4u"mm", width=9u"mm", toothRange=10:15:300) )
   # @show bdf
 
   nr = size(bdf,1)
@@ -68,11 +68,11 @@ end
   pitch=2u"mm"
   width=6u"mm"
 
-  retdf = BeltTable.lookupLength( bdf, length )
+  retdf = SynchronousBeltTable.lookupLength( bdf, length )
   @test size(retdf,1) == nr
 
-  retdf = BeltTable.lookupLength( bdf, length, pitch=pitch, width=width, n=1)
-  sb = BeltTable.dfRow2SyncBelt( retdf )
+  retdf = SynchronousBeltTable.lookupLength( bdf, length, pitch=pitch, width=width, n=1)
+  sb = SynchronousBeltTable.dfRow2SyncBelt( retdf )
   # @show sb
   @test sb.length == 110mm && sb.pitch==2mm && sb.width==6mm
 end

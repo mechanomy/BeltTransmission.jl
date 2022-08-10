@@ -1,6 +1,7 @@
 # Enhancement: define the belt format as a schema, eg https://tables.juliadata.org/stable/#Tables.Schema to document and enforce consistiency
+# ...can any of this be made generic?
 
-export BeltTable
+export SynchronousBeltTable
 
 """
 Reads, writes, and generates CSVs that represent catalogs of synchronous belts, having headers:
@@ -14,16 +15,22 @@ Reads, writes, and generates CSVs that represent catalogs of synchronous belts, 
   `supplier` - supplier name
   `url` - link to the data source
 """
-module BeltTable
+module SynchronousBeltTable
   using CSV
   using DataFrames
   using Unitful, Unitful.DefaultSymbols
   using UUIDs
-  using BeltTransmission #for length/nTeeth conversion
+  using BeltTransmission #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
+  # using .BeltTransmission #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
+  # import .SynchronousBelt #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
+  # using .SynchronousBelt #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
 
-  # export dfRow2SyncBelt, SyncBelt2dfRow, readBeltCSVIntoDataFrame, generateBeltDataFrame, writeBeltCSV, lookupLength
+  # export dfRow2SyncBelt, dfRow, readBeltCSVIntoDataFrame, generateBeltDataFrame, writeBeltCSV, lookupLength
 
-  function dfRow2SyncBelt( row )
+
+  abstract type AbstractOptimizableBelt end #some type that we can assert Belts to be
+
+  function dfRow2SyncBelt( row::DataFrames.DataFrameRow ) #how to make this an AbstOB
     return sb = SynchronousBelt( pitch=row.pitch,
                           length=row.length,
                           nTeeth=row.nTeeth,
@@ -35,7 +42,7 @@ module BeltTable
                           id=row.id )
   end
 
-  function SyncBelt2dfRow( sb::SynchronousBelt)
+  function dfRow( sb::SynchronousBelt)
     return DataFrame( profile=sb.profile,
                       pitch=sb.pitch,
                       nTeeth=sb.nTeeth,
@@ -63,13 +70,13 @@ module BeltTable
                     supplier=string(row[1].supplier),
                     url=string(row[1].url),
                     id=tryparse(UUID, row[1].id) )
-      append!(df, SyncBelt2dfRow(sb) )
+      append!(df, dfRow(sb) )
     end
     return df
   end
 
   """Generates a belt DataFrame for a given `pitch`, `width`, and `toothRange`"""
-  function generateBeltDataFrame(;pitch::Unitful.Length, width::Unitful.Length, toothRange)
+  function generateBeltDataFrame(; pitch::Unitful.Length, width::Unitful.Length, toothRange)
     df = DataFrame()
     for tr in toothRange
       pl = nTeeth2PitchLength( pitch=pitch, nTeeth=tr)
@@ -151,6 +158,6 @@ module BeltTable
 
 
 
-end #BeltTable
+end #SynchronousBeltTable
 
 

@@ -1,3 +1,4 @@
+
 """
 Geometric modeling of 2D closed belt transmissions.
 
@@ -51,7 +52,7 @@ module BeltTransmission
 
   include("Synchronous.jl")
 
-  include("BeltTable.jl")
+  include("SynchronousBeltTable.jl")
 
 
   struct BeltTrans

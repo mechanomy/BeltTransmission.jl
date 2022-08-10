@@ -1,4 +1,5 @@
 
+__precompile__(false) #for dev
 # using Pkg
 # Pkg.activate( normpath(joinpath(@__DIR__, "..")) ) #activate this package
 
@@ -21,6 +22,6 @@ include("testPulleyPlain.jl")
 
 include("testSynchronous.jl")
 
-include("testBeltTable.jl")
+include("testSynchronousBeltTable.jl")
 
 close("all")
