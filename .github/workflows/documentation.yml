@@ -19,7 +19,7 @@ jobs:
 
       - uses: julia-actions/setup-julia@v1
         with:
-          version: '1.6'
+          version: '1.7'
 
 
       - name: Install Qt
@@ -53,7 +53,7 @@ jobs:
           PYTHON: "" #By setting python to null, the PyPlot in docs/Project.toml will install matplotlib itself
         # run: julia --project=docs/ -e 'using Pkg; Pkg.add("Documenter"); Pkg.add("DocumenterTools"); Pkg.add("DocStringExtensions"); Pkg.add(url="https://github.com/mechanomy/Utility.jl"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
         # run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-        run: julia --project=docs/ -e 'using Pkg; Pkg.add(url="https://github.com/mechanomy/Utility.jl"); Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: julia --project=docs/ -e 'using Pkg; Pkg.add(url="https://github.com/mechanomy/Geometry2D.jl"); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
 
       # - name: pre Build and deploy
       #   env:
