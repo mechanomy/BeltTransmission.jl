@@ -247,28 +247,26 @@ end
     "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
 """
 function toStringVectors(seg::FreeSegment)
-  # pd = getDepartureVector(seg)
-  # pa = getArrivalVector(seg)
-
-  pdct = seg.depart.pitch.center
   pdep = getDeparturePoint(seg)
-  dvec = Geometry2D.Vector2D(origin=pdct, tip=pdep)
-  un = unit(dvec.origin.x)
-  dstr = @sprintf("%s:[%3.3f,%3.3f]<%3.3f@%3.3f°>[%3.3f,%3.3f]",
+  un = unit(pdep.x)
+  dstr = @sprintf("depart[%s] [%3.3f%s, %3.3f%s]",
     seg.depart.name,
-    ustrip(un,dvec.origin.x), ustrip(un,dvec.origin.y),
-    ustrip(un, norm(dvec.tip-dvec.origin)), ustrip(°, Geometry2D.angle(dvec) ), 
-    ustrip(un,dvec.tip.x), ustrip(un,dvec.tip.y) )
+    ustrip(un, pdep.x), string(un),
+    ustrip(un, pdep.y), string(un)
+  )
 
-  pact = seg.arrive.pitch.center
   parr = getArrivalPoint(seg)
-  avec = Geometry2D.Vector2D(origin=pact, tip=parr)
-  astr = @sprintf("%s:[%3.3f,%3.3f]<%3.3f@%3.3f°>[%3.3f,%3.3f]",
+  astr = @sprintf("arrive[%s] [%3.3f%s, %3.3f%s]",
     seg.arrive.name,
-    ustrip(un,avec.origin.x), ustrip(un,avec.origin.y),
-    ustrip(un, norm(avec.tip-avec.origin)), ustrip(°, Geometry2D.angle(avec) ), 
-    ustrip(un,avec.tip.x), ustrip(un,avec.tip.y) )
-  str = dstr * "--" * astr
+    ustrip(un, parr.x), string(un),
+    ustrip(un, parr.y), string(un)
+  )
+
+  lda = norm(parr-pdep)
+  ada = Geometry2D.angle(parr-pdep)
+  lstr = @sprintf(" l[%3.3f%s]@[%3.3f°]", ustrip(un,lda), string(un), ustrip(u"°",ada))
+
+  str = "FreeSegment: " * dstr * " --> " * astr * lstr
   return str
 end
 

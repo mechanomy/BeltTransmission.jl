@@ -77,7 +77,8 @@ end
   pA = PlainPulley( pitch=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), arrive=0°, depart=90°,               axis=uk, name="A")
   pB = PlainPulley( pitch=Geometry2D.Circle(-100u"mm", 100u"mm", 10u"mm"),             arrive=90°, depart=200°, axis=uk, name="B")
   seg = FreeSegment( depart=pA, arrive=pB )
-  @test toStringVectors(seg) == "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
+  # @test toStringVectors(seg) == "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
+  @test toStringVectors(seg) == "FreeSegment: depart[A] [100.000mm, 110.000mm] --> arrive[B] [-100.000mm, 110.000mm] l[200.000mm]@[180.000°]"
 end
 
 @testset "calculateBeltLength" begin

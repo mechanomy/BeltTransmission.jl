@@ -42,6 +42,7 @@ module BeltTransmission
 
   using RecipesBase
 
+  #INCLUDE ORDER MATTERS!
   include("Pulley.jl")
 
   include("BeltSegment.jl")
@@ -49,12 +50,11 @@ module BeltTransmission
   # include("SegmentEngaged.jl")
 
   #specific belt/pulley types
-  include("PulleyPlain.jl") #INCLUDE ORDER MATTERS! Must introduce PlainPulley before using it in BS, though this should go away with Abstract types.
+  include("PulleyPlain.jl") 
 
   include("Synchronous.jl")
 
   include("SynchronousBeltTable.jl")
-
 
   include("PlotsRecipes.jl")
 

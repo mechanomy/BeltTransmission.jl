@@ -18,8 +18,8 @@ function printRoute(route::Vector{T}) where T<:AbstractPulley
   for r in route #r is pulleys
     println(pulley2String(r))
   end
-  lTotal = calculateBeltLength(route)
-  println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
+  # lTotal = calculateBeltLength(route)
+  # println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
 end
 
 """
@@ -30,7 +30,12 @@ function printSegments(segments::Vector{T}) where T<:AbstractSegment
   for s in segments
     println(toStringVectors(s))
   end
-  lTotal = calculateBeltLength(segments)
-  println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
+  # lTotal = calculateBeltLength(segments)
+  # println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
 end
 
+
+# function calculateFreeLengths(segments::Vector{T}) where T<:AbstractSegment
+# end
+# function calculateTransmissionRatios(segments::Vector{T}) where T<:AbstractSegment
+# end

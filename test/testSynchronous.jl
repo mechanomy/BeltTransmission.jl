@@ -59,7 +59,7 @@ end
 @testset "pulley2String" begin
   p = SynchronousPulley(center=Geometry2D.Point(1mm, 2mm), nGrooves=10, axis=Geometry2D.uk, beltPitch=2mm, arrive=1u"rad", depart=2u"rad", name="struct" ) 
   @show p
-  @test pulley2String(p) == "timing pulley[struct] @ [1.000,2.000] r[3.183] mm arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.183]"
+  @test pulley2String(p) == "SynchronousPulley[struct] @ [1.000mm,2.000mm] r[3.183mm]=[10grooves] arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.183mm]"
 end
 
 

@@ -1,5 +1,5 @@
-
-
+# BasicBeltDesign.jl
+# This example of BeltTransmission.jl solves a system of 5 pulleys, finding the belt length, idler position, angle of wrap on each pulley, and the transmission ratio matrix.
 
 using Plots #everything ends up as a plot
 
@@ -13,7 +13,7 @@ using BeltTransmission
 #describe the pulleys
 uk = Geometry2D.UnitVector(0,0,1)
 #a square of pulleys, arranged ccw from quadrant1
-pA = SynchronousPulley( center=Geometry2D.Point( 100mm, 100mm), axis=uk, nGrooves=62, beltPitch=2mm, name="A:" )
+pA = SynchronousPulley( center=Geometry2D.Point( 100mm, 100mm), axis=uk, nGrooves=62, beltPitch=2mm, name="A" )
 pB = SynchronousPulley( center=Geometry2D.Point(-100mm, 100mm), axis=uk, nGrooves=30, beltPitch=2mm, name="B" )
 pC = SynchronousPulley( center=Geometry2D.Point(-100mm,-100mm), axis=uk, nGrooves=80, beltPitch=2mm, name="C" )
 pD = SynchronousPulley( center=Geometry2D.Point( 100mm,-100mm), axis=uk, nGrooves=30, beltPitch=2mm, name="D" )
@@ -36,7 +36,7 @@ belts = SynchronousBeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", t
 belt = SynchronousBeltTable.dfRow2SyncBelt(belt) #convert out of DataFrame
 
 # the chosen belt is 1090mm long while the initial belt length is 1093.72mm. Calling E an idler, let's move it in X until the belt length is correct
-# See our JuMP example for a more advanced optimization, a for-loop suffices here
+# See the JuMP example for a more advanced optimization, a for-loop suffices here
 dx = 1u"mm" #initial starting movement
 for i = 1:100 #this is a gradient descent optimization https://en.wikipedia.org/wiki/Gradient_descent
   global dx -= (belt.length - calculateBeltLength(solved) )/10 
@@ -45,13 +45,12 @@ for i = 1:100 #this is a gradient descent optimization https://en.wikipedia.org/
   global solved = calculateRouteAngles(route)
   # println("Iteration $i: l=$(calculateBeltLength(solved)) with dx=$dx")
 end
+println("\nIteration 100: l=$(calculateBeltLength(solved)) with dx=$dx\n")
+#---
 p = plot!(solved, segmentColor=:cyan)#, legend_background_color=:transparent, legend_position=:outerright)
 display(p)
-
-println("Iteration 100: l=$(calculateBeltLength(solved)) with dx=$dx")
-@show pE
-
-
-
-
+#---
+printRoute(solved)
+#---
+printSegments(route2Segments(solved))
 ;

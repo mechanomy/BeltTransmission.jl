@@ -47,16 +47,19 @@ PlainPulley(pp::PlainPulley, arrive=0u"rad", depart=0u"rad") = PlainPulley(pp.pi
 """
     pulley2String(p::PlainPulley) :: String
   Returns a descriptive string of the given PlainPulley `p` of the form:
-    pulley[struct] @ [1.000,2.000] r[3.000] mm arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.000]"
+    PlainPulley[struct] @ [1.000mm,2.000mm] r[3.000mm] arrive[57.296°] depart[114.592°] aWrap[57.296°] lWrap[3.000mm]"
 """
 function pulley2String(p::PlainPulley)::String 
   un = unit(p.pitch.radius)
-  return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] %s arrive[%3.3f°] depart[%3.3f°] aWrap[%3.3f°] lWrap[%3.3f]",
+  return @sprintf("PlainPulley[%s] @ [%3.3f%s,%3.3f%s] r[%3.3f%s] arrive[%3.3f°] depart[%3.3f°] aWrap[%3.3f°] lWrap[%3.3f%s]",
     p.name, 
-    ustrip(un, p.pitch.center.x), ustrip(un, p.pitch.center.y), ustrip(un, p.pitch.radius),
-    string(un),
+    ustrip(un, p.pitch.center.x), string(un),
+    ustrip(un, p.pitch.center.y), string(un),
+    ustrip(un, p.pitch.radius), string(un),
     ustrip(u"°",p.arrive), ustrip(u"°",p.depart),
-    ustrip(u"°",calculateWrappedAngle(p)), ustrip(un,calculateWrappedLength(p)) )
+    ustrip(u"°",calculateWrappedAngle(p)),
+    ustrip(un,calculateWrappedLength(p)), string(un)
+  )
 
   # #without computing wrapped angle or length:
   # return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] %s arrive[%3.3f°] depart[%3.3f°]", 
