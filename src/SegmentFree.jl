@@ -231,22 +231,6 @@ end
     FreeSegment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]
 """
 function toStringPoints(seg::FreeSegment) :: String
-  pd = getDeparturePoint(seg)
-  pa = getArrivalPoint(seg)
-  un = unit(pd.x)
-  str = @sprintf("FreeSegment: depart[%3.3f, %3.3f] -- arrive[%3.3f, %3.3f] length[%3.3f]",
-  ustrip(un, pd.x), ustrip(un, pd.y),
-  ustrip(un, pa.x), ustrip(un, pa.y),
-  ustrip(distance(seg) ) )
-  return str
-end
-
-"""
-    toStringVectors(seg::FreeSegment) :: String
-  Creates strings like:
-    "A:[100.000,100.000]<10.000@90.000°>[100.000,110.000]--B:[-100.000,100.000]<10.000@90.000°>[-100.000,110.000]"
-"""
-function toStringVectors(seg::FreeSegment)
   pdep = getDeparturePoint(seg)
   un = unit(pdep.x)
   dstr = @sprintf("depart[%s] [%3.3f%s, %3.3f%s]",

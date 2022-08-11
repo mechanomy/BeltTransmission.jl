@@ -28,7 +28,7 @@ end
 """
 function printSegments(segments::Vector{T}) where T<:AbstractSegment
   for s in segments
-    println(toStringVectors(s))
+    println(toStringPoints(s))
   end
   # lTotal = calculateBeltLength(segments)
   # println("total belt length = $lTotal") #No knowledge of the belt pitch, so can't list the correct belt
