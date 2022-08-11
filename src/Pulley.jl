@@ -91,11 +91,6 @@ end
   Note that the wrapped length is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
 function calculateWrappedLength(p::AbstractPulley) :: Unitful.Length
-  # cwa = calculateWrappedAngle(p)
-  # cal = Geometry2D.circleArcLength(p.pitch, cwa)
-  # return cal
-
-  # return Geometry2D.circleArcLength( p.pitch, calculateWrappedAngle(p)) 
   return uconvert(u"m", Geometry2D.circleArcLength( p.pitch, calculateWrappedAngle(p)) ) #cancel m*rad
 end
 

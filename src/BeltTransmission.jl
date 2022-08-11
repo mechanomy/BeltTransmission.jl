@@ -58,11 +58,11 @@ module BeltTransmission
 
   include("PlotsRecipes.jl")
 
-  struct BeltTrans
-    pulleys::Vector{T} where T<:AbstractPulley
-    segments::Vector{T} where T<:AbstractSegment
-    belt::AbstractBelt
-  end
+  # struct BeltTrans
+  #   pulleys::Vector{T} where T<:AbstractPulley
+  #   segments::Vector{T} where T<:AbstractSegment
+  #   belt::AbstractBelt
+  # end
   # calcLength(BT)
   # calcRatios(BT)
   # calcPowerLimits(BT)

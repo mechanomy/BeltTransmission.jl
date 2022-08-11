@@ -34,8 +34,8 @@ using BeltTransmission
 
 #create the pulleys
 ctrA = Geometry2D.Point(10u"mm", 10u"mm")
-pA = PlainPulley( circle=Geometry2D.Circle( center=ctrA, radius=10u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="A")
-pB = PlainPulley( circle=Geometry2D.Circle(100u"mm", 100u"mm", 20u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="B")
+pA = PlainPulley( pitch=Geometry2D.Circle( center=ctrA, radius=10u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="A")
+pB = PlainPulley( pitch=Geometry2D.Circle(100u"mm", 100u"mm", 20u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="B")
 
 #create the belt route
 route = [pA, pB] #from A to B and back to A
@@ -65,11 +65,11 @@ using BeltTransmission
 
 #create the pulleys
 ctrA = Geometry2D.Point(10u"mm", 10u"mm")
-pA = PlainPulley( circle=Geometry2D.Circle( center=ctrA, radius=10u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="A")
-pB = PlainPulley( circle=Geometry2D.Circle(100u"mm",  20u"mm", 20u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="B")
-pC = PlainPulley( circle=Geometry2D.Circle( 80u"mm",  40u"mm",  5u"mm"), axis=-Geometry2D.UnitVector(0,0,1), name="C")
-pD = PlainPulley( circle=Geometry2D.Circle(150u"mm",  40u"mm",  5u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="D")
-pE = PlainPulley( circle=Geometry2D.Circle(100u"mm",  80u"mm",  5u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="E")
+pA = PlainPulley( pitch=Geometry2D.Circle( center=ctrA, radius=10u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="A")
+pB = PlainPulley( pitch=Geometry2D.Circle(100u"mm",  20u"mm", 20u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="B")
+pC = PlainPulley( pitch=Geometry2D.Circle( 80u"mm",  40u"mm",  5u"mm"), axis=-Geometry2D.UnitVector(0,0,1), name="C")
+pD = PlainPulley( pitch=Geometry2D.Circle(150u"mm",  40u"mm",  5u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="D")
+pE = PlainPulley( pitch=Geometry2D.Circle(100u"mm",  80u"mm",  5u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="E")
 
 #create the belt route
 route = [pA, pB, pC, pD, pE]
@@ -99,11 +99,11 @@ using Geometry2D
 using BeltTransmission
 
 #create the pulleys
-pA = PlainPulley( circle=Geometry2D.Circle( 10u"mm",  20u"mm", 20u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="B")
-pB = PlainPulley( circle=Geometry2D.Circle(100u"mm",  20u"mm", 30u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="B")
+pA = PlainPulley( pitch=Geometry2D.Circle( 10u"mm",  20u"mm", 20u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="B")
+pB = PlainPulley( pitch=Geometry2D.Circle(100u"mm",  20u"mm", 30u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="B")
 
-pX = PlainPulley( circle=Geometry2D.Circle( 10u"mm",  20u"mm", 15u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="X")
-pY = PlainPulley( circle=Geometry2D.Circle( 50u"mm",  80u"mm",  5u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="Y")
+pX = PlainPulley( pitch=Geometry2D.Circle( 10u"mm",  20u"mm", 15u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="X")
+pY = PlainPulley( pitch=Geometry2D.Circle( 50u"mm",  80u"mm",  5u"mm"), axis=Geometry2D.UnitVector(0,0,1), name="Y")
 
 #create the belt systems 
 segAB = route2Segments( calculateRouteAngles( [pA, pB] ))
@@ -120,11 +120,20 @@ Other [Plots.jl attributes](https://docs.juliaplots.org/latest/generated/attribu
 ## Development Plan
 BeltTransmission.jl is under active development, [enhancement requests](https://github.com/mechanomy/BeltTransmission.jl/issues/new/choose) are welcome.
 
-## API
+## BeltTransmission.jl API
 ```@meta
 CurrentModule= BeltTransmission
 ```
 
 ```@autodocs
 Modules=[BeltTransmission]
+```
+
+## BeltTransmission.SynchronousBeltTable
+```@meta
+CurrentModule= BeltTransmission.SynchronousBeltTable
+```
+
+```@autodocs
+Modules=[BeltTransmission.SynchronousBeltTable]
 ```

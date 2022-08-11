@@ -1,4 +1,4 @@
-export FreeSegment, getDeparturePoint, getArrivalPoint, distance, findTangents, isSegmentMutuallyTangent, calculateRouteAngles, route2Segments, calculateBeltLength, toString, toStringShort, toStringPoints, toStringVectors, printRoute, printSegments, length
+export FreeSegment, getDeparturePoint, getArrivalPoint, distance, findTangents, isSegmentMutuallyTangent, calculateRouteAngles, route2Segments, calculateBeltLength, toString, toStringShort, toStringPoints, printRoute, printSegments, length
 
 """
   Subtypes of AbstractFreeSegment model free belt segments beginning at the `depart`ure point traveling towards the `arrive` point under postive motion.
@@ -22,8 +22,7 @@ end
     FreeSegment(; depart::AbstractPulley, arrive::AbstractPulley) :: FreeSegment
   Create a belt FreeSegment between `depart` and `arrive` Pulleys
 """
-# @kwmethod FreeSegment(; depart::T, arrive::T) where T<:AbstractPulley = FreeSegment(depart,arrive)
-@kwmethod FreeSegment(; depart::T, arrive::U) where {T<:AbstractPulley, U<:AbstractPulley} = FreeSegment(depart,arrive)
+@kwmethod FreeSegment(; depart::T, arrive::U) where {T<:AbstractPulley, U<:AbstractPulley} = FreeSegment(depart,arrive) #permit pulley types to differ
 
 
 """
@@ -228,7 +227,7 @@ end
 """
     toStringPoints(seg::FreeSegment) :: String
   Creates strings like:
-    FreeSegment: depart[100.000, 110.000] -- arrive[-100.000, 110.000] length[200.000]
+    FreeSegment: depart[E] [-0.013m, 0.012m] --> arrive[A] [0.110m, 0.083m] l[0.142m]@[29.973°]
 """
 function toStringPoints(seg::FreeSegment) :: String
   pdep = getDeparturePoint(seg)

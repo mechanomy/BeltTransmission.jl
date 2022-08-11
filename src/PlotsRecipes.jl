@@ -157,7 +157,7 @@ end
 
 """
     plotRecipe(route::Vector{PlainPulley})
-  Plots the Pulleys in a `route`.
+  Plots the Pulleys in a `route` vector of Pulleys.
   ```
   using Plots, Unitful, BeltTransmission, Geometry2D
   a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
@@ -185,7 +185,7 @@ end
 end
 
 """
-    plotRecipe(seg::FreeSegment; n=100, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
+    plotRecipe(seg::FreeSegment; n=2, lengthUnit=u"mm", segmentColor=:magenta, arrowFactor=0.03)
   Plot recipe to plot the free sections of a segment, does not plot the pulleys.
   ```
   using Plots, Unitful, BeltTransmission, Geometry2D
@@ -214,7 +214,7 @@ end
 
 """
     plotRecipe(segments::Vector{T}) where T<:AbstractSegment
-  Plots the Pulleys and Segments in a `route`.
+  Plots the Pulleys and Segments in a `route` vector.
   ```
   using Plots, Unitful, BeltTransmission, Geometry2D
   a = PlainPulley( Geometry2D.Circle(1u"mm",2u"mm",3u"mm"), Geometry2D.uk, "recipe" )
@@ -230,7 +230,7 @@ end
     @series begin
       # lengthUnit := lengthUnit
       # segmentColor := segmentColor
-      linecolor := :red
+      # linecolor := segmentColor .. this only breaks things...
       seg
     end
   end

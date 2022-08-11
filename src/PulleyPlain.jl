@@ -21,28 +21,26 @@ struct PlainPulley <: AbstractPulley
 end
 
 """
-    PlainPulley(circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
+    PlainPulley(pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) 
   Models a PlainPulley in a BeltTransmission, described by a `circle`, rotation `axis`, and `name`.
 """
 PlainPulley(pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(pitch,axis,0u"rad",0u"rad",name) 
 
 """
     PlainPulley(pp::PlainPulley, arrive=0u"rad", depart=0u"rad")
-  Copy constructor setting `arrive` and `depart`
+  Copy constructor setting `arrive` and `depart`.
 """
 PlainPulley(pp::PlainPulley, arrive=0u"rad", depart=0u"rad") = PlainPulley(pp.pitch,pp.axis,arrive,depart,pp.name) 
 
 @kwdispatch PlainPulley()
 
 """
-    PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) :: PlainPulley
-    PlainPulley(; circle::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) :: PlainPulley
+    PlainPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) 
+    PlainPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) 
   Models a PlainPulley in a BeltTransmission through keyword arguments.
 """
 @kwmethod PlainPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, name::String) = PlainPulley(pitch,axis,0u"rad",0u"rad",name)
 @kwmethod PlainPulley(; pitch::Geometry2D.Circle, axis::Geometry2D.UnitVector, arrive::Geometry2D.Radian, depart::Geometry2D.Radian, name::String) = PlainPulley(pitch,axis,arrive,depart,name)
-
-
 
 """
     pulley2String(p::PlainPulley) :: String
@@ -60,13 +58,6 @@ function pulley2String(p::PlainPulley)::String
     ustrip(u"°",calculateWrappedAngle(p)),
     ustrip(un,calculateWrappedLength(p)), string(un)
   )
-
-  # #without computing wrapped angle or length:
-  # return @sprintf("pulley[%s] @ [%3.3f,%3.3f] r[%3.3f] %s arrive[%3.3f°] depart[%3.3f°]", 
-  #   p.name, 
-  #   ustrip(un, p.pitch.center.x), ustrip(un, p.pitch.center.y), ustrip(un, p.pitch.radius),
-  #   string(un),
-  #   ustrip(u"°",p.arrive), ustrip(u"°",p.depart) )
 end
 
 

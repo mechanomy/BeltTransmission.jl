@@ -2,12 +2,15 @@
 # A free belt segment is a free section of belt beginning and ending at a pulley tangent point.  It is assumed straight and loaded only in tension. 
 # An engaged belt segment is nominally in contact with some pulley
 
-abstract type AbstractBelt end
+"""
+  An abstract type for belt segments.
+"""
 abstract type AbstractSegment end
 
-struct Route
-  routing::Vector{T} where T<:AbstractSegment
-end
+# abstract type AbstractBelt end
+# struct Route
+#   routing::Vector{T} where T<:AbstractSegment
+# end
 
 
 """

@@ -14,6 +14,45 @@ Reads, writes, and generates CSVs that represent catalogs of synchronous belts, 
   `partNumber` - manufacturer or supplier part number
   `supplier` - supplier name
   `url` - link to the data source
+
+### Basic usage:
+Generate a DataFrame of belts:
+```@julia
+using BeltTransmission
+belts = SynchronousBeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", toothRange=10:5:30)
+```
+Write these to a CSV:
+```@repl
+SynchronousBeltTable.writeBeltCSV(belts, "gt2Belts.csv")
+```
+
+This creates a CSV file at the given path, with format
+```
+profile,pitchMM,nTeeth,lengthMM,widthMM,id,partNumber,supplier,url
+gt2,2,10,20,6,3a9ee2fa-95a2-4217-b5c6-4bde0d9c65c9,pn0,none,none
+gt2,2,15,30,6,319f2899-b714-43a4-b37c-830179524311,pn0,none,none
+gt2,2,20,40,6,7e15cab0-58f2-4c4e-be0b-f168d1091ce9,pn0,none,none
+gt2,2,25,50,6,6f5fcd44-26f0-44c7-bf38-5aea52c51dd1,pn0,none,none
+gt2,2,30,60,6,ce84bc3b-4025-4de1-b79c-f536f9e95794,pn0,none,none
+```
+
+(note the UUID ids will differ).
+
+This file can then be read in
+```@repl
+beltsdf = SynchronousBeltTable.readBeltCSVIntoDataFrame("gt2Belts.csv")
+```
+
+The table of belts can be filtered by
+```@repl
+filtered = SynchronousBeltTable.lookupLength(beltsdf, 35u"mm", n=2)
+```
+to get the top two belts nearest the desired length.
+
+These can be converted into [SynchronousBelt](#BeltTransmission.SynchronousBelt)s by
+```@repl
+sync = SynchronousBeltTable.dfRow2SyncBelt( filtered[1,:] )
+```
 """
 module SynchronousBeltTable
   using CSV
@@ -21,15 +60,19 @@ module SynchronousBeltTable
   using Unitful, Unitful.DefaultSymbols
   using UUIDs
   using BeltTransmission #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
-  # using .BeltTransmission #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
-  # import .SynchronousBelt #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
-  # using .SynchronousBelt #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
+  # using .BeltTransmission 
+  # import .SynchronousBelt 
+  # using .SynchronousBelt 
 
   # export dfRow2SyncBelt, dfRow, readBeltCSVIntoDataFrame, generateBeltDataFrame, writeBeltCSV, lookupLength
 
-
+  """An abstract belt type for belt optimization"""
   abstract type AbstractOptimizableBelt end #some type that we can assert Belts to be
 
+  """
+      dfRow2SyncBelt( row::DataFrames.DataFrameRow )
+    Converts a DataFrame row to a SynchronousBelt struct.
+  """
   function dfRow2SyncBelt( row::DataFrames.DataFrameRow ) #how to make this an AbstOB
     return sb = SynchronousBelt( pitch=row.pitch,
                           length=row.length,
@@ -42,6 +85,10 @@ module SynchronousBeltTable
                           id=row.id )
   end
 
+  """
+      dfRow( sb::SynchronousBelt)
+    Converts a SynchronousBelt into a DataFrame row.
+  """
   function dfRow( sb::SynchronousBelt)
     return DataFrame( profile=sb.profile,
                       pitch=sb.pitch,
@@ -55,7 +102,11 @@ module SynchronousBeltTable
   end
 
 
-  """Returns a dataframe with the belt information"""
+  """
+      readBeltCSVIntoDataFrame(csvPath::String)
+    Returns a dataframe with the belt information from the given `csvPath` belt description file.
+    See [writeBeltCSV](#BeltTransmission.SynchronousBeltTable.writeBeltCSV) for the file format.
+  """
   function readBeltCSVIntoDataFrame(csvPath::String)
     cread = CSV.File( csvPath,  delim=",", stripwhitespace=true, header=1 )
     
@@ -75,7 +126,11 @@ module SynchronousBeltTable
     return df
   end
 
-  """Generates a belt DataFrame for a given `pitch`, `width`, and `toothRange`"""
+  """
+      generateBeltDataFrame(; pitch::Unitful.Length, width::Unitful.Length, toothRange)
+    Generates a belt DataFrame with a given `pitch` and `width` over `toothRange`.
+    `toothRange` can be specified as `toothRange=20:5:200` to create a tooth range array starting with 20 teeth, then proceeding to 200 teeth in 5-tooth increments.
+  """
   function generateBeltDataFrame(; pitch::Unitful.Length, width::Unitful.Length, toothRange)
     df = DataFrame()
     for tr in toothRange
@@ -94,6 +149,10 @@ module SynchronousBeltTable
     return df
   end
 
+  """
+      writeBeltCSV(belts::DataFrame, csvPath::String )
+    Given a `belts` DataFrame describing one or more belts, write that to the `csvPath` file.
+  """
   function writeBeltCSV(belts::DataFrame, csvPath::String )
     # move units from elements to column headers. CSV.write() is totally happy to write every element's unit, but this is tedious if edited by hand...
     df = DataFrame()
@@ -137,8 +196,10 @@ module SynchronousBeltTable
 
     if n == 0 || size(bls,1) < n
       return bls
+    elseif n == 1
+      return bls[1,:] #a dataframe row
     else
-      return bls[n,:]
+      return bls[1:n,:] # a dataframe
     end
   end #lookupLength()
 

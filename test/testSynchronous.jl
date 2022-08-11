@@ -29,15 +29,13 @@ end
   @test nTeeth2PitchLength(pitch=2u"mm", nTeeth=26) == 52mm
 end
 
-
-
 @testset "SynchronousPulley constructors" begin
   ctr = Geometry2D.Point(3mm,5mm)
 
-  tp = SynchronousPulley(ctr, 10, Geometry2D.uk, 2mm, "B")
+  tp = SynchronousPulley(ctr, Geometry2D.uk, 10, 2mm, "B")
   @test typeof(tp) <: AbstractPulley
 
-  pA = SynchronousPulley( center=Geometry2D.Point(100mm,100mm), axis=Geometry2D.uk, nGrooves=62, beltPitch=2mm, name="A" )
+  pA = SynchronousPulley(center=Geometry2D.Point(100mm,100mm), axis=Geometry2D.uk, nGrooves=62, beltPitch=2mm, name="A" )
   tp = SynchronousPulley(center=ctr, axis=Geometry2D.uk, nGrooves=10, beltPitch=2mm, name="H")
   @test typeof(tp) <: AbstractPulley
 

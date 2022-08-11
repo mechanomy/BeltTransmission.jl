@@ -1,5 +1,3 @@
-<!-- copied from exes/BeltDesign.jl -->
-
 # Belt Design example
 In this example we want to choose which Synchronous belt will fit a given pulley arrangement.
 
@@ -56,7 +54,6 @@ println("Iteration 100: l=$(calculateBeltLength(solved)) with dx=$dx\n")
 
 ```@example BeltDesignExample
 p = plot!(solved, segmentColor=:cyan)#, legend_background_color=:transparent, legend_position=:outerright)
-display(p)
 ```
 Here, the initial routing is shown with the magenta belt, and the fit to one of the available belt lengths in aqua.
 SynchronousPulleys are shown with dashed edges, hinting their teeth.
@@ -70,6 +67,7 @@ Printing the pulley information from the belt routing displays the positions of 
 printRoute(solved)
 ```
 
+And we can print the points of departure and arrival of each segment, along with their length and angle:
 ```@example BeltDesignExample
-
+printSegments(route2Segments(solved))
 ```

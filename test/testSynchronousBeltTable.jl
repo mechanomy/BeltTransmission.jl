@@ -72,6 +72,7 @@ end
   @test size(retdf,1) == nr
 
   retdf = SynchronousBeltTable.lookupLength( bdf, length, pitch=pitch, width=width, n=1)
+  @show typeof(retdf)
   sb = SynchronousBeltTable.dfRow2SyncBelt( retdf )
   @show sb
   @test sb.length == 110mm && sb.pitch==2mm && sb.width==6mm
