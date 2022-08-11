@@ -22,11 +22,11 @@ jobs:
           version: '1.7'
 
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v2 #220804, v3 broken: https://github.com/jurplel/install-qt-action/issues/153
-        with:
-          host: 'linux'
-          target: 'desktop'
+      # - name: Install Qt
+      #   uses: jurplel/install-qt-action@v2 #220804, v3 broken: https://github.com/jurplel/install-qt-action/issues/153
+      #   with:
+      #     host: 'linux'
+      #     target: 'desktop'
 
       # - name: Install matplotlib
       #   run: if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get install -y python3-matplotlib; fi
