@@ -53,4 +53,6 @@ display(p)
 printRoute(solved)
 #---
 printSegments(route2Segments(solved))
+#--
+calculateRatios(solved)
 ;

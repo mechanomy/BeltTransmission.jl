@@ -1,23 +1,21 @@
-
-__precompile__(false) #for dev
 """
-Geometric modeling of 2D closed belt transmissions.
+  Geometric modeling of 2D closed belt transmissions.
 
-This module models closed belt transmissions with either:
-* Plain pulleys with flat belting
-* Timing pulleys and timing belts
+  This module models closed belt transmissions with either:
+  * Plain pulleys with flat belting
+  * Timing pulleys and timing belts
 
-With the general concept of a 'belt' entailing a continuous element, flat and timing belts add properties that affect which method may be called.
-For instance, a flat belt may have an arbitrary length, limited only by fabrication, while toothed belts are defined to have an integer number of teeth.
-Likewise, calculations involving tooth pitch are nonsensical if applied to flat or V belts.
-The module uses Julia's type system to differentiate between these belt types.
+  With the general concept of a 'belt' entailing a continuous element, flat and timing belts add properties that affect which method may be called.
+  For instance, a flat belt may have an arbitrary length, limited only by fabrication, while toothed belts are defined to have an integer number of teeth.
+  Likewise, calculations involving tooth pitch are nonsensical if applied to flat or V belts.
+  The module uses Julia's type system to differentiate between these belt types.
 
-Timing and plain pulleys are specializaitons of AbstractPulley, permitting functions that need only the pulley location, rotation axis, or pitch diameter to accept any argument that maps to AbstractPulley, while allowing those needing tooth properties to specify arguments of TimingPulley type.
+  Timing and plain pulleys are specializaitons of AbstractPulley, permitting functions that need only the pulley location, rotation axis, or pitch diameter to accept any argument that maps to AbstractPulley, while allowing those needing tooth properties to specify arguments of TimingPulley type.
 
-Calculations are perfomed on the pulley or belt pitch line.
+  Calculations are perfomed on the pulley or belt pitch line.
 
-Exports methods:
-$(EXPORTS)
+  Exports methods:
+  $(EXPORTS)
 
 """
 module BeltTransmission
@@ -58,14 +56,7 @@ module BeltTransmission
 
   include("PlotsRecipes.jl")
 
-  # struct BeltTrans
-  #   pulleys::Vector{T} where T<:AbstractPulley
-  #   segments::Vector{T} where T<:AbstractSegment
-  #   belt::AbstractBelt
-  # end
-  # calcLength(BT)
-  # calcRatios(BT)
-  # calcPowerLimits(BT)
+  include("BeltSystem.jl")
 
 end # BeltTransmission
 

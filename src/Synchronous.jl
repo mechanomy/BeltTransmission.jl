@@ -14,7 +14,7 @@ export SynchronousBelt, pitchLength2NTeeth, nTeeth2PitchLength#, belt2NTeeth, be
   `url::String` - sourcing link
   `id::UUID` - unique id
 """
-struct SynchronousBelt 
+struct SynchronousBelt <: AbstractBelt
   # arrive::AbstractPulley
   # depart::AbstractPulley
   #    or 

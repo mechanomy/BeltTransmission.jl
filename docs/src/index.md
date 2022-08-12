@@ -12,6 +12,13 @@ BeltTransmission was used to determine the basic design of the [Moover variants]
 
 See the package [readme](https://github.com/mechanomy/BeltTransmission.jl) for release, license, and development information.
 
+## Dependencies
+
+* [Geometry2D](https://github.com/mechanomy/Geometry2D.jl)
+* [Utility](https://github.com/mechanomy/Utility.jl)
+
+And from the standard repository those defined in the Project.toml.
+
 ## Installation
 ```julia
 using Pkg

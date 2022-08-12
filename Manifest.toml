@@ -930,12 +930,12 @@ uuid = "41fe7b60-77ed-43a1-b4f0-825fd5a5650d"
 version = "0.1.2"
 
 [[deps.Utility]]
-deps = ["Test", "Unitful"]
-git-tree-sha1 = "3132c1dca42f14402caf2b24338945aa4a6d3f9a"
+deps = ["DocStringExtensions", "Documenter", "DocumenterTools", "Test", "Unitful"]
+git-tree-sha1 = "a9c939d4c0787bd5bc2d518ec91e36da3d9ba1ac"
 repo-rev = "main"
 repo-url = "git@github.com:mechanomy/Utility.jl.git"
 uuid = "fc763f5a-9b58-43fb-b3cf-046514c3f56f"
-version = "0.1.2"
+version = "0.1.3"
 
 [[deps.VersionParsing]]
 git-tree-sha1 = "58d6e80b4ee071f5efd07fda82cb9fbe17200868"

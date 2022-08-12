@@ -36,3 +36,32 @@ end
 end
 
 
+@testset "calculateRatio" begin
+  uk = Geometry2D.uk
+  pA = PlainPulley( pitch=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), axis=uk, name="A")
+  pB = PlainPulley( pitch=Geometry2D.Circle(-100u"mm", 100u"mm", 15u"mm"), axis=uk, name="B")
+  pC = PlainPulley( pitch=Geometry2D.Circle(-100u"mm",-100u"mm", 43u"mm"), axis=uk, name="C")
+  pD = PlainPulley( pitch=Geometry2D.Circle( 100u"mm",-100u"mm", 14u"mm"), axis=uk, name="D") 
+  pE = PlainPulley( pitch=Geometry2D.Circle( 80u"mm",-200u"mm", 14u"mm"), axis=-uk, name="E") 
+  solved = calculateRouteAngles([pA,pB,pC,pD,pE])
+  @test calculateRatio(pA, pB) < 1 # vbelt = wA*rA = wB*rB; wB = wA * rA/rB = wA * 1+
+  @test calculateRatio(pA, pB) ≈ pA.pitch.radius/pB.pitch.radius
+  @test calculateRatio(pA, pC) ≈ pA.pitch.radius/pC.pitch.radius
+  @test calculateRatio(pA, pE) ≈ -pA.pitch.radius/pE.pitch.radius # A and E rotate oppositely
+end
+
+@testset "calculateRatios" begin
+  uk = Geometry2D.uk
+  pA = PlainPulley( pitch=Geometry2D.Circle( 100u"mm", 100u"mm", 10u"mm"), axis=uk, name="A")
+  pB = PlainPulley( pitch=Geometry2D.Circle(-100u"mm", 100u"mm", 15u"mm"), axis=uk, name="B")
+  pC = PlainPulley( pitch=Geometry2D.Circle(-100u"mm",-100u"mm", 43u"mm"), axis=uk, name="C")
+  pD = PlainPulley( pitch=Geometry2D.Circle( 100u"mm",-100u"mm", 14u"mm"), axis=uk, name="D") 
+  pE = PlainPulley( pitch=Geometry2D.Circle( 80u"mm",-200u"mm", 14u"mm"), axis=-uk, name="E") 
+
+  solved = calculateRouteAngles([pA,pB,pC,pD,pE])
+  rats = calculateRatios( solved )
+  @test rats[1,1] ≈ 1
+  @test rats[1,2] ≈ calculateRatio(pA, pB)
+  @test rats[2,1] ≈ calculateRatio(pB, pA)
+end
+

@@ -1,4 +1,4 @@
-export AbstractPulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle, calculateWrappedLength, pulley2Circle, pulley2String, printPulley, pitchLength
+export AbstractPulley, getDeparturePoint, getArrivalPoint, calculateWrappedAngle, calculateWrappedLength, pulley2Circle, pulley2String, printPulley, pitchLength, calculateRatio, calculateRatios
 
 
 """
@@ -110,4 +110,40 @@ function printPulley(p::AbstractPulley)
   println(pulley2String(p))
 end
 
+
+"""
+  $TYPEDSIGNATURES
+  Calculate the transmission ratio between pulleys `driving` and `driven`, with the ratio defined as `driven/driving`, being >1 when the driven pulley rotates more than the driving and <1 less.
+  This can be developed from the belt translation or velocity, as:
+
+    xBelt = thA*rA = thB * rB; thB = thA * rA/rB
+    vBelt = wA*rA = wB*rB; wB = wA * rA/rB 
+
+  Pulleys having a positive transmission ratio rotate in the same direction, negative opposing.
+"""
+function calculateRatio( driving::T, driven::U)::Real where {T<:AbstractPulley, U<:AbstractPulley} 
+  si = dot( Geometry2D.toVector(driving.axis), Geometry2D.toVector(driven.axis))  #if they align
+  if abs(si) ≈ 1
+    return driving.pitch.radius / driven.pitch.radius * si
+  else
+    @warn "Pulley axes not parallel when calculating ratio: [$(driving.axis)] vs [$(driven.axis)], this is a planar analysis!"
+    return driving.pitch.radius / driven.pitch.radius 
+  end
+end
+
+"""
+  $TYPEDSIGNATURES
+  Calculate the transmission ratio matrix between all pulleys, returning a matrix of ratios.
+  Pulleys are numbered according to their order in `pulleys`, with the ratio as in [calculateRatio](#BeltTransmission.calculateRatio).
+"""
+function calculateRatios( pulleys::Vector{T} ) where T<:AbstractPulley
+  np = length(pulleys)
+  ratios = zeros(np,np)
+  for i in 1:np
+    for j in 1:np
+      ratios[i,j] = calculateRatio( pulleys[i], pulleys[j])
+    end
+  end
+  return ratios
+end
 

@@ -22,8 +22,9 @@ include("testSynchronousBeltTable.jl")
 
 include("testPlotsRecipes.jl")
 
+include("testBeltSystem.jl")
 
-# also run all examples to detect errors..
-include("../exes/BeltDesign.jl")
+# # also run all examples to detect errors..
+# include("../exes/BeltDesign.jl")
 
 # close("all")

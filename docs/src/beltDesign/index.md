@@ -71,3 +71,10 @@ And we can print the points of departure and arrival of each segment, along with
 ```@example BeltDesignExample
 printSegments(route2Segments(solved))
 ```
+
+The transmission ratios between the pulleys, ordered A-E, are:
+```@example BeltDesignExample
+calculateRatios(solved)
+```
+With A being the top-right pulley, it is larger than B, top-left, and smaller than the C, lower-left, leading A:B=2.07 and A:C=0.78.
+Pulley E rotates in the opposite direction and has therefore a negative transmission ratio of -1.4 relative to A.
