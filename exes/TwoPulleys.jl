@@ -1,3 +1,5 @@
+# This is the same example as https://mechanomy.github.io/BeltTransmission.jl/dev/#Two-pulleys
+
 using Unitful, Plots
 using Geometry2D 
 using BeltTransmission
