@@ -55,4 +55,25 @@ printRoute(solved)
 printSegments(route2Segments(solved))
 #--
 calculateRatios(solved)
+
+# -- 
+# The manual approach above demonstrates that by using BeltTransmission, you have control over the entirety of the system and can easily perform custom operations.
+# Of course, BeltTransmission already includes an [Optimize](#BeltTransmission.Optimizer) for these common tasks.
+# Here we perform the same idler positioning with it.
+
+pE = PlainPulley( pitch=Geometry2D.Circle(   0u"mm",   0u"mm", 14u"mm"), axis=-uk, name="E") # reset E to its original position
+route = [pA, pB, pC, pD, pE]
+po = BeltTransmission.Optimizer.PositionOptions(belt, route)
+BeltTransmission.Optimizer.setXRange!(po, pE, -10.0u"mm",  0.0u"mm") #allow E to move along X 
+
+# BeltTransmission.Optimizer.setX!(po, pE, low=-10.0u"mm", start=0u"mm", high=0.0u"mm") #allow E to move along X 
+
+x0 = [ustrip(u"mm", 0.0u"mm")] #starting x position of E, this needs to be unitless
+xv = Optimizer.optimizeit(po, x0)
+solved = BeltTransmission.Optimizer.xv2solved(po, xv)
+l = BeltTransmission.calculateBeltLength(solved)
+p = plot!(solved, segmentColor=:yellow)
+display(p)
+printRoute(solved)
+
 ;

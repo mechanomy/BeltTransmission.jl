@@ -4,55 +4,55 @@
 export SynchronousBeltTable
 
 """
-Reads, writes, and generates CSVs that represent catalogs of synchronous belts, having headers:
-  `toothProfile` - trade name of the tooth profile, eg gt2, gt3, mxl, ...
-  `pitchMM` - tooth spacing
-  `nTeeth` - number of teeth about the closed belt
-  `lengthMM` - circumferential belt length
-  `widthMM` - belt width
-  `id` - a UUID4 unique identifier
-  `partNumber` - manufacturer or supplier part number
-  `supplier` - supplier name
-  `url` - link to the data source
+  Reads, writes, and generates CSVs that represent catalogs of synchronous belts, having headers:
+    `toothProfile` - trade name of the tooth profile, eg gt2, gt3, mxl, ...
+    `pitchMM` - tooth spacing
+    `nTeeth` - number of teeth about the closed belt
+    `lengthMM` - circumferential belt length
+    `widthMM` - belt width
+    `id` - a UUID4 unique identifier
+    `partNumber` - manufacturer or supplier part number
+    `supplier` - supplier name
+    `url` - link to the data source
 
-### Basic usage:
-Generate a DataFrame of belts:
-```@julia
-using BeltTransmission
-belts = SynchronousBeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", toothRange=10:5:30)
-```
-Write these to a CSV:
-```@repl
-SynchronousBeltTable.writeBeltCSV(belts, "gt2Belts.csv")
-```
+  ### Basic usage:
+  Generate a DataFrame of belts:
+  ```@julia
+  using BeltTransmission
+  belts = SynchronousBeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", toothRange=10:5:30)
+  ```
+  Write these to a CSV:
+  ```@repl
+  SynchronousBeltTable.writeBeltCSV(belts, "gt2Belts.csv")
+  ```
 
-This creates a CSV file at the given path, with format
-```
-profile,pitchMM,nTeeth,lengthMM,widthMM,id,partNumber,supplier,url
-gt2,2,10,20,6,3a9ee2fa-95a2-4217-b5c6-4bde0d9c65c9,pn0,none,none
-gt2,2,15,30,6,319f2899-b714-43a4-b37c-830179524311,pn0,none,none
-gt2,2,20,40,6,7e15cab0-58f2-4c4e-be0b-f168d1091ce9,pn0,none,none
-gt2,2,25,50,6,6f5fcd44-26f0-44c7-bf38-5aea52c51dd1,pn0,none,none
-gt2,2,30,60,6,ce84bc3b-4025-4de1-b79c-f536f9e95794,pn0,none,none
-```
+  This creates a CSV file at the given path, with format
+  ```
+  profile,pitchMM,nTeeth,lengthMM,widthMM,id,partNumber,supplier,url
+  gt2,2,10,20,6,3a9ee2fa-95a2-4217-b5c6-4bde0d9c65c9,pn0,none,none
+  gt2,2,15,30,6,319f2899-b714-43a4-b37c-830179524311,pn0,none,none
+  gt2,2,20,40,6,7e15cab0-58f2-4c4e-be0b-f168d1091ce9,pn0,none,none
+  gt2,2,25,50,6,6f5fcd44-26f0-44c7-bf38-5aea52c51dd1,pn0,none,none
+  gt2,2,30,60,6,ce84bc3b-4025-4de1-b79c-f536f9e95794,pn0,none,none
+  ```
 
-(note the UUID ids will differ).
+  (note the UUID ids will differ).
 
-This file can then be read in
-```@repl
-beltsdf = SynchronousBeltTable.readBeltCSVIntoDataFrame("gt2Belts.csv")
-```
+  This file can then be read in
+  ```@repl
+  beltsdf = SynchronousBeltTable.readBeltCSVIntoDataFrame("gt2Belts.csv")
+  ```
 
-The table of belts can be filtered by
-```@repl
-filtered = SynchronousBeltTable.lookupLength(beltsdf, 35u"mm", n=2)
-```
-to get the top two belts nearest the desired length.
+  The table of belts can be filtered by
+  ```@repl
+  filtered = SynchronousBeltTable.lookupLength(beltsdf, 35u"mm", n=2)
+  ```
+  to get the top two belts nearest the desired length.
 
-These can be converted into [SynchronousBelt](#BeltTransmission.SynchronousBelt)s by
-```@repl
-sync = SynchronousBeltTable.dfRow2SyncBelt( filtered[1,:] )
-```
+  These can be converted into [SynchronousBelt](#BeltTransmission.SynchronousBelt)s by
+  ```@repl
+  sync = SynchronousBeltTable.dfRow2SyncBelt( filtered[1,:] )
+  ```
 """
 module SynchronousBeltTable
   using CSV

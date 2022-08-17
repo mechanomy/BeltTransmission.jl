@@ -1,5 +1,7 @@
 # all of these should succeed for all pulley types...for p in [pulleys array]: ?
 
+# test cos domain error from overlapping or unfeasible belt routings?
+
 @testset "calculateWrappedAngle" begin
   cir = Geometry2D.Circle(3u"mm",5u"mm", 4u"mm" )
   pa = PlainPulley(cir, Geometry2D.uk, 1u"rad", 2u"rad", "struct" ) 

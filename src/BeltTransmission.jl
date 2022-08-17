@@ -58,5 +58,7 @@ module BeltTransmission
 
   include("BeltSystem.jl")
 
+  include("Optimizer.jl")
+
 end # BeltTransmission
 
