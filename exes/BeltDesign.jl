@@ -47,7 +47,8 @@ for i = 1:100 #this is a gradient descent optimization https://en.wikipedia.org/
 end
 println("\nIteration 100: l=$(calculateBeltLength(solved)) with dx=$dx\n")
 #---
-p = plot!(solved, segmentColor=:cyan)#, legend_background_color=:transparent, legend_position=:outerright)
+# p = plot!(solved, segmentColor=:cyan)#, legend_background_color=:transparent, legend_position=:outerright)
+p = plot!(BeltTransmission.route2Segments(solved), segmentColor=:cyan)
 display(p)
 #---
 printRoute(solved)
@@ -72,7 +73,8 @@ x0 = [ustrip(u"mm", 0.0u"mm")] #starting x position of E, this needs to be unitl
 xv = Optimizer.optimizeit(po, x0)
 solved = BeltTransmission.Optimizer.xv2solved(po, xv)
 l = BeltTransmission.calculateBeltLength(solved)
-p = plot!(solved, segmentColor=:yellow)
+# p = plot!(solved, segmentColor=:yellow)
+p = plot!(BeltTransmission.route2Segments(solved), segmentColor=:yellow)
 display(p)
 printRoute(solved)
 

@@ -40,6 +40,16 @@ function setXRange!(opts::PositionOptions, p::BeltTransmission.AbstractPulley, l
   opts.lowerX[ip] = low
   opts.upperX[ip] = high
 end
+function varyX!(opts::PositionOptions, p::BeltTransmission.AbstractPulley; low::Unitful.Length, start::Unitful.Length, high::Unitful.Length)
+  ip = lookupPulley(opts.routing, p)
+  opts.optimizeX[ip] = true
+  opts.startX[ip] = start
+  opts.lowerX[ip] = low
+  opts.upperX[ip] = high
+  # opts.start[iv] = start
+  # opts.lower[iv] = low
+  # opts.higher[ib] = high
+end
 function setYRange!(opts::PositionOptions, p::BeltTransmission.AbstractPulley, low::Unitful.Length, high::Unitful.Length)
   ip = lookupPulley(opts.routing, p)
   opts.optimizeY[ip] = true
