@@ -5,27 +5,49 @@ export Optimizer
 Provides functions for optimizing belt transmissions according to various metrics.
 """
 module Optimizer
+
+using Unitful
+import NLopt
+
 import Geometry2D
 import ..BeltTransmission
-using Unitful
-using Optim
 
-mutable struct PositionOptions # options for optimizing pulley positions
-  belt::BeltTransmission.AbstractBelt
-  routing::Vector{BeltTransmission.AbstractPulley}
-  optimizeX::Vector{Bool}
-  lowerX::Vector{Unitful.Length}
-  upperX::Vector{Unitful.Length}
-  optimizeY::Vector{Bool}
-  lowerY::Vector{Unitful.Length}
-  upperY::Vector{Unitful.Length}
+
+# export OptimizationVariable
+
+# uk = Geometry2D.UnitVector(0,0,1)
+# #a square of pulleys, arranged ccw from quadrant1
+# pA = SynchronousPulley( center=Geometry2D.Point( 100u"mm", 100u"mm"), axis=uk, nGrooves=62, beltPitch=2u"mm", name="1A" )
+# pB = SynchronousPulley( center=Geometry2D.Point(-100u"mm", 100u"mm"), axis=uk, nGrooves=30, beltPitch=2u"mm", name="2B" )
+# pC = SynchronousPulley( center=Geometry2D.Point(-100u"mm",-100u"mm"), axis=uk, nGrooves=80, beltPitch=2u"mm", name="3C" )
+# pD = SynchronousPulley( center=Geometry2D.Point( 100u"mm",-100u"mm"), axis=uk, nGrooves=30, beltPitch=2u"mm", name="4D" )
+# pE = PlainPulley( pitch=Geometry2D.Circle(   0u"mm",   0u"mm", 14u"mm"), axis=-uk, name="5E") # -uk axis engages the backside of the belt
+# pRoute = [pA, pB, pC, pD, pE]
+
+@enum OptimizationVariable begin
+  # "Optimize the pulley's position in x."
+  xPosition
+  # "Optimize the pulley's position in x."
+  yPosition
+  # "Optimize the pulley radius."
+  radius
 end
-PositionOptions(belt, routing) = PositionOptions(belt, routing, repeat([false],length(routing)),zeros(length(routing))*1.0u"mm",zeros(length(routing))*1.0u"mm",
-                                                    repeat([false],length(routing)),zeros(length(routing))*1.0u"mm",zeros(length(routing))*1.0u"mm" )
+
+mutable struct PositionOpts # options for optimizing pulley positions
+  belt::BeltTransmission.AbstractBelt
+  routing::Vector{BeltTransmission.AbstractPulley} #overall routing, with length=all pulleys
+  pulley::Vector{BeltTransmission.AbstractPulley} #pulley instances, with length = optimization vector
+  variable::Vector{OptimizationVariable} #with length = optimization vector
+  start::Vector{Real} #with length = optimization vector
+  lower::Vector{Real} #with length = optimization vector
+  upper::Vector{Real} #with length = optimization vector
+end
+PositionOpts(belt, routing ) = PositionOpts(belt, routing, [], [], [], [], [] )
 
 function lookupPulley(routing::Vector{BeltTransmission.AbstractPulley}, p::BeltTransmission.AbstractPulley)
   for (ip,rp) in enumerate(routing)
-    if rp == p
+    # if rp == p
+    if rp.name == p.name
       return ip
     end
   end
@@ -33,82 +55,61 @@ function lookupPulley(routing::Vector{BeltTransmission.AbstractPulley}, p::BeltT
   return nothing
 end
 
-
-function setXRange!(opts::PositionOptions, p::BeltTransmission.AbstractPulley, low::Unitful.Length, high::Unitful.Length)
-  ip = lookupPulley(opts.routing, p)
-  opts.optimizeX[ip] = true
-  opts.lowerX[ip] = low
-  opts.upperX[ip] = high
-end
-function varyX!(opts::PositionOptions, p::BeltTransmission.AbstractPulley; low::Unitful.Length, start::Unitful.Length, high::Unitful.Length)
-  ip = lookupPulley(opts.routing, p)
-  opts.optimizeX[ip] = true
-  opts.startX[ip] = start
-  opts.lowerX[ip] = low
-  opts.upperX[ip] = high
-  # opts.start[iv] = start
-  # opts.lower[iv] = low
-  # opts.higher[ib] = high
-end
-function setYRange!(opts::PositionOptions, p::BeltTransmission.AbstractPulley, low::Unitful.Length, high::Unitful.Length)
-  ip = lookupPulley(opts.routing, p)
-  opts.optimizeY[ip] = true
-  opts.lowerY[ip] = low
-  opts.upperY[ip] = high
+"""
+  Adds the 
+"""
+function addVariable!(opts::PositionOpts, pulley::BeltTransmission.AbstractPulley, variable::OptimizationVariable; low::Real, start::Real, up::Real)
+  push!(opts.pulley, pulley)
+  push!(opts.variable, variable)
+  push!(opts.start, start)
+  push!(opts.lower, low)
+  push!(opts.upper, up)
 end
 
-function xv2solved(opts::PositionOptions, xv::Vector)
-  route = BeltTransmission.AbstractPulley[]
-  iv = 1
-  for (ip,rp) in enumerate(opts.routing) #create a new pulley with position from x
-    ty = typeof(rp)
-    if ty<:BeltTransmission.PlainPulley
-      x  = opts.optimizeX[ip] ? xv[iv]*1.0u"mm" : rp.pitch.center.x 
-      iv = opts.optimizeX[ip] ? iv+1   : iv #advance iv
-      y  = opts.optimizeY[ip] ? xv[iv]*1.0u"mm" : rp.pitch.center.y
-      iv = opts.optimizeY[ip] ? iv+1   : iv
-      newp = BeltTransmission.PlainPulley(pitch=Geometry2D.Circle(x, y, rp.pitch.radius), axis=rp.axis, name=rp.name)
-      push!(route, newp)
-    elseif ty<:BeltTransmission.SynchronousPulley
-      x  = opts.optimizeX[ip] ? xv[iv]*1.0u"mm" : rp.pitch.center.x 
-      iv = opts.optimizeX[ip] ? iv+1   : iv #advance iv
-      y  = opts.optimizeY[ip] ? xv[iv]*1.0u"mm" : rp.pitch.center.y
-      iv = opts.optimizeY[ip] ? iv+1   : iv
-      ng = BeltTransmission.radius2NGrooves(rp)
-      newp = BeltTransmission.SynchronousPulley(center=Geometry2D.Point(x, y), nGrooves=ng, beltPitch=rp.beltPitch, axis=rp.axis, name=rp.name)
-      push!(route, newp)
-     end
+function x2route(opts::PositionOpts, ox::Vector)
+  route = opts.routing
+  for iv in 1:length(opts.variable)
+    ir = lookupPulley(route, opts.pulley[iv])
+    x = ustrip(u"mm", route[ir].pitch.center.x )
+    y = ustrip(u"mm", route[ir].pitch.center.y )
+    r = ustrip(u"mm", route[ir].pitch.radius )
+    if opts.variable[iv] == xPosition
+      x = ox[iv]
+    end
+    if opts.variable[iv] == yPosition
+      y = ox[iv]
+    end
+    if opts.variable[iv] == radius
+      r = ox[iv]
+    end
+
+    if typeof(route[ir]) <: BeltTransmission.PlainPulley
+      route[ir] = BeltTransmission.PlainPulley(pitch=Geometry2D.Circle(x*1.0u"mm", y*1.0u"mm", r*1.0u"mm"), axis=route[ir].axis, name=route[ir].name)
+    end
+    if typeof(route[ir]) <: BeltTransmission.SynchronousPulley
+      ng = BeltTransmission.radius2NGrooves(route[ir].beltPitch, r*1.0u"mm")
+      route[ir] = BeltTransmission.SynchronousPulley(center=Geometry2D.Point(x*1.0u"mm", y*1.0u"mm"), nGrooves=ng, beltPitch=route[ir].beltPitch, axis=route[ir].axis, name=route[ir].name)
+    end
+    # println("$iv: $x vs $(route[ir].pitch.center.x)")
   end
-  return BeltTransmission.calculateRouteAngles(route)
+  opts.routing = route
+  return route
 end
 
-function optimizeit(po::PositionOptions, x0::Vector)
-  function objfun(x::Vector)
-    # limits are manually enfoced because of https://github.com/JuliaNLSolvers/Optim.jl/issues/912#issuecomment-1218484194
-    limitFactor=100 #if too large and the search will fail
+function solveSystem( opts::PositionOpts )
+  @show opts.belt
+  @show opts.routing
+  @show opts.pulley
+  @show opts.lower
+  @show opts.start
+  @show opts.upper
 
-    try 
-      solved = xv2solved(po, x)
+  function objfun(ox::Vector, ::Vector) #define within solveSystem() to inherit opts
+    try #catch the invalid acos() from over-large steps
+      @show ox
+      solved = BeltTransmission.calculateRouteAngles(x2route(opts, ox))
       l = BeltTransmission.calculateBeltLength(solved)
-      ret = ustrip(u"mm", po.belt.length-l)^2
-
-      #manually enforce limits by inflating feval
-      iv = 1
-      for ip in 1:length(po.routing) 
-        if po.optimizeX[ip] 
-          if x[iv] < ustrip(u"mm",po.lowerX[ip]) || ustrip(u"mm",po.upperX[ip]) < x[iv]
-            ret *= limitFactor
-          end
-          iv += 1
-        end
-        if po.optimizeY[ip] 
-          if x[iv] < ustrip(u"mm",po.lowerY[ip]) || ustrip(u"mm",po.upperY[ip]) < x[iv]
-            ret *= limitFactor
-          end
-          iv += 1
-        end
-      end
-      return ret
+      return ustrip(u"mm", opts.belt.length-l)^2
     catch err
       if isa(err, DomainError) && err.msg == "acos(x) not defined for |x| > 1"
         return Inf
@@ -116,24 +117,41 @@ function optimizeit(po::PositionOptions, x0::Vector)
         rethrow(err)
       end
     end
+    return Inf
   end
 
+  nop = NLopt.Opt(NLopt.LN_COBYLA, length(opts.pulley))
+  # nop = Opt(NLopt.LN_COBYLA, 4)
+  nop.min_objective = objfun
+  nop.lower_bounds = float.(opts.lower)
+  nop.upper_bounds = float.(opts.upper)
 
-  opts = Optim.Options(x_tol=1e-3, f_tol=1e-3, iterations=1000, time_limit=60, allow_f_increases=false, store_trace=false, show_trace=false) 
-  # opts = Optim.Options(x_tol=1e-3, f_tol=1e-3, iterations=1000, time_limit=60, allow_f_increases=false, store_trace=true, show_trace=true) 
+  nop.stopval = 1e-3
+  nop.ftol_rel = 1e-3
+  nop.ftol_abs = 1e-3
+  nop.maxeval = 1000
+  # nop.maxtime = 60
 
-  res = optimize(objfun, x0, NelderMead(), opts ) 
-  # res = optimize(objfun, x0, LBFGS(), opts )  # 4 its, no limits
-  #bounds are broken since https://github.com/JuliaNLSolvers/Optim.jl/issues/912
-  # lower = ustrip.(u"mm", vcat(po.lowerX[1:2], po.lowerY[3:4]) )
-  # upper = ustrip.(u"mm", vcat(po.upperX[1:2], po.upperY[3:4]) )
-  # res = optimize(objfun, lower, upper, x0, NelderMead(), opts ) 
-  # res = optimize(objfun, lower,upper, x0, LBFGS(), opts )  # fails w/o gradient, does not accept lower/upper
-  # res = optimize(objfun, lower, upper, x0, SimulatedAnnealing(), opts ) # breaks limits
-  # @show res
+  (optf, optx, ret) = NLopt.optimize(nop, float.(opts.start) )
+  # x0 = float([100.1, 100.2, 100.3, 25.46])
+  # @show objfun(x0)
+  # (optf, optx, ret) = NLopt.optimize(nop, x0 )
+  @show optf
+  @show optx
+  @show ret
 
-  x = Optim.minimizer(res)
-  return x
-end
+  solved = BeltTransmission.calculateRouteAngles(x2route(opts, optx))
+  # # println("Correct idler position is [$(solved[5].pitch.center)]")
+
+  if ret == NLopt.ROUNDOFF_LIMITED
+    l = BeltTransmission.calculateBeltLength(solved)
+    @warn "Solver could not achive the desired belt length given other constraints, desired[$(opts.belt.length)] vs solved[$l]"
+  end
+  if ret == NLopt.FORCED_STOP
+    @warn "Solver stopped prior to completion"
+  end
+
+  return solved
+end #solveSystem()
 
 end #Optimizer
