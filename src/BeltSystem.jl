@@ -1,5 +1,14 @@
 export BeltSystem, calculateRatios, calculateLength
 
+# abstract type AbstractVectorPulley <: Vector{AbstractPulley} end # invalid subtyping
+# abstract type AbstractVectorPulley <: Vector{T} where T<:AbstractPulley end
+# abstract type AbstractVectorPulley <: AbstractArray{AbstractPulley} end 
+# abstract type AbstractVectorPulley <: AbstractArray{T} where T<:AbstractPulley end 
+# abstract type AbstractVectorPulley <: AbstractArray{<:AbstractPulley} end 
+
+AbstractVectorPulley = AbstractArray{<:AbstractPulley} 
+
+
 """
   A BeltSystem is an ordered set of `pulleys` connected by `segments` of some `belt`.
   $TYPEDFIELDS

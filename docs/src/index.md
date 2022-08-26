@@ -144,3 +144,72 @@ CurrentModule= BeltTransmission.SynchronousBeltTable
 ```@autodocs
 Modules=[BeltTransmission.SynchronousBeltTable]
 ```
+
+## BeltTransmission.Optimizer
+Pulley locations and radii can be optimized via the [`Optimizer`](#BeltTransmission.Optimizer).
+
+### Optimizer example
+This example moves and resizes pulleys to achieve a given belt length.
+We start with the initial system which has a belt length of 1050mm.
+
+```@example optimizer
+using Unitful, Plots
+using Geometry2D 
+using BeltTransmission
+
+uk = Geometry2D.UnitVector(0,0,1)
+#a square of pulleys, arranged ccw from quadrant1
+pA = SynchronousPulley( center=Geometry2D.Point( 100u"mm", 100u"mm"), axis=uk, nGrooves=62, beltPitch=2u"mm", name="1A" )
+pB = SynchronousPulley( center=Geometry2D.Point(-100u"mm", 100u"mm"), axis=uk, nGrooves=30, beltPitch=2u"mm", name="2B" )
+pC = SynchronousPulley( center=Geometry2D.Point(-100u"mm",-100u"mm"), axis=uk, nGrooves=80, beltPitch=2u"mm", name="3C" )
+pD = SynchronousPulley( center=Geometry2D.Point( 100u"mm",-100u"mm"), axis=uk, nGrooves=30, beltPitch=2u"mm", name="4D" )
+pE = PlainPulley( pitch=Geometry2D.Circle(   0u"mm",   0u"mm", 14u"mm"), axis=-uk, name="5E") # -uk axis engages the backside of the belt
+
+solved0 = BeltTransmission.calculateRouteAngles( [pA, pB, pC, pD, pE] )
+l0 = BeltTransmission.calculateBeltLength(solved0)
+```
+
+Next, we add an available belt for this system.
+
+```@example optimizer
+# Initially the belt length is 1050mm. Reduce that to force the pulleys to move.
+pitch = 8u"mm"
+l = 1000u"mm"
+n = Int(round(ustrip(l/pitch)))
+belt = BeltTransmission.SynchronousBelt(pitch=pitch, nTeeth=n, width=6u"mm", profile="gt2")
+println("Closest belt is $belt")
+```
+While this is a bit trivial, this is where a [BeltTable](#BeltTransmission.SynchronousBeltTable) belt can be used. 
+Now we indicate which system variables are allowed to change, and their acceptable ranges.
+
+```@example optimizer
+pRoute = [pA, pB, pC, pD, pE]
+cfg = BeltTransmission.Optimizer.Config(belt, pRoute, 4)
+BeltTransmission.Optimizer.addVariable!(cfg, pA, BeltTransmission.Optimizer.xPosition, low=60, start=100.1, up=113  )
+BeltTransmission.Optimizer.addVariable!(cfg, pA, BeltTransmission.Optimizer.yPosition, low=90, start=100.2, up=111  )
+BeltTransmission.Optimizer.addVariable!(cfg, pB, BeltTransmission.Optimizer.yPosition, low=90, start=100.3, up=112  )
+BeltTransmission.Optimizer.addVariable!(cfg, pC, BeltTransmission.Optimizer.radius, low=20, start=25, up=95  )
+
+solved = BeltTransmission.Optimizer.solveSystem(cfg)
+p = plot(solved0, segmentColor=:magenta)
+p = plot!(solved, segmentColor=:yellow)
+```
+Here, the initial, unavailable belt length is plotted in magenta, with the optimization to the available belt in yellow.
+Solving the system minimizes the difference between the given belt's length and that of the most recent system iteration.
+Note that each variable was utilized, as the optimization generally spreads the task between the available freedoms.
+The ranges set in each `addVariable!` provide an ability to fine-tune the solution as desired.
+
+Infeasible systems will return warnings like:
+
+* _Optimizer could not achieve the desired belt length given other constraints, desired[] vs solved[]. Try reducing the number of constraints or expanding their range._
+
+* _Optimizer stopped prior to completion, consider changing the starting point or constraints._
+
+The latter indicates that somewhere along the optimization the calculation of the system's belt length ran into an error.
+This error was probably reported elsewhere in the output, but likely results from the overlapping of two pulleys, or the movement of one pulley such that the belt cannot touch it.
+
+### API
+
+```@autodocs
+Modules=[BeltTransmission.Optimizer]
+```

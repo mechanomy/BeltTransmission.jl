@@ -5,7 +5,7 @@ export Optimizer
 Provides functions for optimizing belt transmissions according to various metrics.
 """
 module Optimizer
-
+using DocStringExtensions 
 using Unitful
 import NLopt
 
@@ -13,40 +13,64 @@ import Geometry2D
 import ..BeltTransmission
 
 
-# export OptimizationVariable
+export OptimizationVariable, config, addVariable!, solveSystem
 
-# uk = Geometry2D.UnitVector(0,0,1)
-# #a square of pulleys, arranged ccw from quadrant1
-# pA = SynchronousPulley( center=Geometry2D.Point( 100u"mm", 100u"mm"), axis=uk, nGrooves=62, beltPitch=2u"mm", name="1A" )
-# pB = SynchronousPulley( center=Geometry2D.Point(-100u"mm", 100u"mm"), axis=uk, nGrooves=30, beltPitch=2u"mm", name="2B" )
-# pC = SynchronousPulley( center=Geometry2D.Point(-100u"mm",-100u"mm"), axis=uk, nGrooves=80, beltPitch=2u"mm", name="3C" )
-# pD = SynchronousPulley( center=Geometry2D.Point( 100u"mm",-100u"mm"), axis=uk, nGrooves=30, beltPitch=2u"mm", name="4D" )
-# pE = PlainPulley( pitch=Geometry2D.Circle(   0u"mm",   0u"mm", 14u"mm"), axis=-uk, name="5E") # -uk axis engages the backside of the belt
-# pRoute = [pA, pB, pC, pD, pE]
-
+"""
+  Enum defining optimizable entities as:
+  * `xPosition` = the x position of the pulley center
+  * `yPosition` = the y position of the pulley center
+  * `radius` = the pulley pitch radius
+"""
 @enum OptimizationVariable begin
-  # "Optimize the pulley's position in x."
   xPosition
-  # "Optimize the pulley's position in x."
   yPosition
-  # "Optimize the pulley radius."
   radius
 end
 
-mutable struct PositionOpts # options for optimizing pulley positions
+"""
+  The `Config` struct holds optimization configuration options and system information.
+  $TYPEDFIELDS
+"""
+mutable struct Config # options for optimizing pulley positions
+  """Belt information"""
   belt::BeltTransmission.AbstractBelt
+  """Routing of the belt through the pulleys."""
   routing::Vector{BeltTransmission.AbstractPulley} #overall routing, with length=all pulleys
+  """Vector of pulleys to be optimized, set via `addVariable`."""
   pulley::Vector{BeltTransmission.AbstractPulley} #pulley instances, with length = optimization vector
+  """Vector of variables on each pulley be optimized, set via `addVariable`."""
   variable::Vector{OptimizationVariable} #with length = optimization vector
+  """Vector of start values of each `variable`, set via `addVariable`."""
   start::Vector{Real} #with length = optimization vector
+  """Vector of lower bounds of each `variable`, set via `addVariable`."""
   lower::Vector{Real} #with length = optimization vector
+  """Vector of upper bounds of each `variable`, set via `addVariable`."""
   upper::Vector{Real} #with length = optimization vector
+  """Options for the NLOpt optimization algorithm, see [NLOpt's documentation](https://github.com/JuliaOpt/NLopt.jl)."""
+  nlOptions::NLopt.Opt
 end
-PositionOpts(belt, routing ) = PositionOpts(belt, routing, [], [], [], [], [] )
 
-function lookupPulley(routing::Vector{BeltTransmission.AbstractPulley}, p::BeltTransmission.AbstractPulley)
+"""
+  $TYPEDSIGNATURES
+  Constructor of `Config` objects, sets default optimization options in the `.nlOptions` field.
+  `nConstraints` is the number of constraints that will be added through `addVariable`.
+"""
+function Config(belt::BeltTransmission.AbstractBelt, routing::Vector{BeltTransmission.AbstractPulley}, nConstraints::Int) 
+  nop = NLopt.Opt(NLopt.LN_COBYLA, nConstraints) 
+  nop.stopval = 1e-3
+  nop.ftol_rel = 1e-3
+  nop.ftol_abs = 1e-3
+  nop.maxeval = 1000
+  nop.maxtime = 60
+  return Config(belt, routing, [], [], [], [], [], nop )
+end
+
+"""
+  $TYPEDSIGNATURES
+  Find the index of `p` in `routing`.
+"""
+function lookupPulley(routing::Vector{BeltTransmission.AbstractPulley}, p::BeltTransmission.AbstractPulley) :: Int
   for (ip,rp) in enumerate(routing)
-    # if rp == p
     if rp.name == p.name
       return ip
     end
@@ -56,9 +80,11 @@ function lookupPulley(routing::Vector{BeltTransmission.AbstractPulley}, p::BeltT
 end
 
 """
-  Adds the 
+  $TYPEDSIGNATURES
+  Adds `variable` on `pulley` to the list of entities to optimize over.
+  [`solveSystem`](#BeltTransmission.Optimizer.solveSystem) will evaluate values of the `variable`, starting at `start`, between `low` and `up`.
 """
-function addVariable!(opts::PositionOpts, pulley::BeltTransmission.AbstractPulley, variable::OptimizationVariable; low::Real, start::Real, up::Real)
+function addVariable!(opts::Config, pulley::BeltTransmission.AbstractPulley, variable::OptimizationVariable; low::Real, start::Real, up::Real)
   push!(opts.pulley, pulley)
   push!(opts.variable, variable)
   push!(opts.start, start)
@@ -66,7 +92,11 @@ function addVariable!(opts::PositionOpts, pulley::BeltTransmission.AbstractPulle
   push!(opts.upper, up)
 end
 
-function x2route(opts::PositionOpts, ox::Vector)
+"""
+  $TYPEDSIGNATURES
+  Converts optmization vector `ox` into a solved belt system via the system description in `opts`.
+"""
+function x2route(opts::Config, ox::Vector{T}) where T<:Real
   route = opts.routing
   for iv in 1:length(opts.variable)
     ir = lookupPulley(route, opts.pulley[iv])
@@ -96,17 +126,14 @@ function x2route(opts::PositionOpts, ox::Vector)
   return route
 end
 
-function solveSystem( opts::PositionOpts )
-  @show opts.belt
-  @show opts.routing
-  @show opts.pulley
-  @show opts.lower
-  @show opts.start
-  @show opts.upper
-
+"""
+  $TYPEDSIGNATURES
+  Solves the system descriped by `opts`, returning the solved system.  
+"""
+function solveSystem( opts::Config )::BeltTransmission.AbstractVectorPulley
+# function solveSystem( opts::Config )::Vector{T} where T <: BeltTransmission.AbstractPulley
   function objfun(ox::Vector, ::Vector) #define within solveSystem() to inherit opts
     try #catch the invalid acos() from over-large steps
-      @show ox
       solved = BeltTransmission.calculateRouteAngles(x2route(opts, ox))
       l = BeltTransmission.calculateBeltLength(solved)
       return ustrip(u"mm", opts.belt.length-l)^2
@@ -119,36 +146,36 @@ function solveSystem( opts::PositionOpts )
     end
     return Inf
   end
+  
+  if isnothing(opts.nlOptions)
+    opts.nlOptions = NLopt.Opt(NLopt.LN_COBYLA, length(opts.pulley)) #the need for opts.pulley prevents this from being in the constructor
+    opts.nlOptions.stopval = 1e-3
+    opts.nlOptions.ftol_rel = 1e-3
+    opts.nlOptions.ftol_abs = 1e-3
+    opts.nlOptions.maxeval = 1000
+    opts.nlOptions.maxtime = 60
+  end
 
-  nop = NLopt.Opt(NLopt.LN_COBYLA, length(opts.pulley))
-  # nop = Opt(NLopt.LN_COBYLA, 4)
-  nop.min_objective = objfun
-  nop.lower_bounds = float.(opts.lower)
-  nop.upper_bounds = float.(opts.upper)
+  opts.nlOptions.min_objective = objfun
+  opts.nlOptions.lower_bounds = float.(opts.lower)
+  opts.nlOptions.upper_bounds = float.(opts.upper)
 
-  nop.stopval = 1e-3
-  nop.ftol_rel = 1e-3
-  nop.ftol_abs = 1e-3
-  nop.maxeval = 1000
-  # nop.maxtime = 60
-
-  (optf, optx, ret) = NLopt.optimize(nop, float.(opts.start) )
+  (optf, optx, ret) = NLopt.optimize(opts.nlOptions, float.(opts.start) )
   # x0 = float([100.1, 100.2, 100.3, 25.46])
   # @show objfun(x0)
-  # (optf, optx, ret) = NLopt.optimize(nop, x0 )
-  @show optf
-  @show optx
-  @show ret
+  # (optf, optx, ret) = NLopt.optimize(opts.nlOptions, x0 )
+  # @show optf
+  # @show optx
+  # @show ret
 
   solved = BeltTransmission.calculateRouteAngles(x2route(opts, optx))
-  # # println("Correct idler position is [$(solved[5].pitch.center)]")
 
   if ret == NLopt.ROUNDOFF_LIMITED
     l = BeltTransmission.calculateBeltLength(solved)
-    @warn "Solver could not achive the desired belt length given other constraints, desired[$(opts.belt.length)] vs solved[$l]"
+    @warn "Optimizer could not achieve the desired belt length given other constraints, desired[$(opts.belt.length)] vs solved[$l]. Try reducing the number of constraints or expanding their range."
   end
   if ret == NLopt.FORCED_STOP
-    @warn "Solver stopped prior to completion"
+    @warn "Optimizer stopped prior to completion, consider changing the starting point or constraints."
   end
 
   return solved

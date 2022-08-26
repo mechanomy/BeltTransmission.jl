@@ -36,4 +36,5 @@ deploydocs(
   deploy_config = Documenter.auto_detect_deploy_system(),
   push_preview = false,
 )
+close("all")
 
