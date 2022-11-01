@@ -1,7 +1,10 @@
 name = "BeltTransmission"
 uuid = "781bdc5c-c628-4fec-a83d-86641acf962a"
 authors = ["Ben Conrad <ben@benconrad.net>"]
-version = "0.2.2"
+version = "0.2.3"
+
+[compat]
+julia = "1.8"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
