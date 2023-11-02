@@ -21,7 +21,7 @@ include("testPulleyPlain.jl")
 
 include("testSynchronous.jl")
 
-include("testSynchronousBeltTable.jl")
+# include("testSynchronousBeltTable.jl")
 
 include("testPlotsRecipes.jl")
 

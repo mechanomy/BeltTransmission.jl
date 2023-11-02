@@ -160,7 +160,7 @@ function solveSystem( opts::Config )::BeltTransmission.AbstractVectorPulley
   opts.nlOptions.lower_bounds = float.(opts.lower)
   opts.nlOptions.upper_bounds = float.(opts.upper)
 
-  (optf, optx, ret) = NLopt.optimize(opts.nlOptions, float.(opts.start) )
+ (optf, optx, ret) = NLopt.optimize(opts.nlOptions, float.(opts.start) )
   # x0 = float([100.1, 100.2, 100.3, 25.46])
   # @show objfun(x0)
   # (optf, optx, ret) = NLopt.optimize(opts.nlOptions, x0 )
