@@ -9,6 +9,7 @@ close("all")
 
 import Geometry2D
 using BeltTransmission
+println("\n testing BeltTransmission")
 
 # println(Main.varinfo(@__MODULE__, r"^((?!\#).)*$"; all=true, imported=true, recursive=true)) #regex to remove #eval, #addA entities, not sure what the # 
 
@@ -21,7 +22,7 @@ include("testPulleyPlain.jl")
 
 include("testSynchronous.jl")
 
-# include("testSynchronousBeltTable.jl")
+include("testSynchronousBeltTable.jl")
 
 include("testPlotsRecipes.jl")
 

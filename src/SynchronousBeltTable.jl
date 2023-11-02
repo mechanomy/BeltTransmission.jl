@@ -74,7 +74,7 @@ module SynchronousBeltTable
     Converts a DataFrame row to a SynchronousBelt struct.
   """
   function dfRow2SyncBelt( row::DataFrames.DataFrameRow ) #how to make this an AbstOB
-    return sb = SynchronousBelt( pitch=row.pitch,
+    return SynchronousBelt( pitch=row.pitch,
                           length=row.length,
                           nTeeth=row.nTeeth,
                           width=row.width,
@@ -112,15 +112,25 @@ module SynchronousBeltTable
     
     df = DataFrame()
     for row in eachrow(cread)
-     sb = SynchronousBelt( pitch=row[1].pitchMM*mm,
-                    length=row[1].lengthMM*mm,
-                    nTeeth=row[1].nTeeth,
-                    width=row[1].widthMM*mm,
-                    profile=string(row[1].profile),
-                    partNumber=string(row[1].partNumber),
-                    supplier=string(row[1].supplier),
-                    url=string(row[1].url),
-                    id=tryparse(UUID, row[1].id) )
+      sb = SynchronousBelt( 
+                    string(row[1].profile),
+                    row[1].pitchMM*mm,
+                    row[1].lengthMM*mm,
+                    row[1].nTeeth,
+                    row[1].widthMM*mm,
+                    string(row[1].partNumber),
+                    string(row[1].supplier),
+                    string(row[1].url),
+                    tryparse(UUID, row[1].id) )
+      # sb = SynchronousBelt( pitch=row[1].pitchMM*mm,
+      #               length=row[1].lengthMM*mm,
+      #               nTeeth=row[1].nTeeth,
+      #               width=row[1].widthMM*mm,
+      #               profile=string(row[1].profile),
+      #               partNumber=string(row[1].partNumber),
+      #               supplier=string(row[1].supplier),
+      #               url=string(row[1].url),
+      #               id=tryparse(UUID, row[1].id) )
       append!(df, dfRow(sb) )
     end
     return df
