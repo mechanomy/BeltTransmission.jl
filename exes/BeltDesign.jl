@@ -1,10 +1,11 @@
 # BasicBeltDesign.jl
 # This example of BeltTransmission.jl solves a system of 5 pulleys, finding the belt length, idler position, angle of wrap on each pulley, and the transmission ratio matrix.
 
-using Plots #everything ends up as a plot
+# using Plots #everything ends up as a plot
 
 #dependencies for function arguments
-using Unitful, Unitful.DefaultSymbols
+# using Unitful, Unitful.DefaultSymbols
+using UnitTypes
 import Geometry2D
 
 #bring this module in
@@ -13,43 +14,43 @@ using BeltTransmission
 #describe the pulleys
 uk = Geometry2D.UnitVector(0,0,1)
 #a square of pulleys, arranged ccw from quadrant1
-pA = SynchronousPulley( center=Geometry2D.Point( 100mm, 100mm), axis=uk, nGrooves=62, beltPitch=2mm, name="A" )
-pB = SynchronousPulley( center=Geometry2D.Point(-100mm, 100mm), axis=uk, nGrooves=30, beltPitch=2mm, name="B" )
-pC = SynchronousPulley( center=Geometry2D.Point(-100mm,-100mm), axis=uk, nGrooves=80, beltPitch=2mm, name="C" )
-pD = SynchronousPulley( center=Geometry2D.Point( 100mm,-100mm), axis=uk, nGrooves=30, beltPitch=2mm, name="D" )
-pE = PlainPulley( pitch=Geometry2D.Circle(   0u"mm",   0u"mm", 14u"mm"), axis=-uk, name="E") # -uk axis engages the backside of the belt
+pA = SynchronousPulley( center=Geometry2D.Point2D( MilliMeter(100), MilliMeter(100)), axis=uk, nGrooves=62, beltPitch=MilliMeter(2), name="A" )
+pB = SynchronousPulley( center=Geometry2D.Point2D(MilliMeter(-100), MilliMeter(100)), axis=uk, nGrooves=30, beltPitch=MilliMeter(2), name="B" )
+pC = SynchronousPulley( center=Geometry2D.Point2D(MilliMeter(-100),MilliMeter(-100)), axis=uk, nGrooves=80, beltPitch=MilliMeter(2), name="C" )
+pD = SynchronousPulley( center=Geometry2D.Point2D( MilliMeter(100),MilliMeter(-100)), axis=uk, nGrooves=30, beltPitch=MilliMeter(2), name="D" )
+pE = PlainPulley( pitch=Geometry2D.Circle(   MilliMeter(0),   MilliMeter(0), MilliMeter(14)), axis=-uk, name="E") # -uk axis engages the backside of the belt
 route = [pA, pB, pC, pD, pE]
 
 # solve the system
 solved = calculateRouteAngles(route)
 println("Initial belt length is $(calculateBeltLength(solved))")
 
-# plot the system
-p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
-display(p)
+# # plot the system
+# p = plot(solved, reuse=false)#, legend_background_color=:transparent, legend_position=:outerright)
+# display(p)
 
 # generate a catalog of GT2 belts
-belts = SynchronousBeltTable.generateBeltDataFrame(pitch=2u"mm", width=6u"mm", toothRange=500:10:700)
+belts = SynchronousBeltTable.generateBeltDataFrame(pitch=MilliMeter(2), width=MilliMeter(6), toothRange=500:10:700)
 
 # filter by length
-@show belt = SynchronousBeltTable.lookupLength( belts, calculateBeltLength(solved), pitch=2mm, width=6mm, n=1 )
+@show belt = SynchronousBeltTable.lookupLength( belts, calculateBeltLength(solved), pitch=MilliMeter(2), width=MilliMeter(6), n=1 )
 belt = SynchronousBeltTable.dfRow2SyncBelt(belt) #convert out of DataFrame
 
-# the chosen belt is 1090mm long while the initial belt length is 1093.72mm. Calling E an idler, let's move it in X until the belt length is correct
+# the chosen belt is MilliMeter(1090) long while the initial belt length is 1093.MilliMeter(72). Calling E an idler, let's move it in X until the belt length is correct
 # See the JuMP example for a more advanced optimization, a for-loop suffices here
-dx = 1u"mm" #initial starting movement
+dx = MilliMeter(1) #initial starting movement
 for i = 1:100 #this is a gradient descent optimization https://en.wikipedia.org/wiki/Gradient_descent
   global dx -= (belt.length - calculateBeltLength(solved) )/10 
-  global pE = PlainPulley( pitch=Geometry2D.Circle( 0u"mm" + dx,   0u"mm", 14u"mm"), axis=-uk, name="E") 
+  global pE = PlainPulley( pitch=Geometry2D.Circle( MilliMeter(0) + dx,   MilliMeter(0), MilliMeter(14)), axis=-uk, name="E") 
   global route = [pA, pB, pC, pD, pE]
   global solved = calculateRouteAngles(route)
   # println("Iteration $i: l=$(calculateBeltLength(solved)) with dx=$dx")
 end
 println("\nIteration 100: l=$(calculateBeltLength(solved)) with dx=$dx\n")
 #---
-# p = plot!(solved, segmentColor=:cyan)#, legend_background_color=:transparent, legend_position=:outerright)
-p = plot!(BeltTransmission.route2Segments(solved), segmentColor=:cyan)
-display(p)
+# # p = plot!(solved, segmentColor=:cyan)#, legend_background_color=:transparent, legend_position=:outerright)
+# p = plot!(BeltTransmission.route2Segments(solved), segmentColor=:cyan)
+# display(p)
 #---
 printRoute(solved)
 #---
@@ -62,20 +63,20 @@ calculateRatios(solved)
 # Of course, BeltTransmission already includes an [Optimize](#BeltTransmission.Optimizer) for these common tasks.
 # Here we perform the same idler positioning with it.
 
-pE = PlainPulley( pitch=Geometry2D.Circle(   0u"mm",   0u"mm", 14u"mm"), axis=-uk, name="E") # reset E to its original position
-route = [pA, pB, pC, pD, pE]
-po = BeltTransmission.Optimizer.PositionOptions(belt, route)
-BeltTransmission.Optimizer.setXRange!(po, pE, -10.0u"mm",  0.0u"mm") #allow E to move along X 
-
-# BeltTransmission.Optimizer.setX!(po, pE, low=-10.0u"mm", start=0u"mm", high=0.0u"mm") #allow E to move along X 
-
-x0 = [ustrip(u"mm", 0.0u"mm")] #starting x position of E, this needs to be unitless
-xv = Optimizer.optimizeit(po, x0)
-solved = BeltTransmission.Optimizer.xv2solved(po, xv)
-l = BeltTransmission.calculateBeltLength(solved)
-# p = plot!(solved, segmentColor=:yellow)
-p = plot!(BeltTransmission.route2Segments(solved), segmentColor=:yellow)
-display(p)
-printRoute(solved)
+# pE = PlainPulley( pitch=Geometry2D.Circle(   MilliMeter(0),   MilliMeter(0), MilliMeter(14)), axis=-uk, name="E") # reset E to its original position
+# route = [pA, pB, pC, pD, pE]
+# po = BeltTransmission.Optimizer.PositionOptions(belt, route)
+# BeltTransmission.Optimizer.setXRange!(po, pE, MilliMeter(-10.0),  MilliMeter(0.0)) #allow E to move along X 
+#
+# # BeltTransmission.Optimizer.setX!(po, pE, low=MilliMeter(-10.0), start=MilliMeter(0), high=MilliMeter(0.0)) #allow E to move along X 
+#
+# x0 = 0.0 #starting x position of E, this needs to be unitless
+# xv = Optimizer.optimizeit(po, x0)
+# solved = BeltTransmission.Optimizer.xv2solved(po, xv)
+# l = BeltTransmission.calculateBeltLength(solved)
+# # # p = plot!(solved, segmentColor=:yellow)
+# # p = plot!(BeltTransmission.route2Segments(solved), segmentColor=:yellow)
+# # display(p)
+# printRoute(solved)
 
 ;
