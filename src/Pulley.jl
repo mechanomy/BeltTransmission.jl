@@ -29,26 +29,26 @@ function Base.show(io::IO, p::AbstractPulley)
 end
 
 """
-    getDeparturePoint(p::AbstractPulley)::Geometry2D.Point
+    getDeparturePoint(p::AbstractPulley)::Geometry2D.Point2D
   Returns the point of departure.
 """
-function getDeparturePoint(p::AbstractPulley)::Geometry2D.Point
+function getDeparturePoint(p::AbstractPulley)::Geometry2D.Point2D
   return Geometry2D.pointOnCircle( p.pitch, p.depart )
 end
 
 """
-    getArrivalPoint(p::AbstractPulley)::Geometry2D.Point
+    getArrivalPoint(p::AbstractPulley)::Geometry2D.Point2D
   Returns the point of arrival.
 """
-function getArrivalPoint(p::AbstractPulley)::Geometry2D.Point
+function getArrivalPoint(p::AbstractPulley)::Geometry2D.Point2D
   return Geometry2D.pointOnCircle( p.pitch, p.arrive )
 end
 
 """
-    pitchLength(p::AbstractPulley) :: Unitful.Length
+    pitchLength(p::AbstractPulley) :: AbstractLength
   Returns the circumferential length of the pitch diameter of the pulley.
 """
-function pitchLength(p::AbstractPulley) :: Unitful.Length
+function pitchLength(p::AbstractPulley) :: AbstractLength
   # return Geometry2D.circumference(p.pitch)
   return p.pitch.radius * 2 * π
 end
@@ -58,40 +58,72 @@ end
   Given `p`, calculate the wrapped angle from `p.arrive` to `p.depart`.
   Note that the wrapped angle is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
-function calculateWrappedAngle(p::AbstractPulley) :: Geometry2D.Angle
+function calculateWrappedAngle(p::AbstractPulley) :: AbstractAngle
   if Geometry2D.isapprox(p.axis, Geometry2D.uk, rtol=1e-3) #+z == cw
     if p.depart < p.arrive #negative to positive zero crossing
-      angle = (2u"rad"*pi - p.arrive) + p.depart 
+      angle = (Radian(2)*pi - p.arrive) + p.depart 
       # @printf("W] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.depart), uconvert(u"°",angle), p.arrive, p.depart, angle)
-      return uconvert(u"rad", angle) #lest Unitful drop the angle units
+      return angle
     else
       angle = p.depart - p.arrive
       # @printf("X] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.depart), uconvert(u"°",angle), p.arrive, p.depart, angle)
-      return uconvert(u"rad", angle)
+      return angle
     end
   elseif Geometry2D.isapprox(p.axis, -Geometry2D.uk, rtol=1e-3) #-z == cw
     if p.depart < p.arrive
       angle = p.arrive-p.depart
       # @printf("Y] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.depart), uconvert(u"°",angle), p.arrive, p.depart, angle)
-      return uconvert(u"rad", angle)
+      return angle
     else
-      angle = 2u"rad"*pi - p.depart + p.arrive
+      angle = Radian(2)*pi - p.depart + p.arrive
       # @printf("Z] %s: %s -- %s = %s == %s -- %s = %s\n", p.name, uconvert(u"°",p.arrive), uconvert(u"°",p.depart), uconvert(u"°",angle), p.arrive, p.depart, angle)
-      return uconvert(u"rad", angle)
+      return angle
     end       
   else
     error("calculateWrappedAngle: pulley axis is neither +- uk, is $(p.axis)")
-    return 0°
+    return Radian(0)
   end
 end
+@testitem "calculateWrappedAngle" begin
+  using Geometry2D
+  using UnitTypes
+
+  cir = Geometry2D.Circle(MilliMeter(3),MilliMeter(5), MilliMeter(4) )
+  pa = PlainPulley(cir, Geometry2D.uk, Radian(1), Radian(2), "struct" ) 
+  @test calculateWrappedAngle( pa ) ≈ Radian(1)
+
+  pa = PlainPulley(cir, Geometry2D.uk, Radian(1), Radian(0), "struct" ) 
+  @test calculateWrappedAngle( pa ) ≈ Radian(2*π-1) #from arrive to depart
+
+  pa = PlainPulley(cir, Geometry2D.uk, Radian(0), Radian(7), "struct" ) 
+  @test calculateWrappedAngle( pa ) ≈ Radian(7) 
+end
+
 
 """
-    calculateWrappedLength(p::AbstractPulley) :: Unitful.Length
+    calculateWrappedLength(p::AbstractPulley) :: AbstractLengthAbstractLength
   Given `p`, calculate the arclength of the wrapped segment from `p.arrive` to `p.depart`
   Note that the wrapped length is not restricted to <= 1 revolution, as the pulley may be wrapped multiple times.
 """
-function calculateWrappedLength(p::AbstractPulley) :: Unitful.Length
-  return uconvert(u"m", Geometry2D.circleArcLength( p.pitch, calculateWrappedAngle(p)) ) #cancel m*rad
+function calculateWrappedLength(p::AbstractPulley) :: AbstractLength
+  return Geometry2D.circleArcLength( p.pitch, calculateWrappedAngle(p) )
+end
+@testitem "calculateWrappedLength" begin
+  using Geometry2D
+  using UnitTypes
+  cir = Geometry2D.Circle(MilliMeter(3),MilliMeter(5), MilliMeter(4) )
+  pa = PlainPulley(cir, Geometry2D.uk, Radian(1), Radian(2), "struct" ) 
+  @test calculateWrappedLength( pa ) ≈ MilliMeter(4)
+
+  @test typeof(pa) <: AbstractPulley
+  @test pitchLength(pa) ≈ 2*π*MilliMeter(4)
+end
+
+@testitem "calculateWrappedLength" begin
+  using Geometry2D
+  using UnitTypes
+  pa = PlainPulley(Geometry2D.Circle(MilliMeter(0),MilliMeter(0), MilliMeter(4)), Geometry2D.uk, Radian(1), Radian(2), "pulley") 
+  @test typeof( pulley2String(pa) ) <: String #this can't break...but still want to exercise the function
 end
 
 """
@@ -101,6 +133,16 @@ end
 function pulley2Circle(p::AbstractPulley) :: Geometry2D.Circle
     return p.pitch
 end
+@testitem "pulley2Circle" begin #not a useful test
+  using Geometry2D
+  using UnitTypes
+  pa = PlainPulley(Geometry2D.Circle(MilliMeter(0),MilliMeter(0), MilliMeter(4)), Geometry2D.uk, Radian(1), Radian(2), "pulley") 
+  circle = pulley2Circle( pa )
+  @test typeof(circle) <: Geometry2D.Circle
+  @test circle.center.x ≈ MilliMeter(0)
+  @test circle.center.y ≈ MilliMeter(0)
+  @test circle.radius ≈ MilliMeter(4)
+end
 
 """
     printPulley(p::AbstractPulley)
@@ -109,7 +151,6 @@ end
 function printPulley(p::AbstractPulley)
   println(pulley2String(p))
 end
-
 
 """
   $TYPEDSIGNATURES
@@ -124,12 +165,28 @@ end
 function calculateRatio( driving::T, driven::U)::Real where {T<:AbstractPulley, U<:AbstractPulley} 
   si = dot( Geometry2D.toVector(driving.axis), Geometry2D.toVector(driven.axis))  #if they align
   if abs(si) ≈ 1
-    return driving.pitch.radius / driven.pitch.radius * si
+    return toBaseFloat(driving.pitch.radius) / toBaseFloat(driven.pitch.radius) * si
   else
     @warn "Pulley axes not parallel when calculating ratio: [$(driving.axis)] vs [$(driven.axis)], this is a planar analysis!"
-    return driving.pitch.radius / driven.pitch.radius 
+    return toBaseFloat(driving.pitch.radius) / toBaseFloat(driven.pitch.radius)
   end
 end
+@testitem "calculateRatio" begin
+  using Geometry2D
+  using UnitTypes
+  uk = Geometry2D.uk
+  pA = PlainPulley( pitch=Geometry2D.Circle(MilliMeter(100), MilliMeter(100),  MilliMeter(10)), axis=uk, name="A")
+  pB = PlainPulley( pitch=Geometry2D.Circle(MilliMeter(-100),MilliMeter(100),  MilliMeter(15)), axis=uk, name="B")
+  pC = PlainPulley( pitch=Geometry2D.Circle(MilliMeter(-100),MilliMeter(-100), MilliMeter(43)), axis=uk, name="C")
+  pD = PlainPulley( pitch=Geometry2D.Circle(MilliMeter(100), MilliMeter(-100), MilliMeter(14)), axis=uk, name="D") 
+  pE = PlainPulley( pitch=Geometry2D.Circle(MilliMeter(80),  MilliMeter(-200), MilliMeter(14)), axis=-uk, name="E") 
+  solved = calculateRouteAngles([pA,pB,pC,pD,pE])
+  @test calculateRatio(pA, pB) < 1 # vbelt = wA*rA = wB*rB; wB = wA * rA/rB = wA * 1+
+  @test calculateRatio(pA, pB) ≈ toBaseFloat(pA.pitch.radius)/toBaseFloat(pB.pitch.radius)
+  @test calculateRatio(pA, pC) ≈ toBaseFloat(pA.pitch.radius)/toBaseFloat(pC.pitch.radius)
+  @test calculateRatio(pA, pE) ≈ -toBaseFloat(pA.pitch.radius)/toBaseFloat(pE.pitch.radius) # A and E rotate oppositely
+end
+
 
 """
   $TYPEDSIGNATURES
@@ -146,4 +203,21 @@ function calculateRatios( pulleys::Vector{T} ) where T<:AbstractPulley
   end
   return ratios
 end
+@testitem "calculateRatios" begin
+  using Geometry2D
+  using UnitTypes
+  uk = Geometry2D.uk
+  pA = PlainPulley( pitch=Geometry2D.Circle( MilliMeter(100), MilliMeter(100), MilliMeter(10)), axis=uk, name="A")
+  pB = PlainPulley( pitch=Geometry2D.Circle(MilliMeter(-100), MilliMeter(100), MilliMeter(15)), axis=uk, name="B")
+  pC = PlainPulley( pitch=Geometry2D.Circle(MilliMeter(-100),MilliMeter(-100), MilliMeter(43)), axis=uk, name="C")
+  pD = PlainPulley( pitch=Geometry2D.Circle( MilliMeter(100),MilliMeter(-100), MilliMeter(14)), axis=uk, name="D") 
+  pE = PlainPulley( pitch=Geometry2D.Circle( MilliMeter(80),MilliMeter(-200), MilliMeter(14)), axis=-uk, name="E") 
+
+  solved = calculateRouteAngles([pA,pB,pC,pD,pE])
+  rats = calculateRatios( solved )
+  @test rats[1,1] ≈ 1
+  @test rats[1,2] ≈ calculateRatio(pA, pB)
+  @test rats[2,1] ≈ calculateRatio(pB, pA)
+end
+
 

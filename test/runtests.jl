@@ -1,36 +1,15 @@
+using TestItemRunner # https://github.com/julia-vscode/TestItemRunner.jl 
+println("BeltTransmission:")
+@run_package_tests verbose=true
 
-using Test
-using Unitful, Unitful.DefaultSymbols
-using Plots
-using UUIDs
-pyplot()
-close("all")
-# gr()
+# println("BeltTransmission.SynchronousBeltTable:")
+# @run_package_tests verbose=true filter=ti->(occursin("SynchronousBeltTable", ti.filename))
 
-import Geometry2D
-using BeltTransmission
-println("\n testing BeltTransmission")
-
-# println(Main.varinfo(@__MODULE__, r"^((?!\#).)*$"; all=true, imported=true, recursive=true)) #regex to remove #eval, #addA entities, not sure what the # 
+# println("BeltTransmission.Optimizer:")
+# @run_package_tests verbose=true filter=ti->(occursin("Optimizer", ti.filename))
 
 
-include("testBeltSegment.jl")
-include("testSegmentFree.jl")
-include("testPulley.jl")
-
-include("testPulleyPlain.jl")
-
-include("testSynchronous.jl")
-
-include("testSynchronousBeltTable.jl")
-
-include("testPlotsRecipes.jl")
-
-include("testBeltSystem.jl")
-
-include("testOptimizer.jl")
-
-# # also run all examples to detect errors..
+# also run all examples to detect errors..
 # include("../exes/BeltDesign.jl")
 # include("../exes/BeltDesign.jl")
 # include("../exes/BeltDesign.jl")

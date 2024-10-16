@@ -20,7 +20,7 @@
 """
 module BeltTransmission
 
-  using Unitful, Unitful.DefaultSymbols
+  # using Unitful, Unitful.DefaultSymbols
   # @derived_dimension Radian dimension(u"rad")
   # @derived_dimension Degree dimension(u"°")
   # @unit rev "rev" Revolution (2*π)u"rad" false
@@ -30,6 +30,9 @@ module BeltTransmission
   using KeywordDispatch
 
   using DocStringExtensions 
+  using TestItems
+
+  using UnitTypes
 
   using Printf
   using StaticArrays #for defined-length arrays: SVector{3,T}
@@ -38,7 +41,8 @@ module BeltTransmission
   using LinearAlgebra:normalize, cross, dot
   using UUIDs
 
-  using RecipesBase
+  # using RecipesBase
+  __precompile__(false)
 
   #INCLUDE ORDER MATTERS!
   include("Pulley.jl")
@@ -47,18 +51,25 @@ module BeltTransmission
   include("SegmentFree.jl")
   # include("SegmentEngaged.jl")
 
-  #specific belt/pulley types
-  include("PulleyPlain.jl") 
+  # #specific belt/pulley types
+  include("PulleyPlain.jl")
 
   include("Synchronous.jl")
 
   include("SynchronousBeltTable.jl")
 
-  include("PlotsRecipes.jl")
+  # include("PlotsRecipes.jl")
 
   include("BeltSystem.jl")
 
   include("Optimizer.jl")
+
+  # module OOPT
+  #   function nope()
+  #     println("nope")
+  #   end
+  # end
+  # export OOPT
 
 end # BeltTransmission
 

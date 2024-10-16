@@ -55,10 +55,12 @@ export SynchronousBeltTable
   ```
 """
 module SynchronousBeltTable
+  using TestItems
   using CSV
   using DataFrames
-  using Unitful, Unitful.DefaultSymbols
+  using UnitTypes
   using UUIDs
+  using Printf
   using BeltTransmission #sub-modules do not inherit parent namespace https://docs.julialang.org/en/v1/manual/modules/#Submodules-and-relative-paths
   # using .BeltTransmission 
   # import .SynchronousBelt 
@@ -101,7 +103,6 @@ module SynchronousBeltTable
                       url=sb.url )
   end
 
-
   """
       readBeltCSVIntoDataFrame(csvPath::String)
     Returns a dataframe with the belt information from the given `csvPath` belt description file.
@@ -114,10 +115,10 @@ module SynchronousBeltTable
     for row in eachrow(cread)
       sb = SynchronousBelt( 
                     string(row[1].profile),
-                    row[1].pitchMM*mm,
-                    row[1].lengthMM*mm,
+                    MilliMeter(row[1].pitchMM),
+                    MilliMeter(row[1].lengthMM),
                     row[1].nTeeth,
-                    row[1].widthMM*mm,
+                    MilliMeter(row[1].widthMM),
                     string(row[1].partNumber),
                     string(row[1].supplier),
                     string(row[1].url),
@@ -137,11 +138,11 @@ module SynchronousBeltTable
   end
 
   """
-      generateBeltDataFrame(; pitch::Unitful.Length, width::Unitful.Length, toothRange)
+      generateBeltDataFrame(; pitch::AbstractLength, width::AbstractLength, toothRange)
     Generates a belt DataFrame with a given `pitch` and `width` over `toothRange`.
     `toothRange` can be specified as `toothRange=20:5:200` to create a tooth range array starting with 20 teeth, then proceeding to 200 teeth in 5-tooth increments.
   """
-  function generateBeltDataFrame(; pitch::Unitful.Length, width::Unitful.Length, toothRange)
+  function generateBeltDataFrame(; pitch::AbstractLength, width::AbstractLength, toothRange)
     df = DataFrame()
     for tr in toothRange
       pl = nTeeth2PitchLength( pitch=pitch, nTeeth=tr)
@@ -165,42 +166,49 @@ module SynchronousBeltTable
   """
   function writeBeltCSV(belts::DataFrame, csvPath::String )
     # move units from elements to column headers. CSV.write() is totally happy to write every element's unit, but this is tedious if edited by hand...
-    df = DataFrame()
-    for rb in eachrow(belts)
-      dn = DataFrame( profile=rb.profile,
-                      pitchMM=ustrip(u"mm", rb.pitch),
-                      nTeeth=rb.nTeeth,
-                      lengthMM=ustrip(u"mm",rb.length),
-                      widthMM=ustrip(u"mm", rb.width),
-                      id=rb.id,
-                      partNumber=rb.partNumber,
-                      supplier=rb.supplier,
-                      url=rb.url  )
-      append!(df, dn)
+    # df = DataFrame()
+    # for rb in eachrow(belts)
+    #   dn = DataFrame( profile=rb.profile,
+    #                   pitchMM=MilliMeter(rb.pitch).value,
+    #                   nTeeth=rb.nTeeth,
+    #                   lengthMM=MilliMeter(rb.length).value,
+    #                   widthMM=MilliMeter(rb.width).value,
+    #                   id=rb.id,
+    #                   partNumber=rb.partNumber,
+    #                   supplier=rb.supplier,
+    #                   url=rb.url  )
+    #   append!(df, dn)
+    # end
+    # CSV.write(csvPath, df)
+    open(csvPath, "w+") do fid
+      write(fid, "profile, pitchMM, nTeeth, lengthMM, widthMM, id, partNumber, supplier, url\n")
+      for rb in eachrow(belts)
+        write(fid, @sprintf("%s, %f, %d, %f, %f, %s, %s, %s, %s\n", rb.profile, MilliMeter(rb.pitch).value, rb.nTeeth, MilliMeter(rb.length).value, MilliMeter(rb.width).value, rb.id, rb.partNumber, rb.supplier, rb.url) )
+      end
     end
-    CSV.write(csvPath, df)
   end
 
   """Given a desired belt `length`, return a vector of the closest options from the `belts` dataframe for the given `pitch` and `width`.
   If `n` = 1 the single nearest result is returned, else a DataFrame sorted by abs(length error).
   """
-  function lookupLength(belts::DataFrame, length::Unitful.Length; pitch=-1u"mm", width=-1u"mm", n = 0)
+  function lookupLength(belts::DataFrame, length::AbstractLength; pitch=MilliMeter(-1), width=MilliMeter(-1), n = 0)
     # println("Searching for pitch[$pitch] width[$width] length[$length]")
     nb = size(belts,1)
 
     #restrict to pitch and width:
-    bp = pitch > 0mm # if bp<0, bp=false == don't filter by pitch, so below bp=false means true
-    bw = width > 0mm
+    bp = pitch > MilliMeter(0) # if bp<0, bp=false == don't filter by pitch, so below bp=false means true
+    bw = width > MilliMeter(0)
     beltsFilter = belts[ ( fill(!bp, nb) .|| belts.pitch .== pitch) .& ( fill(!bw, nb) .|| belts.width .== width), :] 
 
     dists = ones( size(beltsFilter,1) )
     for (ib,bl) in enumerate(eachrow(beltsFilter))
-      dists[ib] = ustrip(u"mm", length - bl.length)
+      dists[ib] = toBaseFloat(length - bl.length)
     end
     id = sortperm(abs.(dists)) #get the permutation vector
     bls = beltsFilter[ id, : ] #reorder
 
-    if ustrip(u"mm", bls[1,:pitch])*10 < dists[id[1]]
+    # if bls[1,:pitch]*10 < dists[id[1]]
+    if toBaseFloat(bls[1,:pitch]*10) < dists[id[1]]
       @warn "None of the given `belts` were close to the desired `length` of $length, closest is $(dists[1])mm away."
     end
 
@@ -229,6 +237,89 @@ module SynchronousBeltTable
   #   return sheet
   # end
 
+  @testitem "SynchronousBeltTable roundtrip test: generateBeltDataFrame() -> writeBeltCSV() -> readBeltCSV()" begin
+    using UnitTypes
+    # tdir = tempdir()
+    tdir = @__DIR__
+    bpath = joinpath(tdir, "generateBeltTable.csv") 
+    bdf = BeltTransmission.SynchronousBeltTable.generateBeltDataFrame(pitch=MilliMeter(3.5), width=MilliMeter(4), toothRange=10:5:30)
+    SynchronousBeltTable.writeBeltCSV(bdf, bpath)
+    # bcs = SynchronousBeltTable.readBeltCSVIntoDataFrame( bpath )
+    # rm(bpath, force=true) # cleanup
+
+
+    # ret = true
+    # for ir in 1:size(bdf,1)
+    #   ret = true
+    #   ret &= bdf[ir, :profile] == bcs[ir, :profile]
+    #   ret &= bdf[ir, :pitch] == bcs[ir, :pitch]
+    #   ret &= bdf[ir, :nTeeth] == bcs[ir, :nTeeth]
+    #   ret &= bdf[ir, :length] == bcs[ir, :length]
+    #   ret &= bdf[ir, :width] == bcs[ir, :width]
+    #   ret &= bdf[ir, :id] == bcs[ir, :id]
+    #   ret &= bdf[ir, :partNumber] == bcs[ir, :partNumber]
+    #   ret &= bdf[ir, :supplier] == bcs[ir, :supplier]
+    #   @test bdf[ir, :url] == bcs[ir, :url]
+    # end
+    # # @test ret
+  end
+
+  # @testitem "SynchronousBeltTable dataframe SyncBelt conversion" begin
+  #   using UnitTypes
+  #   sb = SynchronousBelt( pitch=MilliMeter(2), width=MilliMeter(6), nTeeth=34, profile="mxl" )
+  #   dfrow = SynchronousBeltTable.dfRow( sb )
+  #   sb2 = SynchronousBeltTable.dfRow2SyncBelt( dfrow[1, :] )
+  #   @test sb == sb2
+  # end
+
+  # @testitem "SynchronousBeltTable lookups" begin
+  #   using UnitTypes
+  #   bdf = SynchronousBeltTable.generateBeltDataFrame(pitch=MilliMeter(2), width=MilliMeter(6), toothRange=10:15:300)
+  #   append!(bdf, SynchronousBeltTable.generateBeltDataFrame(pitch=MilliMeter(4), width=MilliMeter(6), toothRange=10:15:300) )
+  #   append!(bdf, SynchronousBeltTable.generateBeltDataFrame(pitch=MilliMeter(4), width=MilliMeter(9), toothRange=10:15:300) )
+  #   # @show bdf
+
+  #   nr = size(bdf,1)
+
+  #   # #match any pitch & width
+  #   # pitch=MilliMeter(-1)
+  #   # bp = pitch > 0mm
+  #   # width=MilliMeter(-1)
+  #   # bw = width > 0mm
+  #   # @show bdf[ ( fill(!bp, nr) .|| bdf.pitch .== pitch) .& ( fill(!bw, nr) .|| bdf.width .== width), :] 
+  # # 
+  #   # #restrict to pitch=2
+  #   # pitch=MilliMeter(2)
+  #   # bp = pitch > 0mm
+  #   # width=MilliMeter(-1)
+  #   # bw = width > 0mm
+  #   # @show bdf[ ( fill(!bp, nr) .|| bdf.pitch .== pitch) .& ( fill(!bw, nr) .|| bdf.width .== width), :] 
+  # # 
+  #   # #restrict to width=6
+  #   # pitch=MilliMeter(-1)
+  #   # bp = pitch > 0mm
+  #   # width=MilliMeter(6)
+  #   # bw = width > 0mm
+  #   # @show bdf[ ( fill(!bp, nr) .|| bdf.pitch .== pitch) .& ( fill(!bw, nr) .|| bdf.width .== width), :] 
+  # # 
+  #   # #restrict to pitch=2, width=6
+  #   # pitch=MilliMeter(2)
+  #   # bp = pitch > 0mm
+  #   # width=MilliMeter(6)
+  #   # bw = width > 0mm
+  #   # @show bdf[ ( fill(!bp, nr) .|| bdf.pitch .== pitch) .& ( fill(!bw, nr) .|| bdf.width .== width), :] 
+
+  #   length=MilliMeter(100)
+  #   pitch=MilliMeter(2)
+  #   width=MilliMeter(6)
+
+  #   retdf = SynchronousBeltTable.lookupLength( bdf, length )
+  #   @test size(retdf,1) == nr
+
+  #   retdf = SynchronousBeltTable.lookupLength( bdf, length, pitch=pitch, width=width, n=1)
+  #   sb = SynchronousBeltTable.dfRow2SyncBelt( retdf )
+  #   @test sb.length == MilliMeter(110) && sb.pitch==MilliMeter(2) && sb.width==MilliMeter(6)
+  # end
 
 
 
