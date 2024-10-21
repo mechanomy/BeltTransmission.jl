@@ -416,3 +416,4 @@ end
   @test toStringPoints(seg) == "FreeSegment: depart[A] [100.000mm, 110.000mm] --> arrive[B] [-100.000mm, 110.000mm] l[200.000mm]@[180.000°]"
 end
 
+

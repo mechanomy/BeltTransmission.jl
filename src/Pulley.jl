@@ -221,3 +221,61 @@ end
 end
 
 
+@recipe(PlotPulley, pulley) do scene # creates pulleyplot() and pulleyplot!() 
+  Theme()
+  Attributes(
+    widthBelt=3,
+    colorBelt=:magenta,
+    colorPulley="#4040ff55",
+    nCircle=100 # number of points on a circle
+  )
+end
+# function Makie.plot!(pp::PlotPulley)
+function Makie.plot!(pp::PlotPulley{<:Tuple{<:AbstractPulley}})
+  pulley = pp[:pulley][] # extract the Pulley from the pp, [] to unroll the observable
+
+  # pulley body
+  x = toBaseFloat(pulley.pitch.center.x) # all plotting is in base unit, user can change axes if wanted
+  y = toBaseFloat(pulley.pitch.center.y)
+  rOut = toBaseFloat(pulley.pitch.radius)
+  rIn = rOut*0.1
+  ths = LinRange(0, 2*π, pp[:nCircle][])
+  ptsOut = map(t->Point2f(x + rOut*cos(t), y + rOut*sin(t)), ths)
+  ptsIn  = map(t->Point2f(x + rIn*cos(t) , y + rIn*sin(t)),  ths) # put rIn* inside Point2F to ensure it comes out as 2f!
+  pulleyGon = Makie.GeometryBasics.Polygon( ptsOut, [ptsIn] )
+  poly!(pp, pulleyGon, color=pp[:colorPulley][]) # needs to be given pp in place of the axs... https://github.com/MakieOrg/Makie.jl/issues/4039
+  
+  # wrapped segment:
+  #  fix zero crossings:
+  pad = pulley.depart
+  if pulley.axis≈Geometry2D.uk && pulley.depart < pulley.arrive #positive rotation, need to increase depart by 2pi
+    pad += Radian(2*π)
+  end
+  paa = pulley.arrive
+  if pulley.axis ≈ -Geometry2D.uk && pulley.arrive < pulley.depart
+    paa += Radian(2*π)
+  end
+
+  ths = LinRange(paa, pad, pp[:nCircle][])
+  xs = x .+ rOut .* cos.(ths)
+  ys = y .+ rOut .* sin.(ths)
+  lines!(pp, xs,ys, color=pp[:colorBelt][], linewidth=pp[:widthBelt][] )
+
+  return pp
+end
+
+@testitem "plotPulley recipe" begin
+  using UnitTypes, Geometry2D
+  using CairoMakie, MakieCore
+  ppa = PlainPulley(Geometry2D.Circle(MilliMeter(0),MilliMeter(0), MilliMeter(4)), Geometry2D.uk, Radian(1), Radian(4), "PlainPulleyA") 
+  p = plotpulley(ppa, widthBelt=4, colorBelt=:red, colorPulley=:blue, nCircle=80)
+  @test typeof(p) <: Makie.FigureAxisPlot
+  # display(p);
+
+  fig = Figure(backgroundcolor="#bbb", size=(1000,1000))
+  axs = Axis(fig[1,1], xlabel="X", ylabel="Y", aspect=DataAspect())
+  p = plotpulley!(axs, ppa, widthBelt=4, colorBelt=:red, colorPulley=:blue, nCircle=80)
+  @test typeof(p) <: MakieCore.Plot
+  # display(p);
+end
+

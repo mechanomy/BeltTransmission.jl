@@ -67,3 +67,43 @@ end
 # end
 # function calculateTransmissionRatios(segments::Vector{T}) where T<:AbstractSegment
 # end
+
+@recipe(PlotFreeSegment, segment) do scene
+  Theme()
+  Attributes(
+    widthBelt=3,
+    colorBelt=:cyan,
+    # label=toStringShort(segment) # segment not found?...
+  )
+end
+function Makie.plot!(pfs::PlotFreeSegment)
+  seg = pfs[:segment][] # extract the segment from the pfs, [] to unroll the observable
+
+  pd = getDeparturePoint( seg )
+  pa = getArrivalPoint( seg )
+  xs = LinRange( toBaseFloat(pd.x), toBaseFloat(pa.x), 100 )
+  ys = LinRange( toBaseFloat(pd.y), toBaseFloat(pa.y), 100 )
+  lines!(pfs, xs,ys, color=pfs[:colorBelt][], linewidth=pfs[:widthBelt][])#, label=pfs[:label][])
+  return pfs
+end
+
+@testitem "plotFreeSegment Recipe" begin
+  using UnitTypes, Geometry2D
+  using CairoMakie, MakieCore
+  ppa = PlainPulley(Geometry2D.Circle(MilliMeter(0),MilliMeter(0), MilliMeter(4)), Geometry2D.uk, Radian(1), Radian(4), "PlainPulleyA") 
+  ppb = PlainPulley(Geometry2D.Circle(MilliMeter(10),MilliMeter(10), MilliMeter(6)), -Geometry2D.uk, Radian(1), Radian(4), "PlainPulleyB") 
+  spc = SynchronousPulley( center=Geometry2D.Point2D(MilliMeter(20),MilliMeter(40)), axis=Geometry2D.uk, nGrooves=22, beltPitch=MilliMeter(2), arrive=Radian(1), depart=Radian(4), name="SyncPulleyA" )
+  
+  segab = FreeSegment(depart=ppa, arrive=ppb)
+  segac = FreeSegment(depart=ppa, arrive=spc)
+  segbc = FreeSegment(depart=ppb, arrive=spc)
+
+  fig = Figure(backgroundcolor="#bbb", size=(1000,1000))
+  axs = Axis(fig[1,1], xlabel="X", ylabel="Y", aspect=DataAspect())
+  p = plotfreesegment!(axs, segab, colorBelt=:red, widthBelt=3)
+  p = plotfreesegment!(axs, segbc, colorBelt=:green, widthBelt=8)
+  p = plotfreesegment!(axs, segac, colorBelt=:yellow, widthBelt=10)
+  # display(fig)
+
+  @test typeof(p) <: MakieCore.Plot
+end

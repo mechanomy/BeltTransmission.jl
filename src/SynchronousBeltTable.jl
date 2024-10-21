@@ -239,8 +239,8 @@ module SynchronousBeltTable
 
   @testitem "SynchronousBeltTable roundtrip test: generateBeltDataFrame() -> writeBeltCSV() -> readBeltCSV()" begin
     using UnitTypes
-    # tdir = tempdir()
-    tdir = @__DIR__
+    tdir = tempdir()
+    # tdir = @__DIR__
     bpath = joinpath(tdir, "generateBeltTable.csv") 
     bdf = BeltTransmission.SynchronousBeltTable.generateBeltDataFrame(pitch=MilliMeter(3.5), width=MilliMeter(4), toothRange=10:5:30)
     SynchronousBeltTable.writeBeltCSV(bdf, bpath)

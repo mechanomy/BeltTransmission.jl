@@ -90,3 +90,19 @@ end
 end
 
 
+# # Is there a way to overload PlotPulley with pulley-specific defaults?
+# @recipe(PlotPlainPulley, pulley) do scene # creates plotplainpulley() and plotplainpulley!() 
+#   Theme()
+#   Attributes(
+#     widthBelt=3,
+#     colorBelt=:magenta,
+#     colorPulley="#4050ff55", # slightly differs from Pulley
+#     nCircle=100 # number of points on a circle
+#   )
+# end
+# # function Makie.plot!(ppp::PlotPlainPulley{<:Tuple{<:Makie.Axis, <:PlainPulley}}) # ERROR: No recipe for plotplainpulley with args: Tuple{BeltTransmission.PlainPulley}
+# # function Makie.plot!(ppp::PlotPlainPulley{<:Tuple{<:PlainPulley}}) # ERROR: No recipe for plotpulley with args: Tuple{}
+# function Makie.plot!(ppp::PlotPlainPulley{<:Tuple{PlainPulley}}) # ERROR: No recipe for plotpulley with args: Tuple{}
+#   plotpulley!(ppp, widthBelt=ppp[:widthBelt][], colorBelt=ppp[:colorBelt][], colorPulley=ppp[:colorPulley][], nCircle=ppp[:nCircle][], )
+#   return ppp
+# end

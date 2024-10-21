@@ -123,3 +123,49 @@ end
 # function calculateCenterDistance( bs::BeltSystem, which::Integer )
 # # function calculateCenterDistance( a::AbstractPulley, b::AbstractPulley, belt::AbstractBelt )
 # end
+
+@recipe(PlotPulleySystem, pulleyVector) do scene 
+  Theme()
+  Attributes(
+    colorBeltFree=:cyan,
+    colorBeltPulley=:magenta,
+    colorPulley="#4050ff99",
+    widthBelt=3,
+  )
+end
+function Makie.plot!(pps::PlotPulleySystem)
+  psys = pps[:pulleyVector][] # extract the PulleyVector from the pps, [] to unroll the observable
+  nr = length(psys)
+
+  # plot each pulley and create FreeSegments between arrive/departs
+  # plot segments first, 'behind' pulleys
+  for ir in 1:nr
+    plotfreesegment!(pps, FreeSegment( depart=psys[ir], arrive=psys[Utility.iNext(ir,nr)]), colorBelt=pps[:colorBeltFree][], widthBelt=pps[:widthBelt][] )
+  end
+
+  #plot pulleys
+  for ir in 1:nr
+    plotpulley!(pps, psys[ir], colorBelt=pps[:colorBeltPulley][], widthBelt=pps[:widthBelt][], colorPulley=pps[:colorPulley][])
+  end
+
+  return pps
+end
+
+@testitem "plotPulleySystem Recipe" begin
+  using UnitTypes, Geometry2D
+  using CairoMakie, MakieCore
+  ppa = PlainPulley(Geometry2D.Circle(MilliMeter(0),MilliMeter(0), MilliMeter(4)), Geometry2D.uk, Radian(1), Radian(4), "PlainPulleyA") 
+  ppb = PlainPulley(Geometry2D.Circle(MilliMeter(10),MilliMeter(10), MilliMeter(6)), -Geometry2D.uk, Radian(1), Radian(4), "PlainPulleyB") 
+  spa = SynchronousPulley( center=Geometry2D.Point2D(MilliMeter(20),MilliMeter(40)), axis=Geometry2D.uk, nGrooves=22, beltPitch=MilliMeter(2), arrive=Radian(1), depart=Radian(4), name="SyncPulleyA" )
+  spb = SynchronousPulley( center=Geometry2D.Point2D( MilliMeter(0),MilliMeter(40)), axis=Geometry2D.uk, nGrooves=12, beltPitch=MilliMeter(2), arrive=Radian(1), depart=Radian(4), name="SyncPulleyB" )
+
+  route = [ppa, ppb, spa, spb]
+  solved = calculateRouteAngles(route)
+  
+  fig = Figure(backgroundcolor="#bbb", size=(1000,1000))
+  axs = Axis(fig[1,1], xlabel="X", ylabel="Y", aspect=DataAspect())
+  p = plotpulleysystem!(axs,solved, colorBeltFree=:red, colorBeltPulley=:green, colorPulley=:orange, widthBelt=4)
+  # display(fig)
+
+  @test typeof(p) <: MakieCore.Plot
+end

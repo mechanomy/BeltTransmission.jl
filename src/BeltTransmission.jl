@@ -41,7 +41,10 @@ module BeltTransmission
   using LinearAlgebra:normalize, cross, dot
   using UUIDs
 
-  # using RecipesBase
+  using Makie # use full makie until makiecore can be tested
+  # using MakieCore
+  # using CairoMakie
+
   __precompile__(false)
 
   #INCLUDE ORDER MATTERS!
@@ -58,18 +61,9 @@ module BeltTransmission
 
   include("SynchronousBeltTable.jl")
 
-  # include("PlotsRecipes.jl")
-
   include("BeltSystem.jl")
 
   include("Optimizer.jl")
-
-  # module OOPT
-  #   function nope()
-  #     println("nope")
-  #   end
-  # end
-  # export OOPT
 
 end # BeltTransmission
 
