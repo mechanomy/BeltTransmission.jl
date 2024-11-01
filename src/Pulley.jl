@@ -224,27 +224,26 @@ end
 @recipe(PlotPulley, pulley) do scene # creates pulleyplot() and pulleyplot!() 
   Theme()
   Attributes(
-    widthBelt=3,
-    colorBelt=:magenta,
-    colorPulley="#4040ff55",
-    nCircle=100 # number of points on a circle
+    nCircle=100, # number of points on a circle
+    linewidth=3,
+    color=:magenta,
+    colormap=nothing,
+    colorPulley="#40404055",
+    label=nothing
   )
 end
-# function Makie.plot!(pp::PlotPulley)
 function Makie.plot!(pp::PlotPulley{<:Tuple{<:AbstractPulley}})
   pulley = pp[:pulley][] # extract the Pulley from the pp, [] to unroll the observable
 
-  # pulley body
+  if isnothing(pp[:label][])
+    pp[:label] = pulley.name
+  end
+
   x = toBaseFloat(pulley.pitch.center.x) # all plotting is in base unit, user can change axes if wanted
   y = toBaseFloat(pulley.pitch.center.y)
   rOut = toBaseFloat(pulley.pitch.radius)
   rIn = rOut*0.1
-  ths = LinRange(0, 2*π, pp[:nCircle][])
-  ptsOut = map(t->Point2f(x + rOut*cos(t), y + rOut*sin(t)), ths)
-  ptsIn  = map(t->Point2f(x + rIn*cos(t) , y + rIn*sin(t)),  ths) # put rIn* inside Point2F to ensure it comes out as 2f!
-  pulleyGon = Makie.GeometryBasics.Polygon( ptsOut, [ptsIn] )
-  poly!(pp, pulleyGon, color=pp[:colorPulley][]) # needs to be given pp in place of the axs... https://github.com/MakieOrg/Makie.jl/issues/4039
-  
+
   # wrapped segment:
   #  fix zero crossings:
   pad = pulley.depart
@@ -259,7 +258,21 @@ function Makie.plot!(pp::PlotPulley{<:Tuple{<:AbstractPulley}})
   ths = LinRange(paa, pad, pp[:nCircle][])
   xs = x .+ rOut .* cos.(ths)
   ys = y .+ rOut .* sin.(ths)
-  lines!(pp, xs,ys, color=pp[:colorBelt][], linewidth=pp[:widthBelt][] )
+  # lines!(pp, xs,ys, linewidth=pp[:linewidth][], colormap=pp[:colormap][], color=1:pp[:nCircle][])#, colorrange=pp[:colorrange][])#, label=toStringShort(seg))
+  if isnothing(pp[:colormap][])
+    lines!(pp, xs,ys, linewidth=pp[:linewidth][], color=pp[:color][], label=pp[:label][])
+  else
+    lines!(pp, xs,ys, linewidth=pp[:linewidth][], colormap=pp[:colormap][], color=1:pp[:nCircle][], label=pp[:label][])
+  end
+
+  # pulley body
+  ths = LinRange(0, 2*π, pp[:nCircle][])
+  ptsOut = map(t->Point2f(x + rOut*cos(t), y + rOut*sin(t)), ths)
+  ptsIn  = map(t->Point2f(x + rIn*cos(t) , y + rIn*sin(t)),  ths) # put rIn* inside Point2F to ensure it comes out as 2f!
+  pulleyGon = Makie.GeometryBasics.Polygon( ptsOut, [ptsIn] )
+  poly!(pp, pulleyGon, color=pp[:colorPulley][]) # needs to be given pp in place of the axs... https://github.com/MakieOrg/Makie.jl/issues/4039
+
+  text!(pp, x+rIn*1.1, y+rIn*1.1, text=pp[:label][], align=(:left,:top))#,color=linecolor, fontsize=fontsize )
 
   return pp
 end
@@ -277,5 +290,12 @@ end
   p = plotpulley!(axs, ppa, widthBelt=4, colorBelt=:red, colorPulley=:blue, nCircle=80)
   @test typeof(p) <: MakieCore.Plot
   # display(p);
+
+  
+  # plotpulley!(axs, solved[1], colormap=:jet, linewidth=5, colorPulley="#335577ff", label="A")
+  # plotpulley!(axs, solved[2], colormap=:jet, linewidth=5)
+  # plotpulley!(axs, solved[3], colormap=:flag, linewidth=3)
+  # plotpulley!(axs, solved[4], color=:yellow, linewidth=5)
+ 
 end
 

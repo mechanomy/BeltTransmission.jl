@@ -59,7 +59,7 @@ end
 
   solved = calculateRouteAngles(route)
   printSegments( route2Segments( solved ) )
-  @test true
+  @test true # how to test console? or I shouldn't print anything and just let the user @show...
 end
 
 
@@ -71,19 +71,37 @@ end
 @recipe(PlotFreeSegment, segment) do scene
   Theme()
   Attributes(
-    widthBelt=3,
-    colorBelt=:cyan,
-    # label=toStringShort(segment) # segment not found?...
+    linewidth=3,
+    colormap=nothing,
+    colorrange=(1,2),
+    color=:magenta,
+    label=nothing,
   )
 end
-function Makie.plot!(pfs::PlotFreeSegment)
+function Makie.plot!(pfs::PlotFreeSegment{<:Tuple{<:AbstractSegment}})
   seg = pfs[:segment][] # extract the segment from the pfs, [] to unroll the observable
+
+  if isnothing(pfs[:label][])
+    pfs[:label] = toString(seg)
+  end
 
   pd = getDeparturePoint( seg )
   pa = getArrivalPoint( seg )
-  xs = LinRange( toBaseFloat(pd.x), toBaseFloat(pa.x), 100 )
-  ys = LinRange( toBaseFloat(pd.y), toBaseFloat(pa.y), 100 )
-  lines!(pfs, xs,ys, color=pfs[:colorBelt][], linewidth=pfs[:widthBelt][])#, label=pfs[:label][])
+  # xs = LinRange( toBaseFloat(pd.x), toBaseFloat(pa.x), 100 )
+  # ys = LinRange( toBaseFloat(pd.y), toBaseFloat(pa.y), 100 )
+  xs = [toBaseFloat(pd.x), toBaseFloat(pa.x)]
+  ys = [toBaseFloat(pd.y), toBaseFloat(pa.y)]
+  # lines!(pfs, xs,ys, color=pfs[:colorBelt][], linewidth=pfs[:widthBelt][])#, label=pfs[:label][])
+
+  mxy(as) = as[1] + diff(as)[1]/1.8 # not /2 to provide a small gap
+  text!(pfs, mxy(xs), mxy(ys), text=pfs[:label][], align=(:left,:top))#,color=linecolor, fontsize=fontsize )
+
+  if isnothing(pfs[:colormap][])
+    lines!(pfs, xs,ys, linewidth=pfs[:linewidth][], color=pfs[:color][], label=pfs[:label][])
+  else
+    lines!(pfs, xs,ys, linewidth=pfs[:linewidth][], colormap=pfs[:colormap][], colorrange=(0,1), color=0:1, label=toString(seg))
+  end
+
   return pfs
 end
 
@@ -103,7 +121,15 @@ end
   p = plotfreesegment!(axs, segab, colorBelt=:red, widthBelt=3)
   p = plotfreesegment!(axs, segbc, colorBelt=:green, widthBelt=8)
   p = plotfreesegment!(axs, segac, colorBelt=:yellow, widthBelt=10)
+  # p = plot!(axs, segac, colorBelt=:yellow, widthBelt=10) # I'd prefer to overload plot! than have plotfreesegment...
   # display(fig)
 
   @test typeof(p) <: MakieCore.Plot
+
+
+
+  # plotfreesegment!(axs, seg12, colormap=:Dark2_3, linewidth=5, label="A-B")
+  # plotfreesegment!(axs, seg23, color=:magenta, linewidth=5)
+  # plotfreesegment!(axs, seg34, colormap=:Paired_10, linewidth=5)
+  # plotfreesegment!(axs, seg41, color=:black, linewidth=5)
 end

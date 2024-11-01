@@ -43,8 +43,6 @@ BeltSystem(pulleys::Vector{AbstractPulley}, belt::AbstractBelt ) = BeltSystem(pu
   @test typeof(BeltSystem(pSolved, belt)) <: BeltSystem
 end
 
-
-
 """
   $TYPEDSIGNATURES
   Calculate the transmission ratio matrix between all pulleys, returning a matrix of ratios.
@@ -74,7 +72,6 @@ end
   @test rats[1,2] ≈ calculateRatio(pA, pB)
   @test rats[2,1] ≈ calculateRatio(pB, pA)
 end
-
 
 """
   $TYPEDSIGNATURES
@@ -129,6 +126,7 @@ end
   Attributes(
     colorBeltFree=:cyan,
     colorBeltPulley=:magenta,
+    colormapBelt=nothing, # use solid colorBeltFree and colorBeltPulley, else use this colormap for both
     colorPulley="#4050ff99",
     widthBelt=3,
   )
@@ -140,12 +138,20 @@ function Makie.plot!(pps::PlotPulleySystem)
   # plot each pulley and create FreeSegments between arrive/departs
   # plot segments first, 'behind' pulleys
   for ir in 1:nr
-    plotfreesegment!(pps, FreeSegment( depart=psys[ir], arrive=psys[Utility.iNext(ir,nr)]), colorBelt=pps[:colorBeltFree][], widthBelt=pps[:widthBelt][] )
+    if isnothing(pps[:colormapBelt][])
+      plotfreesegment!(pps, FreeSegment( depart=psys[ir], arrive=psys[Utility.iNext(ir,nr)]), color=pps[:colorBeltFree][], linewidth=pps[:widthBelt][] )
+    else
+      plotfreesegment!(pps, FreeSegment( depart=psys[ir], arrive=psys[Utility.iNext(ir,nr)]), colormap=pps[:colormapBelt][], linewidth=pps[:widthBelt][] )
+    end
   end
 
   #plot pulleys
   for ir in 1:nr
-    plotpulley!(pps, psys[ir], colorBelt=pps[:colorBeltPulley][], widthBelt=pps[:widthBelt][], colorPulley=pps[:colorPulley][])
+    if isnothing(pps[:colormapBelt][])
+      plotpulley!(pps, psys[ir], color=pps[:colorBeltPulley][], linewidth=pps[:widthBelt][], colorPulley=pps[:colorPulley][])
+    else
+      plotpulley!(pps, psys[ir], colormap=pps[:colormapBelt][], linewidth=pps[:widthBelt][], colorPulley=pps[:colorPulley][])
+    end
   end
 
   return pps
@@ -166,6 +172,7 @@ end
   axs = Axis(fig[1,1], xlabel="X", ylabel="Y", aspect=DataAspect())
   p = plotpulleysystem!(axs,solved, colorBeltFree=:red, colorBeltPulley=:green, colorPulley=:orange, widthBelt=4)
   # display(fig)
-
   @test typeof(p) <: MakieCore.Plot
+
+  # plotpulleysystem!(axs,solved, colormapBelt=:jet, colorPulley=:orange, widthBelt=8)
 end

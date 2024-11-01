@@ -43,7 +43,6 @@ module BeltTransmission
 
   using Makie # use full makie until makiecore can be tested
   # using MakieCore
-  # using CairoMakie
 
   __precompile__(false)
 
@@ -67,3 +66,8 @@ module BeltTransmission
 
 end # BeltTransmission
 
+
+# release checklist:
+# ] tests pass
+# ] allow precompilation...can this be a test?
+# ] 
